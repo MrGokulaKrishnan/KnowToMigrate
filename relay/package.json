@@ -1,0 +1,17 @@
+{
+  "name": "@knowtomigrate/relay",
+  "version": "2.0.0",
+  "description": "Encrypted zero-knowledge WebSocket relay fallback for KnowToMigrate",
+  "private": true,
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "typescript": "^5.4.5"
+  }
+}

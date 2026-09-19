@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KnowToMigrate — Web Receiver</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    body { background-color: #000000; color: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.035);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+  <div class="glass-card max-w-md w-full p-8 text-center space-y-6">
+    <div class="w-16 h-16 rounded-2xl bg-[#FF5A00]/20 border border-[#FF5A00]/40 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(255,90,0,0.3)]">
+      <span class="text-2xl font-black text-[#FF5A00]">⚡</span>
+    </div>
+    <div>
+      <h1 class="text-2xl font-black text-white">KnowToMigrate Web Receiver</h1>
+      <p class="text-xs text-gray-400 mt-1">Zero-install encrypted P2P receiver via WebRTC DataChannel</p>
+    </div>
+
+    <div class="p-6 rounded-2xl bg-black/60 border border-white/5 space-y-3">
+      <span class="text-[10px] uppercase font-bold tracking-widest text-[#FF8A00]">Session Code</span>
+      <div id="session-code" class="text-3xl font-mono font-black text-white tracking-widest">
+        KTM-8942
+      </div>
+      <p class="text-xs text-emerald-400">● Waiting for sender to connect...</p>
+    </div>
+
+    <div id="progress-container" class="hidden space-y-2">
+      <div class="flex justify-between text-xs text-gray-400">
+        <span id="file-name">Receiving...</span>
+        <span id="file-percent">0%</span>
+      </div>
+      <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+        <div id="progress-bar" class="h-full bg-[#FF5A00] rounded-full" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <p class="text-[11px] text-gray-500">
+      Transfers are peer-to-peer and encrypted with AES-256-GCM via the Web Crypto API. No files are stored in the cloud.
+    </p>
+  </div>
+</body>
+</html>

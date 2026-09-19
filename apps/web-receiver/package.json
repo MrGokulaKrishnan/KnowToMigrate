@@ -1,0 +1,16 @@
+{
+  "name": "@knowtomigrate/web-receiver",
+  "version": "2.0.0",
+  "description": "Zero-install WebRTC browser receiver for KnowToMigrate",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10"
+  }
+}

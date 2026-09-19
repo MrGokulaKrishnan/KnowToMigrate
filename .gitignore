@@ -1,0 +1,5 @@
+node_modules
+dist
+.ktm-checkpoint.json
+*.log
+.DS_Store

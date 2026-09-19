@@ -1,0 +1,47 @@
+/**
+ * KnowToMigrate - Design System Tokens
+ * Theme: AMOLED Pure Black + KM Electric Orange + Liquid Glass & Glossy Effects
+ */
+
+:root {
+  /* Surface Tokens */
+  --km-bg-pure: #000000;
+  --km-bg-secondary: #050505;
+  --km-bg-tertiary: #0A0A0A;
+  --km-bg-elevated: #111111;
+
+  /* Glass Surface Tokens */
+  --km-glass-surface: rgba(255, 255, 255, 0.035);
+  --km-glass-surface-hover: rgba(255, 255, 255, 0.065);
+  --km-glass-surface-active: rgba(255, 255, 255, 0.090);
+  --km-glass-border: rgba(255, 255, 255, 0.08);
+  --km-glass-border-bright: rgba(255, 255, 255, 0.16);
+  --km-glass-highlight: rgba(255, 255, 255, 0.05);
+
+  /* Brand KM Electric Orange Tokens */
+  --km-orange: #FF5A00;
+  --km-orange-bright: #FF6A00;
+  --km-orange-amber: #FF8A00;
+  --km-orange-soft: #FFB066;
+  --km-orange-glow: rgba(255, 90, 0, 0.22);
+  --km-orange-glow-intense: rgba(255, 90, 0, 0.45);
+
+  /* Gradients */
+  --km-gradient-energy: linear-gradient(135deg, #FF4D00 0%, #FF6500 50%, #FF9A3D 100%);
+  --km-gradient-glass: linear-gradient(135deg, rgba(255, 90, 0, 0.15) 0%, rgba(255, 77, 0, 0.02) 100%);
+
+  /* Semantic Status Tokens */
+  --km-status-success: #22C55E;
+  --km-status-warning: #F59E0B;
+  --km-status-error: #EF4444;
+  --km-status-info: #38BDF8;
+
+  /* Typography Scale */
+  --km-font-display: 40px;
+  --km-font-h1: 28px;
+  --km-font-h2: 22px;
+  --km-font-title: 18px;
+  --km-font-body: 15px;
+  --km-font-caption: 13px;
+  --km-font-tiny: 11px;
+}
