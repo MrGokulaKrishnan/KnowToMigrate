@@ -3,3 +3,6 @@ dist
 .ktm-checkpoint.json
 *.log
 .DS_Store
+
+core/target/
+target/

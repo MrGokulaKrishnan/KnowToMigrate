@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -8,7 +8,7 @@ using Microsoft.UI.Dispatching;
 
 namespace KnowToMigrate.Services
 {
-    // ─────────────────────────── Data models ───────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Data models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public class DeviceInfo
     {
@@ -59,7 +59,7 @@ namespace KnowToMigrate.Services
             $"{bytes:F0} B";
     }
 
-    // ─────────────────────────── Service ───────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Service â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Thin managed wrapper around the native KTM engine.
@@ -78,20 +78,20 @@ namespace KnowToMigrate.Services
 
         private DispatcherQueue? _dispatcher;
 
-        // ──────── Public state ────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€ Public state â”€â”€â”€â”€â”€â”€â”€â”€
 
         public ObservableCollection<DeviceInfo>     NearbyDevices   { get; } = new();
         public ObservableCollection<TransferRecord> TransferHistory { get; } = new();
 
         public bool IsDemoMode { get; private set; }
 
-        // ──────── Events ────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€ Events â”€â”€â”€â”€â”€â”€â”€â”€
 
         public event Action<TransferProgress>?           OnProgress;
         public event Action<DeviceInfo, string>?         OnIncomingRequest; // (device, manifestJson)
         public event Action<string>?                     OnError;
 
-        // ─────────────────────────── Lifecycle ─────────────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         public void Initialize()
         {
@@ -119,7 +119,7 @@ namespace KnowToMigrate.Services
             }
         }
 
-        // ─────────────────────────── Discovery ─────────────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Discovery â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         public void StartDiscovery()
         {
@@ -160,7 +160,7 @@ namespace KnowToMigrate.Services
             KtmInterop.ktm_stop_discovery(_handle);
         }
 
-        // ─────────────────────────── Send ──────────────────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Send â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         /// <summary>
         /// Initiates a file send. Returns the session ID string (from native)
@@ -179,7 +179,7 @@ namespace KnowToMigrate.Services
             return sessionHandle.ToString();
         }
 
-        // ─────────────────────────── Receive ───────────────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Receive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         public void StartReceiving(string receiveDir)
         {
@@ -191,7 +191,7 @@ namespace KnowToMigrate.Services
             KtmInterop.ktm_receive_start(_handle, receiveDir, _requestDelegate, _progressDelegate);
         }
 
-        // ─────────────────────────── Cancel ────────────────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Cancel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         public void CancelTransfer(string sessionId)
         {
@@ -199,7 +199,7 @@ namespace KnowToMigrate.Services
             KtmInterop.ktm_cancel(_handle, sessionId);
         }
 
-        // ─────────────────────────── Info ──────────────────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         public string GetDeviceId()
         {
@@ -213,7 +213,7 @@ namespace KnowToMigrate.Services
             catch { return "demo-1.0.0"; }
         }
 
-        // ─────────────────────────── Private helpers ───────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         private KtmInterop.TransferProgressCallback BuildProgressDelegate() =>
             (sessionId, bytesSent, totalBytes, speedBps, etaSecs) =>
@@ -285,7 +285,7 @@ namespace KnowToMigrate.Services
             });
         }
 
-        // ─────────────────────────── Dispose ───────────────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Dispose â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         public void Dispose()
         {
@@ -302,3 +302,4 @@ namespace KnowToMigrate.Services
         }
     }
 }
+

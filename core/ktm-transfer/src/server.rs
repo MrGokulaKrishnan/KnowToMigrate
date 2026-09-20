@@ -1,8 +1,6 @@
 use tokio::net::{TcpListener, TcpStream};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use std::path::Path;
 use std::sync::Arc;
-use tokio::sync::Mutex;
 
 /// Callback type for transfer progress updates
 pub type ProgressCallback = Arc<dyn Fn(ProgressEvent) + Send + Sync>;
@@ -168,7 +166,7 @@ async fn handle_connection(
                 let relative_path = String::from_utf8(file_path_bytes)
                     .map_err(|_| std::io::Error::new(std::io::ErrorKind::InvalidData, "Bad path UTF-8"))?;
 
-                let safe_path = guard.resolve(&relative_path)
+                let safe_path = guard.validate(&relative_path)
                     .map_err(|e| std::io::Error::new(std::io::ErrorKind::PermissionDenied, e))?;
 
                 // Ensure parent dir exists

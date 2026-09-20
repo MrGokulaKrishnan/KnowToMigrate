@@ -2,7 +2,7 @@ use tokio::net::TcpStream;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use std::path::Path;
 use std::time::Instant;
-use crate::chunker::Chunker;
+use crate::chunker::{FileChunker, CHUNK_SIZE};
 
 const HEADER_MAGIC: &[u8; 4] = b"KTM2";
 
@@ -46,7 +46,7 @@ impl TransferClient {
     pub async fn send_files(
         &self,
         files: &[impl AsRef<Path>],
-        on_progress: impl Fn(TransferClientProgress),
+        mut on_progress: impl FnMut(TransferClientProgress),
     ) -> std::io::Result<()> {
         let addr = format!("{}:{}", self.target_ip, self.target_port);
         let mut stream = TcpStream::connect(&addr).await?;
@@ -93,24 +93,23 @@ impl TransferClient {
         let start = Instant::now();
         let mut total_sent = 0u64;
 
-        // Stream each file in 8MB chunks
+        // Stream each file in chunks using blocking FileChunker
         for (file_idx, file_path) in files.iter().enumerate() {
-            let path = file_path.as_ref();
+            let path = file_path.as_ref().to_path_buf();
             let file_name = path.file_name()
                 .and_then(|n| n.to_str())
                 .unwrap_or("file")
                 .to_string();
 
-            let chunker = Chunker::open(path).await?;
-            let mut chunk_stream = chunker.into_stream();
+            // Read file chunks synchronously inside spawn_blocking
+            let chunks = tokio::task::spawn_blocking(move || -> std::io::Result<Vec<crate::chunker::Chunk>> {
+                let chunker = FileChunker::open(&path, CHUNK_SIZE)?;
+                chunker.collect::<std::io::Result<Vec<_>>>()
+            }).await
+              .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))??;
 
             let mut chunk_idx: u64 = 0;
-            while let Some(chunk_result) = {
-                use tokio_stream::StreamExt;
-                chunk_stream.next().await
-            } {
-                let chunk = chunk_result?;
-
+            for chunk in chunks {
                 let path_bytes = file_name.as_bytes();
                 let path_len = path_bytes.len() as u16;
 

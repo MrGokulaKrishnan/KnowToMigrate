@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 
 namespace KnowToMigrate.Interop
@@ -8,7 +8,7 @@ namespace KnowToMigrate.Interop
     /// </summary>
     internal static class KtmInterop
     {
-        private const string KtmDll = "ktm";
+        private const string KtmDll = "ktm_ffi";
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void DeviceDiscoveredCallback([MarshalAs(UnmanagedType.LPStr)] string deviceJson);
@@ -75,3 +75,4 @@ namespace KnowToMigrate.Interop
         public static extern void ktm_free_string(IntPtr ptr);
     }
 }
+

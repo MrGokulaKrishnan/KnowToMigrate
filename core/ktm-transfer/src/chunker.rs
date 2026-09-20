@@ -156,7 +156,7 @@ impl Iterator for FileChunker {
 /// `tokio::task::spawn_blocking`.
 pub async fn stream_chunks<F>(path: &Path, chunk_size: usize, mut callback: F) -> io::Result<()>
 where
-    F: FnMut(Chunk) -> io::Result<()>,
+    F: FnMut(Chunk) -> io::Result<()> + Send + 'static,
 {
     let path = path.to_path_buf();
     tokio::task::spawn_blocking(move || {

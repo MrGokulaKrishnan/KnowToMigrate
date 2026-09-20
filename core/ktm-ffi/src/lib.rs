@@ -1,9 +1,9 @@
-use std::ffi::{CStr, CString, c_char, c_int};
+﻿use std::ffi::{CStr, CString, c_char, c_int};
 use std::panic::catch_unwind;
 use std::ptr;
 
 // ============================================================
-// KTM Handle — opaque pointer exposed to C callers
+// KTM Handle â€” opaque pointer exposed to C callers
 // ============================================================
 
 pub struct KtmHandle {
@@ -161,7 +161,7 @@ pub unsafe extern "C" fn ktm_stop_discovery(handle: *mut KtmHandle) {
 }
 
 // ============================================================
-// File Transfer — Send
+// File Transfer â€” Send
 // ============================================================
 
 pub type TransferProgressCallback = unsafe extern "C" fn(
@@ -202,7 +202,7 @@ pub unsafe extern "C" fn ktm_send_file(
         if let Some(rt) = &h.runtime {
             let sid2 = sid_clone.clone();
             rt.spawn(async move {
-                use crate::client::TransferClient;
+                use ktm_transfer::client::TransferClient;
                 use std::path::Path;
 
                 let client = TransferClient::new(
@@ -237,7 +237,7 @@ pub unsafe extern "C" fn ktm_send_file(
 }
 
 // ============================================================
-// File Transfer — Receive
+// File Transfer â€” Receive
 // ============================================================
 
 pub type TransferRequestCallback = unsafe extern "C" fn(
@@ -265,8 +265,8 @@ pub unsafe extern "C" fn ktm_receive_start(
 
         if let Some(rt) = &h.runtime {
             rt.spawn(async move {
-                use crate::server::TransferServer;
-                use crate::server::TransferRequest;
+                use ktm_transfer::server::TransferServer;
+                use ktm_transfer::server::TransferRequest;
 
                 let server = TransferServer::new(
                     54124,
@@ -353,3 +353,4 @@ pub unsafe extern "C" fn ktm_free_string(ptr: *mut c_char) {
     }
     drop(CString::from_raw(ptr));
 }
+

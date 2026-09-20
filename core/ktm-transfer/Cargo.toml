@@ -13,3 +13,5 @@ ktm-crypto = { path = "../ktm-crypto" }
 tokio-util = { version = "0.7", features = ["codec", "io"] }
 bytes = "1"
 hex = "0.4"
+tracing = "0.1"
+tokio-stream = "0.1"

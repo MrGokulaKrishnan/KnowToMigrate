@@ -16,7 +16,15 @@
     <AssemblyName>KnowToMigrate</AssemblyName>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
+    <ApplicationIcon>Assets\KnowToMigrate.ico</ApplicationIcon>
+    <Win32Resource></Win32Resource>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\KnowToMigrate.ico" />
+    <Content Include="Assets\AppIcon.png" />
+    <Content Include="Assets\logo.jpg" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.241114003" />

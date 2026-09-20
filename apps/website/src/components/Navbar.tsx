@@ -1,17 +1,19 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Menu, X, Github } from 'lucide-react'
 
-const LightningLogo = () => (
-  <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="nav-bolt" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#FF8A00" />
-        <stop offset="100%" stopColor="#FF4D00" />
-      </linearGradient>
-    </defs>
-    <path d="M18 3L8 18h8l-2 11 14-15h-8l2-11z" fill="url(#nav-bolt)" />
-  </svg>
+const KmLogo = () => (
+  <div className="flex items-center gap-2.5">
+    <img
+      src="/logo.jpg"
+      alt="KnowToMigrate"
+      className="w-8 h-8 rounded-lg border border-[#FF5A00]/30 object-cover"
+      style={{ boxShadow: '0 0 12px rgba(255,90,0,0.25)' }}
+    />
+    <span className="font-extrabold text-white text-base leading-none">
+      Know<span className="bg-gradient-to-r from-[#FF4D00] to-[#FF8A00] bg-clip-text text-transparent">To</span>Migrate
+    </span>
+  </div>
 )
 
 const navLinks = [
@@ -96,7 +98,7 @@ export function Navbar() {
                 justifyContent: 'center',
               }}
             >
-              <LightningLogo />
+              <KmLogo />
             </div>
             <span
               style={{
@@ -266,3 +268,4 @@ export function Navbar() {
     </>
   )
 }
+

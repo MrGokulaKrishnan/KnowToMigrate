@@ -1,4 +1,4 @@
-use std::path::Path;
+// preflight: no extra imports needed here
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

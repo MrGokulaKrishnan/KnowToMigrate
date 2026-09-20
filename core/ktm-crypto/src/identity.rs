@@ -206,7 +206,7 @@ impl DeviceIdentity {
         let public_key = PublicKey::from(pub_bytes);
 
         Ok(Self {
-            device_id: file.device_id,
+            device_id: file.device_id.clone(),
             public_key,
             secret,
         })
