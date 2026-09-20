@@ -1,0 +1,335 @@
+/**
+ * KnowToMigrate Design System — CSS Custom Properties
+ * Move Anything. Anywhere. Seamlessly.
+ *
+ * Auto-generated from design/tokens/tokens.json v1.0.0
+ * Do NOT edit manually — update tokens.json and regenerate.
+ *
+ * Usage:
+ *   import 'design/tokens/tokens.css';
+ *   background: var(--ktm-bg-primary);
+ *   color: var(--ktm-brand-primary);
+ */
+
+/* ============================================================
+   ROOT — All tokens mounted as CSS variables
+   ============================================================ */
+:root {
+  /* ----------------------------------------------------------
+     BACKGROUND COLORS
+     ---------------------------------------------------------- */
+  --ktm-bg-primary:   #000000;
+  --ktm-bg-secondary: #050505;
+  --ktm-bg-tertiary:  #080808;
+  --ktm-bg-card:      #0C0C0C;
+  --ktm-bg-elevated:  #111111;
+
+  /* ----------------------------------------------------------
+     BRAND COLORS
+     ---------------------------------------------------------- */
+  --ktm-brand-primary:    #FF5A00;
+  --ktm-brand-gradient-1: #FF4D00;
+  --ktm-brand-gradient-2: #FF5A00;
+  --ktm-brand-gradient-3: #FF6A00;
+  --ktm-brand-gradient-4: #FF8A00;
+  --ktm-brand-gradient-5: #FFB066;
+
+  /* ----------------------------------------------------------
+     TEXT COLORS
+     ---------------------------------------------------------- */
+  --ktm-text-primary:  #FFFFFF;
+  --ktm-text-secondary: #D4D4D4;
+  --ktm-text-muted:    #8A8A8A;
+  --ktm-text-disabled: #555555;
+
+  /* ----------------------------------------------------------
+     STATUS COLORS
+     ---------------------------------------------------------- */
+  --ktm-status-success: #22C55E;
+  --ktm-status-warning: #F59E0B;
+  --ktm-status-error:   #EF4444;
+  --ktm-status-info:    #38BDF8;
+
+  /* ----------------------------------------------------------
+     GLASS COLORS
+     ---------------------------------------------------------- */
+  --ktm-glass-bg:               rgba(255, 255, 255, 0.04);
+  --ktm-glass-border:           rgba(255, 255, 255, 0.08);
+  --ktm-glass-highlight:        rgba(255, 255, 255, 0.12);
+  --ktm-glass-orange-glow:      rgba(255, 90, 0, 0.15);
+  --ktm-glass-orange-glow-strong: rgba(255, 90, 0, 0.25);
+
+  /* ----------------------------------------------------------
+     TYPOGRAPHY — FONT FAMILIES
+     ---------------------------------------------------------- */
+  --ktm-font-primary: 'Inter', 'SF Pro Display', 'Segoe UI Variable', system-ui, sans-serif;
+  --ktm-font-mono:    'JetBrains Mono', 'Cascadia Code', monospace;
+
+  /* ----------------------------------------------------------
+     TYPOGRAPHY — SCALE
+     ---------------------------------------------------------- */
+  --ktm-text-xs:   11px;
+  --ktm-text-sm:   13px;
+  --ktm-text-base: 15px;
+  --ktm-text-md:   17px;
+  --ktm-text-lg:   20px;
+  --ktm-text-xl:   24px;
+  --ktm-text-2xl:  30px;
+  --ktm-text-3xl:  36px;
+  --ktm-text-4xl:  48px;
+  --ktm-text-hero: 64px;
+
+  /* ----------------------------------------------------------
+     TYPOGRAPHY — WEIGHT
+     ---------------------------------------------------------- */
+  --ktm-weight-regular:   400;
+  --ktm-weight-medium:    500;
+  --ktm-weight-semibold:  600;
+  --ktm-weight-bold:      700;
+  --ktm-weight-extrabold: 800;
+
+  /* ----------------------------------------------------------
+     TYPOGRAPHY — LINE HEIGHT
+     ---------------------------------------------------------- */
+  --ktm-lh-tight:   1.2;
+  --ktm-lh-snug:    1.35;
+  --ktm-lh-normal:  1.5;
+  --ktm-lh-relaxed: 1.65;
+
+  /* ----------------------------------------------------------
+     SPACING
+     ---------------------------------------------------------- */
+  --ktm-space-1:  4px;
+  --ktm-space-2:  8px;
+  --ktm-space-3:  12px;
+  --ktm-space-4:  16px;
+  --ktm-space-5:  20px;
+  --ktm-space-6:  24px;
+  --ktm-space-8:  32px;
+  --ktm-space-10: 40px;
+  --ktm-space-12: 48px;
+  --ktm-space-16: 64px;
+  --ktm-space-20: 80px;
+  --ktm-space-24: 96px;
+
+  /* ----------------------------------------------------------
+     BORDER RADIUS
+     ---------------------------------------------------------- */
+  --ktm-radius-sm:   8px;
+  --ktm-radius-md:   12px;
+  --ktm-radius-lg:   18px;
+  --ktm-radius-xl:   24px;
+  --ktm-radius-2xl:  32px;
+  --ktm-radius-full: 9999px;
+
+  /* ----------------------------------------------------------
+     SHADOWS
+     ---------------------------------------------------------- */
+  --ktm-shadow-sm:           0 2px 8px rgba(0, 0, 0, 0.4);
+  --ktm-shadow-md:           0 4px 16px rgba(0, 0, 0, 0.5);
+  --ktm-shadow-lg:           0 8px 32px rgba(0, 0, 0, 0.6);
+  --ktm-shadow-xl:           0 16px 48px rgba(0, 0, 0, 0.7);
+  --ktm-shadow-orange-glow:  0 0 24px rgba(255, 90, 0, 0.3), 0 0 48px rgba(255, 90, 0, 0.15);
+  --ktm-shadow-orange-glow-lg: 0 0 48px rgba(255, 90, 0, 0.4), 0 0 96px rgba(255, 90, 0, 0.2);
+  --ktm-shadow-gloss:        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+  /* ----------------------------------------------------------
+     GRADIENTS
+     ---------------------------------------------------------- */
+  --ktm-gradient-brand:        linear-gradient(135deg, #FF4D00 0%, #FF5A00 30%, #FF6A00 60%, #FF8A00 100%);
+  --ktm-gradient-brand-subtle: linear-gradient(135deg, #FF4D0022 0%, #FF8A0022 100%);
+  --ktm-gradient-surface:      linear-gradient(180deg, #111111 0%, #080808 100%);
+  --ktm-gradient-card:         linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  --ktm-gradient-gloss:        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 50%);
+  --ktm-gradient-success-glow: linear-gradient(135deg, #22C55E22 0%, #22C55E11 100%);
+
+  /* ----------------------------------------------------------
+     GLASS MORPHISM
+     ---------------------------------------------------------- */
+  --ktm-glass-blur:         16px;
+  --ktm-glass-blur-heavy:   32px;
+  --ktm-glass-saturation:   1.2;
+
+  --ktm-glass-surface-bg:     rgba(255, 255, 255, 0.04);
+  --ktm-glass-surface-border: 1px solid rgba(255, 255, 255, 0.08);
+  --ktm-glass-surface-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  --ktm-glass-card-bg:     rgba(255, 255, 255, 0.05);
+  --ktm-glass-card-border: 1px solid rgba(255, 255, 255, 0.10);
+  --ktm-glass-card-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  /* ----------------------------------------------------------
+     ANIMATION — DURATION
+     ---------------------------------------------------------- */
+  --ktm-duration-instant:   80ms;
+  --ktm-duration-fast:      150ms;
+  --ktm-duration-normal:    250ms;
+  --ktm-duration-slow:      400ms;
+  --ktm-duration-slower:    600ms;
+  --ktm-duration-discovery: 2000ms;
+  --ktm-duration-pulse:     1500ms;
+
+  /* ----------------------------------------------------------
+     ANIMATION — EASING
+     ---------------------------------------------------------- */
+  --ktm-ease-default:    cubic-bezier(0.4, 0, 0.2, 1);
+  --ktm-ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ktm-ease-smooth:     cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ktm-ease-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1);
+
+  /* ----------------------------------------------------------
+     ICONS
+     ---------------------------------------------------------- */
+  --ktm-icon-stroke:  1.75;
+  --ktm-icon-xs:  14px;
+  --ktm-icon-sm:  16px;
+  --ktm-icon-md:  20px;
+  --ktm-icon-lg:  24px;
+  --ktm-icon-xl:  32px;
+  --ktm-icon-2xl: 48px;
+
+  /* ----------------------------------------------------------
+     COMPONENT — BUTTON PRIMARY
+     ---------------------------------------------------------- */
+  --ktm-btn-primary-bg:          linear-gradient(135deg, #FF4D00, #FF8A00);
+  --ktm-btn-primary-radius:      12px;
+  --ktm-btn-primary-height:      48px;
+  --ktm-btn-primary-padding-x:   24px;
+  --ktm-btn-primary-font-weight: 600;
+  --ktm-btn-primary-font-size:   15px;
+  --ktm-btn-primary-gloss:       inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  --ktm-btn-primary-shadow:      0 4px 16px rgba(255, 90, 0, 0.35);
+
+  /* ----------------------------------------------------------
+     COMPONENT — BUTTON SECONDARY
+     ---------------------------------------------------------- */
+  --ktm-btn-secondary-bg:     rgba(255, 255, 255, 0.06);
+  --ktm-btn-secondary-border: 1px solid rgba(255, 255, 255, 0.12);
+  --ktm-btn-secondary-radius: 12px;
+  --ktm-btn-secondary-height: 48px;
+
+  /* ----------------------------------------------------------
+     COMPONENT — BUTTON DANGER
+     ---------------------------------------------------------- */
+  --ktm-btn-danger-bg:     rgba(239, 68, 68, 0.15);
+  --ktm-btn-danger-border: 1px solid rgba(239, 68, 68, 0.3);
+
+  /* ----------------------------------------------------------
+     COMPONENT — CARD
+     ---------------------------------------------------------- */
+  --ktm-card-bg:              rgba(255, 255, 255, 0.04);
+  --ktm-card-border:          1px solid rgba(255, 255, 255, 0.08);
+  --ktm-card-radius:          18px;
+  --ktm-card-padding:         20px;
+  --ktm-card-backdrop:        blur(16px);
+  --ktm-card-shadow:          0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  /* ----------------------------------------------------------
+     COMPONENT — DEVICE CARD
+     ---------------------------------------------------------- */
+  --ktm-device-card-radius:       18px;
+  --ktm-device-card-active-border: 1px solid rgba(255, 90, 0, 0.4);
+  --ktm-device-card-active-glow:  0 0 24px rgba(255, 90, 0, 0.25);
+
+  /* ----------------------------------------------------------
+     COMPONENT — PROGRESS BAR
+     ---------------------------------------------------------- */
+  --ktm-progress-height: 6px;
+  --ktm-progress-radius: 9999px;
+  --ktm-progress-bg:     rgba(255, 255, 255, 0.08);
+  --ktm-progress-fill:   linear-gradient(90deg, #FF4D00, #FF8A00);
+  --ktm-progress-glow:   0 0 12px rgba(255, 90, 0, 0.5);
+
+  /* ----------------------------------------------------------
+     COMPONENT — INPUT
+     ---------------------------------------------------------- */
+  --ktm-input-bg:          rgba(255, 255, 255, 0.05);
+  --ktm-input-border:      1px solid rgba(255, 255, 255, 0.10);
+  --ktm-input-radius:      12px;
+  --ktm-input-height:      48px;
+  --ktm-input-focus-border: 1px solid rgba(255, 90, 0, 0.5);
+  --ktm-input-focus-glow:  0 0 0 3px rgba(255, 90, 0, 0.15);
+
+  /* ----------------------------------------------------------
+     COMPONENT — BADGE
+     ---------------------------------------------------------- */
+  --ktm-badge-radius:    9999px;
+  --ktm-badge-padding-x: 10px;
+  --ktm-badge-padding-y: 3px;
+  --ktm-badge-font-size: 12px;
+  --ktm-badge-font-weight: 600;
+
+  /* ----------------------------------------------------------
+     ACCESSIBILITY
+     ---------------------------------------------------------- */
+  --ktm-focus-ring-width: 3px;
+  --ktm-focus-ring-color: rgba(255, 90, 0, 0.6);
+  --ktm-min-tap-target:   44px;
+}
+
+/* ============================================================
+   UTILITY CLASSES — Quick-apply design tokens
+   ============================================================ */
+
+/* Backgrounds */
+.ktm-bg-primary   { background-color: var(--ktm-bg-primary); }
+.ktm-bg-secondary { background-color: var(--ktm-bg-secondary); }
+.ktm-bg-card      { background-color: var(--ktm-bg-card); }
+.ktm-bg-elevated  { background-color: var(--ktm-bg-elevated); }
+.ktm-bg-brand     { background: var(--ktm-gradient-brand); }
+
+/* Text */
+.ktm-text-primary   { color: var(--ktm-text-primary); }
+.ktm-text-secondary { color: var(--ktm-text-secondary); }
+.ktm-text-muted     { color: var(--ktm-text-muted); }
+.ktm-text-brand     { color: var(--ktm-brand-primary); }
+.ktm-text-success   { color: var(--ktm-status-success); }
+.ktm-text-error     { color: var(--ktm-status-error); }
+.ktm-text-warning   { color: var(--ktm-status-warning); }
+.ktm-text-info      { color: var(--ktm-status-info); }
+
+/* Typography */
+.ktm-font-primary { font-family: var(--ktm-font-primary); }
+.ktm-font-mono    { font-family: var(--ktm-font-mono); }
+
+/* Glass surfaces */
+.ktm-glass-surface {
+  background:      var(--ktm-glass-surface-bg);
+  border:          var(--ktm-glass-surface-border);
+  box-shadow:      var(--ktm-glass-surface-shadow);
+  backdrop-filter: blur(var(--ktm-glass-blur)) saturate(var(--ktm-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--ktm-glass-blur)) saturate(var(--ktm-glass-saturation));
+}
+
+.ktm-glass-card {
+  background:      var(--ktm-glass-card-bg);
+  border:          var(--ktm-glass-card-border);
+  box-shadow:      var(--ktm-glass-card-shadow);
+  border-radius:   var(--ktm-card-radius);
+  backdrop-filter: blur(var(--ktm-glass-blur)) saturate(var(--ktm-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--ktm-glass-blur)) saturate(var(--ktm-glass-saturation));
+}
+
+/* Brand glow utilities */
+.ktm-glow-orange    { box-shadow: var(--ktm-shadow-orange-glow); }
+.ktm-glow-orange-lg { box-shadow: var(--ktm-shadow-orange-glow-lg); }
+
+/* Focus ring — accessibility */
+.ktm-focus-ring:focus-visible {
+  outline: var(--ktm-focus-ring-width) solid var(--ktm-focus-ring-color);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

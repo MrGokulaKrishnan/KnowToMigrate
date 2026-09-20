@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="KnowToMigrate.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:KnowToMigrate"
+    Title="KnowToMigrate">
+
+    <Grid>
+        <!-- Two-column layout: narrow sidebar + expanding content area -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="72" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+        <Border Grid.Column="0"
+                Background="#050505"
+                BorderBrush="#1A1A1A"
+                BorderThickness="0,0,1,0">
+            <StackPanel Orientation="Vertical"
+                        Spacing="8"
+                        Margin="8,24,8,8">
+
+                <!-- KM logo / brand button -->
+                <Button x:Name="LogoBtn"
+                        Width="56" Height="56"
+                        CornerRadius="18"
+                        Background="#FF5A00"
+                        BorderThickness="0"
+                        HorizontalAlignment="Center">
+                    <TextBlock Text="KM"
+                               FontWeight="ExtraBold"
+                               FontSize="18"
+                               Foreground="White"
+                               HorizontalAlignment="Center" />
+                </Button>
+
+                <!-- Spacer -->
+                <Border Height="12" />
+
+                <!-- Home -->
+                <Button x:Name="NavHome"
+                        Width="56" Height="56"
+                        CornerRadius="14"
+                        Background="#111111"
+                        BorderThickness="0"
+                        HorizontalAlignment="Center"
+                        ToolTipService.ToolTip="Home">
+                    <FontIcon Glyph="&#xE80F;" FontSize="20" Foreground="#FFFFFF" />
+                </Button>
+
+                <!-- Send -->
+                <Button x:Name="NavSend"
+                        Width="56" Height="56"
+                        CornerRadius="14"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        HorizontalAlignment="Center"
+                        ToolTipService.ToolTip="Send Files">
+                    <FontIcon Glyph="&#xE724;" FontSize="20" Foreground="#8A8A8A" />
+                </Button>
+
+                <!-- Receive -->
+                <Button x:Name="NavReceive"
+                        Width="56" Height="56"
+                        CornerRadius="14"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        HorizontalAlignment="Center"
+                        ToolTipService.ToolTip="Receive Files">
+                    <FontIcon Glyph="&#xE8B5;" FontSize="20" Foreground="#8A8A8A" />
+                </Button>
+
+                <!-- History -->
+                <Button x:Name="NavHistory"
+                        Width="56" Height="56"
+                        CornerRadius="14"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        HorizontalAlignment="Center"
+                        ToolTipService.ToolTip="Transfer History">
+                    <FontIcon Glyph="&#xE81C;" FontSize="20" Foreground="#8A8A8A" />
+                </Button>
+
+                <!-- Migration wizard -->
+                <Button x:Name="NavMigration"
+                        Width="56" Height="56"
+                        CornerRadius="14"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        HorizontalAlignment="Center"
+                        ToolTipService.ToolTip="PC Migration">
+                    <FontIcon Glyph="&#xE8AB;" FontSize="20" Foreground="#8A8A8A" />
+                </Button>
+
+                <!-- Push Settings to bottom -->
+                <StackPanel VerticalAlignment="Bottom" />
+
+                <!-- Settings -->
+                <Button x:Name="NavSettings"
+                        Width="56" Height="56"
+                        CornerRadius="14"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        HorizontalAlignment="Center"
+                        ToolTipService.ToolTip="Settings">
+                    <FontIcon Glyph="&#xE713;" FontSize="20" Foreground="#8A8A8A" />
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- ═══════════════════════ CONTENT ═══════════════════════ -->
+        <Frame x:Name="MainFrame" Grid.Column="1" />
+    </Grid>
+</Window>

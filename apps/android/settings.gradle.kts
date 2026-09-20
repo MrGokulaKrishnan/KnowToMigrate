@@ -1,4 +1,4 @@
-pluginManagement {
+pluginsManagement {
     repositories {
         google()
         mavenCentral()
@@ -12,6 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-
 rootProject.name = "KnowToMigrate"
 include(":app")

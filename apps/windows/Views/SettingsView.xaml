@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="KnowToMigrate.Views.SettingsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="#000000">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,24,32,32">
+        <StackPanel Spacing="24">
+
+            <!-- Header -->
+            <TextBlock Text="Settings" FontSize="28" FontWeight="Bold" Foreground="#FFFFFF" />
+
+            <!-- Device Section -->
+            <StackPanel Spacing="12">
+                <TextBlock Text="DEVICE" FontSize="11" FontWeight="Bold" Foreground="#FF5A00" CharacterSpacing="150" />
+                <Border Background="#0A0A0A" CornerRadius="16" Padding="20" BorderBrush="#1A1A1A" BorderThickness="1">
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Device Name" FontSize="12" Foreground="#8A8A8A" />
+                            <TextBox x:Name="DeviceNameBox" PlaceholderText="My Windows PC"
+                                     Background="#111111" Foreground="#FFFFFF" BorderBrush="#2A2A2A"
+                                     CornerRadius="10" Padding="12,10" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Transfer Section -->
+            <StackPanel Spacing="12">
+                <TextBlock Text="TRANSFERS" FontSize="11" FontWeight="Bold" Foreground="#FF5A00" CharacterSpacing="150" />
+                <Border Background="#0A0A0A" CornerRadius="16" Padding="20" BorderBrush="#1A1A1A" BorderThickness="1">
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Receive Folder" FontSize="12" Foreground="#8A8A8A" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="ReceiveDirBox" PlaceholderText="C:\Users\User\Downloads\KnowToMigrate"
+                                         Grid.Column="0" Background="#111111" Foreground="#FFFFFF"
+                                         BorderBrush="#2A2A2A" CornerRadius="10" Padding="12,10" />
+                                <Button Grid.Column="1" Content="Browse" Margin="8,0,0,0"
+                                        Click="BrowseReceiveDir_Click"
+                                        Background="#1AFF5A00" Foreground="#FF5A00"
+                                        BorderBrush="#33FF5A00" CornerRadius="10" Padding="16,10" />
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Visibility toggle -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Visible to Nearby Devices" FontSize="14" FontWeight="Medium" Foreground="#FFFFFF" />
+                                <TextBlock Text="Broadcast your device on the local network" FontSize="12" Foreground="#8A8A8A" Margin="0,2,0,0" />
+                            </StackPanel>
+                            <ToggleSwitch x:Name="VisibilityToggle" Grid.Column="1" IsOn="True"
+                                          OnContent="" OffContent="" />
+                        </Grid>
+
+                        <!-- Auto-accept toggle -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Auto-Accept Trusted Devices" FontSize="14" FontWeight="Medium" Foreground="#FFFFFF" />
+                                <TextBlock Text="Automatically accept transfers from trusted devices" FontSize="12" Foreground="#8A8A8A" Margin="0,2,0,0" />
+                            </StackPanel>
+                            <ToggleSwitch x:Name="AutoAcceptToggle" Grid.Column="1" IsOn="False"
+                                          OnContent="" OffContent="" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- About Section -->
+            <StackPanel Spacing="12">
+                <TextBlock Text="ABOUT" FontSize="11" FontWeight="Bold" Foreground="#FF5A00" CharacterSpacing="150" />
+                <Border Background="#0A0A0A" CornerRadius="16" Padding="20" BorderBrush="#1A1A1A" BorderThickness="1">
+                    <StackPanel Spacing="12">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Version" Foreground="#D4D4D4" FontSize="14" />
+                            <TextBlock Grid.Column="1" Text="1.0.0" Foreground="#8A8A8A" FontSize="14" />
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Protocol" Foreground="#D4D4D4" FontSize="14" />
+                            <TextBlock Grid.Column="1" Text="KTM v2" Foreground="#8A8A8A" FontSize="14" />
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Encryption" Foreground="#D4D4D4" FontSize="14" />
+                            <TextBlock Grid.Column="1" Text="AES-256-GCM" Foreground="#8A8A8A" FontSize="14" />
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Transfer Core" Foreground="#D4D4D4" FontSize="14" />
+                            <TextBlock Grid.Column="1" Text="Rust 1.98 (ktm.dll)" Foreground="#8A8A8A" FontSize="14" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Save button -->
+            <Button Content="Save Settings" Click="SaveSettings_Click"
+                    HorizontalAlignment="Left"
+                    Background="Transparent" Foreground="#FF5A00"
+                    BorderBrush="#FF5A00" BorderThickness="1"
+                    CornerRadius="12" Padding="24,12" FontWeight="SemiBold" />
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

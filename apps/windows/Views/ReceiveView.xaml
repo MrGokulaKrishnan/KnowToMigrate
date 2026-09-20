@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="KnowToMigrate.Views.ReceiveView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="#000000">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,28,32,32" Spacing="28">
+
+            <!-- Header -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Receive Files"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="#FFFFFF" />
+                <TextBlock Text="Make this device discoverable and accept incoming transfers"
+                           FontSize="14"
+                           Foreground="#8A8A8A" />
+            </StackPanel>
+
+            <!-- Discoverability card -->
+            <Border CornerRadius="16"
+                    Background="#0C0C0C"
+                    BorderBrush="#1A1A1A"
+                    BorderThickness="1"
+                    Padding="24">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Discoverable"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="#FFFFFF" />
+                        <TextBlock x:Name="DiscoverableSubtext"
+                                   Text="Other KnowToMigrate devices can see you on the local network"
+                                   FontSize="13"
+                                   Foreground="#8A8A8A"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <ToggleSwitch x:Name="DiscoverableToggle"
+                                  Grid.Column="1"
+                                  IsOn="True"
+                                  VerticalAlignment="Center"
+                                  Toggled="DiscoverableToggle_Toggled" />
+                </Grid>
+            </Border>
+
+            <!-- QR Code section -->
+            <Border CornerRadius="16"
+                    Background="#0C0C0C"
+                    BorderBrush="#1A1A1A"
+                    BorderThickness="1"
+                    Padding="24">
+                <StackPanel HorizontalAlignment="Center" Spacing="16">
+                    <TextBlock Text="Scan to Connect"
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               Foreground="#FFFFFF"
+                               HorizontalAlignment="Center" />
+
+                    <!-- QR placeholder -->
+                    <Border Width="180" Height="180"
+                            CornerRadius="12"
+                            Background="#111111"
+                            BorderBrush="#FF5A00"
+                            BorderThickness="2"
+                            HorizontalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+                            <FontIcon Glyph="&#xE91B;"
+                                      FontSize="48"
+                                      Foreground="#FF5A00" />
+                            <TextBlock Text="QR Code"
+                                       Foreground="#8A8A8A"
+                                       FontSize="13"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock x:Name="QrIpText"
+                                       Text="192.168.x.x:7700"
+                                       Foreground="#D4D4D4"
+                                       FontSize="12"
+                                       FontFamily="Consolas"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Open KnowToMigrate on the source device and scan this code"
+                               FontSize="12"
+                               Foreground="#8A8A8A"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               MaxWidth="260" />
+                </StackPanel>
+            </Border>
+
+            <!-- Receive directory -->
+            <Border CornerRadius="16"
+                    Background="#0C0C0C"
+                    BorderBrush="#1A1A1A"
+                    BorderThickness="1"
+                    Padding="24">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Save Location"
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               Foreground="#FFFFFF" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="ReceiveDirBox"
+                                 PlaceholderText="C:\Users\You\Downloads\KnowToMigrate"
+                                 Background="#111111"
+                                 Foreground="#D4D4D4"
+                                 BorderBrush="#333333"
+                                 CornerRadius="10"
+                                 Padding="14,10"
+                                 IsReadOnly="True" />
+                        <Button x:Name="BtnBrowseDir"
+                                Grid.Column="1"
+                                Content="Browse"
+                                Click="BtnBrowseDir_Click"
+                                Margin="10,0,0,0"
+                                CornerRadius="10"
+                                Background="Transparent"
+                                Foreground="#FF5A00"
+                                BorderBrush="#FF5A00"
+                                BorderThickness="1"
+                                Padding="16,10" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Incoming request area -->
+            <StackPanel x:Name="IncomingPanel" Spacing="12">
+                <TextBlock Text="Incoming Requests"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Foreground="#FFFFFF" />
+
+                <Border x:Name="NoIncomingBanner"
+                        CornerRadius="12"
+                        Background="#0C0C0C"
+                        BorderBrush="#1A1A1A"
+                        BorderThickness="1"
+                        Padding="20,16">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <FontIcon Glyph="&#xE8BD;" FontSize="22" Foreground="#8A8A8A" />
+                        <TextBlock Text="Waiting for incoming transfers…"
+                                   Foreground="#8A8A8A"
+                                   FontSize="14"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Dynamic request card (shown when request arrives) -->
+                <Border x:Name="RequestCard"
+                        CornerRadius="14"
+                        Background="#0D1A0D"
+                        BorderBrush="#4CAF50"
+                        BorderThickness="1"
+                        Padding="20,16"
+                        Visibility="Collapsed">
+                    <StackPanel Spacing="12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock x:Name="RequestSenderText"
+                                           Text="MacBook Pro"
+                                           FontWeight="SemiBold"
+                                           Foreground="#FFFFFF"
+                                           FontSize="15" />
+                                <TextBlock x:Name="RequestFilesText"
+                                           Text="wants to send 3 files (1.2 GB)"
+                                           Foreground="#D4D4D4"
+                                           FontSize="13" />
+                            </StackPanel>
+                            <Button x:Name="BtnAccept"
+                                    Grid.Column="1"
+                                    Content="Accept"
+                                    Click="BtnAccept_Click"
+                                    CornerRadius="10"
+                                    Background="#4CAF50"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Padding="20,10"
+                                    Margin="0,0,8,0" />
+                            <Button x:Name="BtnDecline"
+                                    Grid.Column="2"
+                                    Content="Decline"
+                                    Click="BtnDecline_Click"
+                                    CornerRadius="10"
+                                    Background="#1A1A1A"
+                                    Foreground="#D4D4D4"
+                                    BorderBrush="#333333"
+                                    BorderThickness="1"
+                                    Padding="20,10" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

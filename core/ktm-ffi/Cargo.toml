@@ -1,0 +1,16 @@
+[package]
+name = "ktm-ffi"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+ktm-crypto = { path = "../ktm-crypto" }
+ktm-protocol = { path = "../ktm-protocol" }
+ktm-discovery = { path = "../ktm-discovery" }
+ktm-transfer = { path = "../ktm-transfer" }
+ktm-migration = { path = "../ktm-migration" }
+tokio = { version = "1", features = ["full"] }
+serde_json = "1"

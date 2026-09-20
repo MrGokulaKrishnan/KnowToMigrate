@@ -1,0 +1,19 @@
+{
+  "name": "@knowtomigrate/core-engine",
+  "version": "2.0.0",
+  "description": "Cross-platform high-throughput file transfer & migration engine with chunked streaming, AES-256-GCM, and SHA-256 Merkle verification",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/tests/*.test.js"
+  },
+  "dependencies": {
+    "@knowtomigrate/protocol-types": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "typescript": "^5.4.5"
+  }
+}

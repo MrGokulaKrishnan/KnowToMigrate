@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="KnowToMigrate.Views.HomeView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="#000000">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,28,32,32" Spacing="24">
+
+            <!-- ── Hero ── -->
+            <StackPanel HorizontalAlignment="Center" Spacing="6">
+                <!-- Orange glow badge -->
+                <Border Width="72" Height="72"
+                        CornerRadius="22"
+                        Background="#FF5A00"
+                        HorizontalAlignment="Center">
+                    <!-- Simulated glow via shadow -->
+                    <Border.Shadow>
+                        <ThemeShadow />
+                    </Border.Shadow>
+                    <TextBlock Text="KM"
+                               FontWeight="ExtraBold"
+                               FontSize="28"
+                               Foreground="White"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
+
+                <TextBlock Text="KnowToMigrate"
+                           FontSize="26"
+                           FontWeight="Bold"
+                           Foreground="#FFFFFF"
+                           HorizontalAlignment="Center"
+                           Margin="0,8,0,0" />
+
+                <TextBlock Text="Ready to migrate"
+                           FontSize="14"
+                           Foreground="#8A8A8A"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <!-- ── Drop zone ── -->
+            <Border x:Name="DropZone"
+                    Height="180"
+                    CornerRadius="16"
+                    Background="#0A0A0A"
+                    BorderBrush="#FF5A00"
+                    BorderThickness="2"
+                    AllowDrop="True"
+                    DragOver="DropZone_DragOver"
+                    Drop="DropZone_Drop">
+                <!-- Dashed effect via inner border -->
+                <Border BorderBrush="#FF5A00"
+                        BorderThickness="0"
+                        Padding="24">
+                    <StackPanel VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Spacing="10">
+                        <FontIcon Glyph="&#xE7C3;"
+                                  FontSize="36"
+                                  Foreground="#FF5A00" />
+                        <TextBlock Text="Drop files here"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="#D4D4D4"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="or choose below"
+                                   FontSize="13"
+                                   Foreground="#8A8A8A"
+                                   HorizontalAlignment="Center" />
+
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="12"
+                                    HorizontalAlignment="Center"
+                                    Margin="0,6,0,0">
+                            <Button x:Name="BtnSelectFiles"
+                                    Content="Select Files"
+                                    Click="BtnSelectFiles_Click"
+                                    CornerRadius="10"
+                                    Background="#FF5A00"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Padding="20,10" />
+                            <Button x:Name="BtnSelectFolder"
+                                    Content="Select Folder"
+                                    Click="BtnSelectFolder_Click"
+                                    CornerRadius="10"
+                                    Background="#1A1A1A"
+                                    Foreground="#D4D4D4"
+                                    BorderThickness="1"
+                                    BorderBrush="#333333"
+                                    Padding="20,10" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Border>
+
+            <!-- ── Nearby Devices ── -->
+            <StackPanel Spacing="12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Nearby Devices"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="#FFFFFF"
+                               VerticalAlignment="Center" />
+                    <Button x:Name="BtnRefreshDevices"
+                            Grid.Column="1"
+                            Content="Refresh"
+                            Click="BtnRefreshDevices_Click"
+                            CornerRadius="8"
+                            Background="Transparent"
+                            Foreground="#FF5A00"
+                            BorderBrush="#FF5A00"
+                            BorderThickness="1"
+                            Padding="14,6" />
+                </Grid>
+
+                <ListView x:Name="DevicesList"
+                          ItemsSource="{x:Bind Devices}"
+                          SelectionMode="Single"
+                          Background="Transparent"
+                          ItemClick="DevicesList_ItemClick"
+                          IsItemClickEnabled="True">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Border CornerRadius="12"
+                                    Background="#0C0C0C"
+                                    BorderBrush="#1A1A1A"
+                                    BorderThickness="1"
+                                    Padding="16,12"
+                                    Margin="0,4">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Platform icon -->
+                                    <Border Width="40" Height="40"
+                                            CornerRadius="10"
+                                            Background="#1A1A1A"
+                                            Margin="0,0,14,0">
+                                        <FontIcon Glyph="&#xE770;"
+                                                  FontSize="20"
+                                                  Foreground="#FF5A00" />
+                                    </Border>
+
+                                    <!-- Device info -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#FFFFFF"
+                                                   FontSize="14" />
+                                        <TextBlock Text="{Binding Platform}"
+                                                   Foreground="#8A8A8A"
+                                                   FontSize="12" />
+                                    </StackPanel>
+
+                                    <!-- Online badge -->
+                                    <Border Grid.Column="2"
+                                            CornerRadius="6"
+                                            Padding="10,4"
+                                            VerticalAlignment="Center">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="#1A2F1A" />
+                                        </Border.Background>
+                                        <TextBlock Text="Online"
+                                                   Foreground="#4CAF50"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <TextBlock x:Name="NoDevicesText"
+                           Text="No devices found. Make sure KnowToMigrate is running on the target device."
+                           Foreground="#8A8A8A"
+                           FontSize="13"
+                           TextWrapping="Wrap"
+                           Visibility="Collapsed" />
+            </StackPanel>
+
+            <!-- ── Recent Transfers ── -->
+            <StackPanel Spacing="12">
+                <TextBlock Text="Recent Transfers"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="#FFFFFF" />
+
+                <ListView x:Name="RecentList"
+                          ItemsSource="{x:Bind RecentTransfers}"
+                          SelectionMode="None"
+                          Background="Transparent">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Border CornerRadius="12"
+                                    Background="#0C0C0C"
+                                    BorderBrush="#1A1A1A"
+                                    BorderThickness="1"
+                                    Padding="16,12"
+                                    Margin="0,4">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding FileName}"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#FFFFFF"
+                                                   FontSize="14" />
+                                        <TextBlock Text="{Binding PeerName}"
+                                                   Foreground="#8A8A8A"
+                                                   FontSize="12" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding SizeFormatted}"
+                                               Foreground="#D4D4D4"
+                                               FontSize="13"
+                                               VerticalAlignment="Center"
+                                               Margin="16,0" />
+                                    <Border Grid.Column="2"
+                                            CornerRadius="6"
+                                            Padding="10,4"
+                                            VerticalAlignment="Center"
+                                            Background="#1A2F1A">
+                                        <TextBlock Text="{Binding Status}"
+                                                   Foreground="#4CAF50"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

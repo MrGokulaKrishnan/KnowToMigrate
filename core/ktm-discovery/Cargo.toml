@@ -1,0 +1,10 @@
+[package]
+name = "ktm-discovery"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+ktm-protocol = { path = "../ktm-protocol" }

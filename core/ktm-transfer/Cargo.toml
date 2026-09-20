@@ -1,0 +1,15 @@
+[package]
+name = "ktm-transfer"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+ktm-protocol = { path = "../ktm-protocol" }
+ktm-crypto = { path = "../ktm-crypto" }
+tokio-util = { version = "0.7", features = ["codec", "io"] }
+bytes = "1"
+hex = "0.4"

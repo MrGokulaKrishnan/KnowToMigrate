@@ -1,0 +1,457 @@
+/**
+ * KnowToMigrate Design System — Animation Keyframes
+ * Move Anything. Anywhere. Seamlessly.
+ *
+ * Token source: design/tokens/tokens.json (animation section)
+ * Usage: import 'design/animations/animations.css';
+ *        then apply class or animation property referencing these keyframes.
+ *
+ * All animations respect prefers-reduced-motion via the tokens.css override.
+ */
+
+/* ============================================================
+   CSS CUSTOM PROPERTY SHORTHANDS (animation-specific)
+   Import tokens.css first, or define these standalone.
+   ============================================================ */
+:root {
+  --ktm-ease-default:    cubic-bezier(0.4, 0, 0.2, 1);
+  --ktm-ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ktm-ease-smooth:     cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ktm-ease-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1);
+
+  --ktm-brand-primary:   #FF5A00;
+  --ktm-brand-gradient:  linear-gradient(135deg, #FF4D00, #FF8A00);
+}
+
+/* ============================================================
+   1. ktm-pulse-ring — Discovery radar expanding rings
+   ============================================================
+   Usage:
+     .radar-ring {
+       animation: ktm-pulse-ring 2000ms var(--ktm-ease-decelerate) infinite;
+     }
+     Stagger child rings with animation-delay: 0ms, 500ms, 1000ms.
+   ============================================================ */
+@keyframes ktm-pulse-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+    border-color: rgba(255, 90, 0, 0.6);
+    box-shadow: 0 0 0 0 rgba(255, 90, 0, 0.4);
+  }
+  40% {
+    opacity: 0.5;
+    border-color: rgba(255, 90, 0, 0.35);
+  }
+  80% {
+    transform: scale(2.2);
+    opacity: 0.1;
+    border-color: rgba(255, 90, 0, 0.05);
+    box-shadow: 0 0 0 24px rgba(255, 90, 0, 0);
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+    border-color: transparent;
+    box-shadow: 0 0 0 32px rgba(255, 90, 0, 0);
+  }
+}
+
+/* Utility class — apply to a ring div around the central device icon */
+.ktm-radar-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(255, 90, 0, 0.5);
+  animation: ktm-pulse-ring 2000ms var(--ktm-ease-decelerate) infinite;
+  pointer-events: none;
+}
+
+.ktm-radar-ring:nth-child(2) { animation-delay: 500ms; }
+.ktm-radar-ring:nth-child(3) { animation-delay: 1000ms; }
+.ktm-radar-ring:nth-child(4) { animation-delay: 1500ms; }
+
+
+/* ============================================================
+   2. ktm-lightning-bolt — Energy transfer animation
+   ============================================================
+   Usage:
+     .transfer-bolt {
+       animation: ktm-lightning-bolt 600ms var(--ktm-ease-spring) forwards;
+     }
+   ============================================================ */
+@keyframes ktm-lightning-bolt {
+  0% {
+    opacity: 0;
+    transform: scaleX(0) scaleY(1.4);
+    filter: brightness(3) blur(4px);
+  }
+  15% {
+    opacity: 1;
+    transform: scaleX(0.3) scaleY(1.2);
+    filter: brightness(2.5) blur(2px);
+  }
+  35% {
+    transform: scaleX(0.7) scaleY(0.9);
+    filter: brightness(2) blur(1px);
+  }
+  55% {
+    opacity: 1;
+    transform: scaleX(1.05) scaleY(1.05);
+    filter: brightness(1.5) blur(0px);
+  }
+  70% {
+    transform: scaleX(0.98) scaleY(1);
+    filter: brightness(1.2) blur(0);
+  }
+  85% {
+    transform: scaleX(1) scaleY(1);
+    filter: brightness(1) drop-shadow(0 0 8px rgba(255, 90, 0, 0.6));
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1) scaleY(1);
+    filter: none;
+    opacity: 0.9;
+  }
+}
+
+/* Utility class */
+.ktm-lightning-bolt {
+  background: var(--ktm-brand-gradient);
+  border-radius: 2px;
+  transform-origin: left center;
+  animation: ktm-lightning-bolt 600ms var(--ktm-ease-spring) forwards;
+}
+
+
+/* ============================================================
+   3. ktm-progress-glow — Progress bar moving glow sweep
+   ============================================================
+   Usage:
+     .progress-fill::after {
+       animation: ktm-progress-glow 1500ms var(--ktm-ease-smooth) infinite;
+     }
+   ============================================================ */
+@keyframes ktm-progress-glow {
+  0% {
+    background-position: -100% 0;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    background-position: 50% 0;
+    opacity: 0.9;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    background-position: 200% 0;
+    opacity: 0;
+  }
+}
+
+/* Utility — wrapper and fill classes for a progress bar with glow sweep */
+.ktm-progress-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  position: relative;
+}
+
+.ktm-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #FF4D00, #FF8A00);
+  box-shadow: 0 0 12px rgba(255, 90, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+  transition: width 250ms var(--ktm-ease-smooth);
+}
+
+.ktm-progress-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.0) 30%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.0) 70%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: ktm-progress-glow 1500ms var(--ktm-ease-smooth) infinite;
+}
+
+
+/* ============================================================
+   4. ktm-fade-up — Element entrance animation
+   ============================================================
+   Usage:
+     .card { animation: ktm-fade-up 400ms var(--ktm-ease-decelerate) both; }
+     Stagger with animation-delay on each card.
+   ============================================================ */
+@keyframes ktm-fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+    filter: blur(4px);
+  }
+  50% {
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Utility class */
+.ktm-fade-up {
+  animation: ktm-fade-up 400ms var(--ktm-ease-decelerate) both;
+}
+
+/* Stagger helpers — apply to a list's children */
+.ktm-stagger > *:nth-child(1)  { animation-delay: 0ms; }
+.ktm-stagger > *:nth-child(2)  { animation-delay: 60ms; }
+.ktm-stagger > *:nth-child(3)  { animation-delay: 120ms; }
+.ktm-stagger > *:nth-child(4)  { animation-delay: 180ms; }
+.ktm-stagger > *:nth-child(5)  { animation-delay: 240ms; }
+.ktm-stagger > *:nth-child(6)  { animation-delay: 300ms; }
+.ktm-stagger > *:nth-child(7)  { animation-delay: 360ms; }
+.ktm-stagger > *:nth-child(8)  { animation-delay: 420ms; }
+.ktm-stagger > *:nth-child(n+9){ animation-delay: 480ms; }
+
+
+/* ============================================================
+   5. ktm-success-burst — Completion checkmark burst
+   ============================================================
+   Usage:
+     .success-icon {
+       animation: ktm-success-burst 600ms var(--ktm-ease-spring) both;
+     }
+     Place a checkmark icon or SVG inside the container.
+   ============================================================ */
+@keyframes ktm-success-burst {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-15deg);
+    filter: brightness(3) blur(6px);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1.25) rotate(5deg);
+    filter: brightness(2) blur(2px);
+  }
+  50% {
+    transform: scale(0.92) rotate(-2deg);
+    filter: brightness(1.3) blur(0px);
+  }
+  70% {
+    transform: scale(1.06) rotate(1deg);
+    filter: brightness(1.1);
+  }
+  85% {
+    transform: scale(0.98) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: none;
+  }
+}
+
+/* Success burst ring — expands behind the checkmark */
+@keyframes ktm-success-ring {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.8;
+    border-color: rgba(34, 197, 94, 0.8);
+  }
+  60% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+    border-color: rgba(34, 197, 94, 0);
+  }
+}
+
+.ktm-success-burst {
+  animation: ktm-success-burst 600ms var(--ktm-ease-spring) both;
+}
+
+.ktm-success-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid rgba(34, 197, 94, 0.7);
+  animation: ktm-success-ring 800ms var(--ktm-ease-smooth) forwards;
+}
+
+
+/* ============================================================
+   6. ktm-device-appear — Device card appearing in discovery
+   ============================================================
+   Usage:
+     .device-card {
+       animation: ktm-device-appear 500ms var(--ktm-ease-spring) both;
+     }
+   ============================================================ */
+@keyframes ktm-device-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.75) translateY(12px);
+    filter: blur(8px) brightness(0.6);
+    box-shadow: none;
+  }
+  30% {
+    opacity: 0.7;
+    filter: blur(2px) brightness(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.04) translateY(-2px);
+    filter: blur(0px) brightness(1.05);
+    box-shadow: 0 0 20px rgba(255, 90, 0, 0.2);
+  }
+  80% {
+    transform: scale(0.98) translateY(1px);
+    box-shadow: 0 0 12px rgba(255, 90, 0, 0.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: none;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Utility class */
+.ktm-device-appear {
+  animation: ktm-device-appear 500ms var(--ktm-ease-spring) both;
+}
+
+/* Active / selected device — breathing glow */
+@keyframes ktm-device-active-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 12px rgba(255, 90, 0, 0.2),
+      0 4px 16px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(255, 90, 0, 0.4),
+      0 4px 24px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  }
+}
+
+.ktm-device-active {
+  animation: ktm-device-active-glow 1500ms var(--ktm-ease-smooth) infinite;
+}
+
+
+/* ============================================================
+   7. ktm-data-stream — Data particle streaming between devices
+   ============================================================
+   Usage:
+     <div class="ktm-data-stream-container">
+       <span class="ktm-data-particle"></span>  <!-- repeat 4–6 -->
+     </div>
+   The container should be positioned absolutely between two device cards.
+   ============================================================ */
+@keyframes ktm-data-stream {
+  0% {
+    opacity: 0;
+    transform: translateX(0%) scale(0.5);
+    filter: blur(3px);
+  }
+  8% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateX(2%) scale(1);
+  }
+  88% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateX(95%) scale(1);
+  }
+  96% {
+    opacity: 0.5;
+    transform: translateX(98%) scale(0.7);
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.4);
+    filter: blur(3px);
+  }
+}
+
+/* Container for data stream particles */
+.ktm-data-stream-container {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 4px;
+  transform: translateY(-50%);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Individual data particle */
+.ktm-data-particle {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 4px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, transparent, #FF5A00, #FFB066, transparent);
+  box-shadow: 0 0 8px rgba(255, 90, 0, 0.8), 0 0 16px rgba(255, 90, 0, 0.4);
+  animation: ktm-data-stream 1200ms var(--ktm-ease-smooth) infinite;
+}
+
+/* Stagger particles for continuous flow effect */
+.ktm-data-particle:nth-child(1) { animation-delay: 0ms;    }
+.ktm-data-particle:nth-child(2) { animation-delay: 200ms;  }
+.ktm-data-particle:nth-child(3) { animation-delay: 400ms;  }
+.ktm-data-particle:nth-child(4) { animation-delay: 600ms;  }
+.ktm-data-particle:nth-child(5) { animation-delay: 800ms;  }
+.ktm-data-particle:nth-child(6) { animation-delay: 1000ms; }
+
+
+/* ============================================================
+   REDUCED MOTION — Disable all KTM animations
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .ktm-radar-ring,
+  .ktm-lightning-bolt,
+  .ktm-progress-fill::after,
+  .ktm-fade-up,
+  .ktm-success-burst,
+  .ktm-success-ring,
+  .ktm-device-appear,
+  .ktm-device-active,
+  .ktm-data-particle {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Ensure elements are still visible when animations are stripped */
+  .ktm-fade-up         { opacity: 1; transform: none; filter: none; }
+  .ktm-device-appear   { opacity: 1; transform: none; filter: none; }
+  .ktm-success-burst   { opacity: 1; transform: none; filter: none; }
+}

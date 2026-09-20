@@ -1,0 +1,86 @@
+name: Build Windows App
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-rust-windows:
+    name: Build Rust Core (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Build ktm.dll
+        run: |
+          cd core
+          cargo build --release -p ktm-ffi
+
+      - name: Upload ktm.dll
+        uses: actions/upload-artifact@v4
+        with:
+          name: ktm-dll
+          path: core/target/release/ktm.dll
+
+  build-windows-app:
+    name: Build Windows EXE
+    runs-on: windows-latest
+    needs: build-rust-windows
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Download ktm.dll
+        uses: actions/download-artifact@v4
+        with:
+          name: ktm-dll
+          path: apps/windows/
+
+      - name: Restore NuGet packages
+        run: dotnet restore apps/windows/KnowToMigrate.csproj
+
+      - name: Build Windows App
+        run: dotnet build apps/windows/KnowToMigrate.csproj -c Release
+
+      - name: Publish self-contained EXE
+        run: |
+          dotnet publish apps/windows/KnowToMigrate.csproj `
+            -c Release -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -o releases/windows/
+
+      - name: Compute SHA-256
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash releases/windows/KnowToMigrate.exe -Algorithm SHA256).Hash
+          $hash | Out-File releases/windows/KnowToMigrate.exe.sha256
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KnowToMigrate-Windows
+          path: |
+            releases/windows/KnowToMigrate.exe
+            releases/windows/KnowToMigrate.exe.sha256
+
+      - name: Create GitHub Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            releases/windows/KnowToMigrate.exe
+            releases/windows/KnowToMigrate.exe.sha256
+          generate_release_notes: true
