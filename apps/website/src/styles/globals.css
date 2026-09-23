@@ -257,3 +257,32 @@ body {
   background: rgba(255, 90, 0, 0.35);
   color: #fff;
 }
+
+/* ─── Reduced Motion ────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Specifically neutralize background-position animations */
+  .km-progress-bar,
+  .km-animate-shimmer {
+    animation: none !important;
+  }
+}
+
+/* ─── Focus visible (keyboard accessibility) ───────────── */
+:focus-visible {
+  outline: 2px solid rgba(255, 90, 0, 0.70);
+  outline-offset: 2px;
+}
+
+/* ─── Prevent horizontal overflow globally ──────────────── */
+body {
+  max-width: 100vw;
+}

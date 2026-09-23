@@ -1,27 +1,15 @@
 import { Link } from 'react-router-dom'
 import { Github, Shield, Heart } from 'lucide-react'
 
-const LightningLogo = () => (
-  <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="footer-bolt" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#FF8A00" />
-        <stop offset="100%" stopColor="#FF4D00" />
-      </linearGradient>
-    </defs>
-    <path d="M18 3L8 18h8l-2 11 14-15h-8l2-11z" fill="url(#footer-bolt)" />
-  </svg>
-)
-
 const footerLinks = {
   Product: [
     { label: 'Features', to: '/features' },
-    { label: 'Download', to: '/download' },
+    { label: 'Download Beta', to: '/download' },
     { label: 'Documentation', to: '/docs' },
   ],
   Legal: [
-    { label: 'Privacy', href: '#' },
-    { label: 'Security', href: '#' },
+    { label: 'Privacy Policy', to: '/privacy' },
+    { label: 'Security Model', to: '/security' },
     { label: 'License (MIT)', href: 'https://github.com/MrGokulaKrishnan/KnowToMigrate/blob/main/LICENSE' },
   ],
   Community: [
@@ -63,20 +51,15 @@ export function Footer() {
                 marginBottom: '0.75rem',
               }}
             >
-              <div
+              <img
+                src="/logo.jpg"
+                alt="KM"
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  background: 'rgba(255,90,0,0.1)',
-                  border: '1px solid rgba(255,90,0,0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  width: 32, height: 32, borderRadius: 8,
+                  border: '1px solid rgba(255,90,0,0.25)',
+                  objectFit: 'cover',
                 }}
-              >
-                <LightningLogo />
-              </div>
+              />
               <span
                 style={{
                   fontWeight: 700,
@@ -139,7 +122,7 @@ export function Footer() {
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                 {links.map(link => (
                   <li key={link.label}>
-                    {'to' in link ? (
+                    {'to' in link && typeof link.to === 'string' ? (
                       <Link
                         to={link.to}
                         style={{

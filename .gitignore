@@ -6,3 +6,7 @@ dist
 
 core/target/
 target/
+
+apps/android/.gradle/
+releases/android/
+core/target/

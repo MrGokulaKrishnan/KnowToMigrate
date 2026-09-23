@@ -26,6 +26,7 @@ export class TransferServer extends EventEmitter {
   private saveDirectory: string;
   private activeManifests: Map<string, FileItemManifest[]> = new Map();
   private verifiedChunkHashes: Map<string, string[]> = new Map(); // sessionId -> array of chunk hashes
+  private sockets: Set<net.Socket> = new Set();
 
   constructor(port: number = 54124, saveDirectory: string = './downloads') {
     super();
@@ -36,6 +37,8 @@ export class TransferServer extends EventEmitter {
   public async start(): Promise<number> {
     return new Promise((resolve, reject) => {
       this.server = net.createServer((socket) => {
+        this.sockets.add(socket);
+        socket.on('close', () => this.sockets.delete(socket));
         this.handleClientConnection(socket);
       });
 
@@ -53,6 +56,10 @@ export class TransferServer extends EventEmitter {
   }
 
   public stop(): void {
+    for (const socket of this.sockets) {
+      socket.destroy();
+    }
+    this.sockets.clear();
     if (this.server) {
       this.server.close();
       this.server = null;

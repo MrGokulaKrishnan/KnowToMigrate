@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Pause, Play, X, ShieldCheck, CheckCircle2, Film, Radio, Cpu } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Pause, Play, ShieldCheck, Film, CheckCircle2, RotateCcw } from 'lucide-react';
+import { useTransfer } from '../context/TransferContext';
+import { FileValidator } from '../services/fileValidator';
 
 interface TransferViewProps {
   onTransferComplete: () => void;
@@ -7,36 +9,56 @@ interface TransferViewProps {
 }
 
 export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, onCancel }) => {
-  const [isPaused, setIsPaused] = useState(false);
-  const [progress, setProgress] = useState(68.4);
-  const [speed, setSpeed] = useState(94.6);
-  const totalGB = 11.76;
+  const {
+    activeTransfer,
+    pauseTransfer,
+    resumeTransfer,
+    cancelTransfer,
+    targetDevice
+  } = useTransfer();
 
-  // Real-time progress ticker
+  // Watch for completion event
   useEffect(() => {
-    if (isPaused) return;
+    if (activeTransfer?.status === 'completed') {
+      const t = setTimeout(() => {
+        onTransferComplete();
+      }, 800);
+      return () => clearTimeout(t);
+    }
+  }, [activeTransfer?.status, onTransferComplete]);
 
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(timer);
-          onTransferComplete();
-          return 100;
-        }
-        return Math.min(100, prev + 0.4);
-      });
+  // Fallback defaults if view is navigated to directly without active transfer
+  const progress = activeTransfer?.percent ?? 0;
+  const speed = activeTransfer?.speedMBps ?? 94.6;
+  const isPaused = activeTransfer?.status === 'paused';
+  const isCompleted = activeTransfer?.status === 'completed';
+  const totalBytes = activeTransfer?.totalBytes || 11_760_000_000;
+  const transferredBytes = activeTransfer?.transferredBytes || Math.round((totalBytes * progress) / 100);
 
-      // Fluctuate speed slightly
-      setSpeed((prev) => +(94.0 + (Math.random() * 5 - 2.5)).toFixed(1));
-    }, 400);
+  const totalFormatted = FileValidator.formatBytes(totalBytes);
+  const transferredFormatted = FileValidator.formatBytes(transferredBytes);
 
-    return () => clearInterval(timer);
-  }, [isPaused, onTransferComplete]);
+  const etaSeconds = activeTransfer?.etaSeconds ?? (speed > 0 ? Math.round((totalBytes - transferredBytes) / (speed * 1024 * 1024)) : 0);
+  const etaFormatted = isPaused
+    ? 'Paused'
+    : isCompleted
+    ? 'Completed'
+    : `00m ${etaSeconds.toString().padStart(2, '0')}s`;
 
-  const transferredGB = ((totalGB * progress) / 100).toFixed(2);
   const circumference = 264;
   const strokeOffset = circumference - (circumference * progress) / 100;
-  const remainingSeconds = Math.max(0, Math.round(((totalGB * 1024 * (1 - progress / 100)) / (speed / 8))));
+
+  const chunkStates = activeTransfer?.chunkStates || Array.from({ length: 48 }, (_, i) =>
+    i < Math.round(48 * (progress / 100)) ? 'verified' : i === Math.round(48 * (progress / 100)) ? 'in_flight' : 'pending'
+  );
+
+  const sessionId = activeTransfer?.sessionId || 'KTM-8942-F20A';
+  const currentFileName = activeTransfer?.currentFileName || '4K_Drone_Cinematic_Footage.mp4';
+
+  const handleCancelClick = () => {
+    cancelTransfer();
+    onCancel();
+  };
 
   return (
     <div className="glass-panel p-8 relative overflow-hidden space-y-6">
@@ -46,45 +68,67 @@ export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
         <div>
           <div className="flex items-center gap-3">
-            <span className="px-2.5 py-1 rounded-full bg-[#22C55E]/15 text-[#22C55E] text-xs font-semibold border border-[#22C55E]/30 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-ping"></span> Live Transfer Active
+            <span
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5 ${
+                isCompleted
+                  ? 'bg-[#22C55E]/15 text-[#22C55E] border-[#22C55E]/30'
+                  : isPaused
+                  ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                  : 'bg-[#22C55E]/15 text-[#22C55E] border-[#22C55E]/30'
+              }`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  isCompleted
+                    ? 'bg-[#22C55E]'
+                    : isPaused
+                    ? 'bg-amber-400'
+                    : 'bg-[#22C55E] animate-ping'
+                }`}
+              ></span>
+              {isCompleted ? 'Transfer Verified' : isPaused ? 'Transfer Paused' : 'Live Transfer Active'}
             </span>
-            <span className="text-xs text-gray-400">Session ID: <code className="text-gray-300">KTM-8942-F20A</code></span>
+            <span className="text-xs text-gray-400">
+              Session ID: <code className="text-gray-300 font-mono">{sessionId}</code>
+            </span>
           </div>
           <h2 className="text-2xl font-black text-white mt-1.5">Direct P2P Streaming in Progress</h2>
           <p className="text-sm text-gray-400">
-            Target: <strong className="text-white">Krish's Phone</strong> (Google Pixel 8 Pro) · Direct Wi-Fi 6 (TLS 1.3)
+            Target: <strong className="text-white">{targetDevice}</strong> · Direct Wi-Fi 6 (TLS 1.3)
           </p>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2.5">
+          {!isCompleted && (
+            <button
+              type="button"
+              onClick={isPaused ? resumeTransfer : pauseTransfer}
+              className="km-glass-btn px-4 py-2 text-sm gap-2"
+            >
+              {isPaused ? (
+                <>
+                  <Play className="w-4 h-4 text-[#22C55E]" /> Resume Transfer
+                </>
+              ) : (
+                <>
+                  <Pause className="w-4 h-4 text-[#FF8A00]" /> Pause Transfer
+                </>
+              )}
+            </button>
+          )}
           <button
-            onClick={() => setIsPaused(!isPaused)}
-            className="km-glass-btn px-4 py-2 text-sm gap-2"
-          >
-            {isPaused ? (
-              <>
-                <Play className="w-4 h-4 text-[#22C55E]" /> Resume Transfer
-              </>
-            ) : (
-              <>
-                <Pause className="w-4 h-4 text-[#FF8A00]" /> Pause Transfer
-              </>
-            )}
-          </button>
-          <button
-            onClick={onCancel}
+            type="button"
+            onClick={handleCancelClick}
             className="km-glass-btn px-4 py-2 text-sm text-red-400 hover:text-red-300 border-red-500/20 hover:border-red-500/40"
           >
-            Cancel
+            {isCompleted ? 'Done' : 'Cancel'}
           </button>
         </div>
       </div>
 
       {/* Main Metrics & Visualizer Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center py-4">
-        
         {/* Speedometer Circle (4 cols) */}
         <div className="lg:col-span-4 flex flex-col items-center justify-center p-6 glass-card relative">
           <div className="relative w-44 h-44 flex items-center justify-center">
@@ -122,19 +166,20 @@ export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, 
               <span className="text-sm font-semibold text-gray-400">MB/s</span>
             </div>
             <p className="text-xs text-gray-400 mt-0.5">
-              ETA: <strong className="text-white font-mono">{isPaused ? 'Paused' : `00m ${remainingSeconds.toString().padStart(2, '0')}s`}</strong> remaining
+              ETA: <strong className="text-white font-mono">{etaFormatted}</strong> remaining
             </p>
           </div>
         </div>
 
         {/* Progression & Chunk Map (8 cols) */}
         <div className="lg:col-span-8 space-y-5">
-          
           {/* Overall Batch Progress */}
           <div>
             <div className="flex justify-between text-sm font-medium mb-1.5">
               <span className="text-gray-300">Overall Batch Progress</span>
-              <span className="text-white font-mono">{transferredGB} GB / {totalGB} GB</span>
+              <span className="text-white font-mono">
+                {transferredFormatted} / {totalFormatted}
+              </span>
             </div>
             <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/10">
               <div
@@ -153,45 +198,51 @@ export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, 
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-[#FF5A00]/20 flex items-center justify-center text-[#FF5A00]">
+              <div className="w-9 h-9 rounded-lg bg-[#FF5A00]/20 flex items-center justify-center text-[#FF5A00] shrink-0">
                 <Film className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between text-sm font-semibold truncate">
-                  <span className="truncate text-white">4K_Drone_Cinematic_Footage.mp4</span>
-                  <span className="text-gray-400 text-xs font-mono">1.94 GB / 2.84 GB</span>
+                  <span className="truncate text-white">{currentFileName}</span>
+                  <span className="text-gray-400 text-xs font-mono">
+                    {progress.toFixed(0)}%
+                  </span>
                 </div>
                 <div className="w-full h-1.5 bg-white/10 rounded-full mt-2 overflow-hidden">
-                  <div className="h-full bg-[#FF8A00] rounded-full" style={{ width: '68%' }}></div>
+                  <div
+                    className="h-full bg-[#FF8A00] rounded-full transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  ></div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 8MB Chunk Allocation Map (Blip style) */}
+          {/* 8MB Chunk Allocation Map */}
           <div>
             <div className="flex justify-between text-xs text-gray-400 mb-2">
-              <span>8MB Chunk Allocation Map (364 chunks in flight)</span>
-              <span className="text-[#FF8A00] font-mono">Chunk {Math.round(364 * (progress / 100))}/364</span>
+              <span>8MB Chunk Allocation Map ({chunkStates.length} chunks mapped)</span>
+              <span className="text-[#FF8A00] font-mono">
+                Verified: {chunkStates.filter((s) => s === 'verified').length}/{chunkStates.length}
+              </span>
             </div>
-            <div className="grid grid-cols-24 gap-1 p-2.5 rounded-xl bg-black/60 border border-white/5">
-              {Array.from({ length: 48 }).map((_, i) => {
-                const isDone = i < Math.round(48 * (progress / 100));
-                const isCurrent = i === Math.round(48 * (progress / 100));
-                return (
-                  <div
-                    key={i}
-                    className={`h-2.5 rounded-sm transition-all ${
-                      isDone
-                        ? 'bg-[#22C55E]'
-                        : isCurrent
-                        ? 'bg-[#FF5A00] animate-pulse'
-                        : 'bg-white/10'
-                    }`}
-                    title={`Chunk ${i + 1}`}
-                  ></div>
-                );
-              })}
+            <div
+              className="grid gap-1 p-2.5 rounded-xl bg-black/60 border border-white/5"
+              style={{ gridTemplateColumns: 'repeat(24, 1fr)' }}
+            >
+              {chunkStates.map((state, i) => (
+                <div
+                  key={i}
+                  className={`h-2.5 rounded-sm transition-all ${
+                    state === 'verified'
+                      ? 'bg-[#22C55E]'
+                      : state === 'in_flight'
+                      ? 'bg-[#FF5A00] animate-pulse'
+                      : 'bg-white/10'
+                  }`}
+                  title={`Chunk ${i + 1}: ${state}`}
+                ></div>
+              ))}
             </div>
             <div className="flex items-center gap-4 text-[11px] text-gray-400 mt-2">
               <span className="flex items-center gap-1.5">
@@ -205,7 +256,6 @@ export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, 
               </span>
             </div>
           </div>
-
         </div>
       </div>
 

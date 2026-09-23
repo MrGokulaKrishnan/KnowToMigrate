@@ -178,8 +178,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Write;
-    use tempfile::NamedTempFile; // Not a dep — test uses std tmp
 
     fn write_temp(data: &[u8]) -> std::path::PathBuf {
         let mut path = std::env::temp_dir();

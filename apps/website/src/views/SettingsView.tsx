@@ -1,15 +1,46 @@
-import React, { useState } from 'react';
-import { Settings, Shield, Folder, Eye, Zap, Cpu, Bell, HardDrive } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Settings, Shield, Folder, Eye, Zap, Cpu, Bell, HardDrive, CheckCircle2 } from 'lucide-react';
+import { useTransfer } from '../context/TransferContext';
+import { useToast } from '../components/Toast';
+import { StorageService } from '../services/storageService';
 
 export const SettingsView: React.FC = () => {
-  const [deviceName, setDeviceName] = useState("My Windows PC");
-  const [saveDir, setSaveDir] = useState("C:\\Users\\Krish\\Downloads\\KnowToMigrate");
-  const [autoAcceptTrusted, setAutoAcceptTrusted] = useState(true);
-  const [encryptTransfers, setEncryptTransfers] = useState(true);
-  const [chunkSizeMB, setChunkSizeMB] = useState(8);
+  const { settings, updateSettings } = useTransfer();
+  const toast = useToast();
+
+  const [deviceName, setDeviceName] = useState(settings.deviceName);
+  const [saveDir, setSaveDir] = useState(settings.saveDirectory);
+  const [autoAcceptTrusted, setAutoAcceptTrusted] = useState(settings.autoAcceptTrusted);
+  const [encryptTransfers, setEncryptTransfers] = useState(settings.encryptTransfers);
+  const [chunkSizeMB, setChunkSizeMB] = useState(settings.chunkSizeMB);
+  const [reducedMotion, setReducedMotion] = useState(settings.reducedMotion);
+
+  useEffect(() => {
+    setDeviceName(settings.deviceName);
+    setSaveDir(settings.saveDirectory);
+    setAutoAcceptTrusted(settings.autoAcceptTrusted);
+    setEncryptTransfers(settings.encryptTransfers);
+    setChunkSizeMB(settings.chunkSizeMB);
+    setReducedMotion(settings.reducedMotion);
+  }, [settings]);
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateSettings({
+      deviceName,
+      saveDirectory: saveDir,
+      autoAcceptTrusted,
+      encryptTransfers,
+      chunkSizeMB,
+      reducedMotion,
+    });
+    toast.success('Configuration Saved', 'Your engine parameters and preferences were updated.');
+  };
+
+  const deviceId = StorageService.getDeviceId();
 
   return (
-    <div className="glass-panel p-8 space-y-8">
+    <form onSubmit={handleSave} className="glass-panel p-8 space-y-8">
       <div className="border-b border-white/10 pb-4">
         <h2 className="text-2xl font-black text-white">KnowToMigrate Settings</h2>
         <p className="text-sm text-gray-400">
@@ -18,7 +49,6 @@ export const SettingsView: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-        
         {/* Section 1: Device Identity */}
         <div className="glass-card p-5 space-y-4">
           <div className="flex items-center gap-2 text-white font-bold">
@@ -35,7 +65,7 @@ export const SettingsView: React.FC = () => {
             />
           </div>
           <div className="text-xs text-gray-400">
-            Device ID: <code className="text-gray-300">KTM-78AF-92C1-NODE22</code>
+            Device ID: <code className="text-gray-300 font-mono">{deviceId}</code>
           </div>
         </div>
 
@@ -112,21 +142,30 @@ export const SettingsView: React.FC = () => {
               className="w-full accent-[#FF5A00] cursor-pointer"
             />
             <span className="text-[11px] text-gray-500 block mt-1">
-              Recommended: 8 MB for 1 Gbps LAN with low CPU memory overhead.
+              Recommended: 8 MB for 1 Gbps LAN with minimal CPU memory overhead.
             </span>
           </div>
-        </div>
 
+          <label className="flex items-center justify-between cursor-pointer pt-2 border-t border-white/5">
+            <div>
+              <p className="font-semibold text-white">Reduced Motion Mode</p>
+              <p className="text-xs text-gray-400">Disable radar pulses and heavy CSS animations</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={reducedMotion}
+              onChange={(e) => setReducedMotion(e.target.checked)}
+              className="w-5 h-5 accent-[#FF5A00] rounded cursor-pointer"
+            />
+          </label>
+        </div>
       </div>
 
       <div className="pt-4 border-t border-white/10 flex justify-end">
-        <button
-          onClick={() => alert("Settings saved successfully.")}
-          className="km-glossy-btn px-6 py-2.5 text-sm"
-        >
-          Save Configuration
+        <button type="submit" className="km-glossy-btn px-6 py-2.5 text-sm gap-2">
+          <CheckCircle2 className="w-4 h-4" /> Save Configuration
         </button>
       </div>
-    </div>
+    </form>
   );
 };

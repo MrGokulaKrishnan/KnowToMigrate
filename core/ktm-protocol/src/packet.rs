@@ -111,7 +111,7 @@ impl std::error::Error for PacketError {}
 const MAX_PAYLOAD: u32 = 128 * 1024 * 1024;
 
 /// A decoded KTM v2 packet.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct KtmPacket {
     /// Protocol version (should be [`PROTOCOL_VERSION`]).
     pub version: u8,

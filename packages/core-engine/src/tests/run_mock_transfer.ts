@@ -86,6 +86,7 @@ async function main() {
   server.stop();
   await fs.rm(tmpRoot, { recursive: true, force: true });
   console.log('\nCleaned up staging temp files. Simulation successful!\n');
+  process.exit(0);
 }
 
 main().catch(err => {

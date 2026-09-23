@@ -5,16 +5,16 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "apps/desktop",
+    "apps/website",
     "apps/web-receiver",
     "relay"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "desktop:dev": "npm --workspace=@knowtomigrate/desktop run dev",
-    "desktop:build": "npm --workspace=@knowtomigrate/desktop run build",
-    "test:transfer-sim": "node --loader ts-node/esm packages/core-engine/src/tests/run_mock_transfer.ts"
+    "web:dev": "npm --workspace=@knowtomigrate/website run dev",
+    "web:build": "npm --workspace=@knowtomigrate/website run build",
+    "test:transfer-sim": "node packages/core-engine/dist/tests/run_mock_transfer.js"
   },
   "keywords": [
     "file-sharing",
