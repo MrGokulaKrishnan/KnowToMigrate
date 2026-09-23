@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Download, Shield, CheckCircle, Monitor, Smartphone, Copy, Check, AlertTriangle } from 'lucide-react'
 
 interface DownloadEntry {
@@ -12,37 +12,37 @@ interface DownloadEntry {
 
 const WINDOWS_DOWNLOADS: DownloadEntry[] = [
   {
-    filename: 'KnowToMigrate-1.0.0-x64.msi',
+    filename: 'KnowToMigrate-1.0.0-x64-msi.zip',
     version: '1.0.0',
     size: '~28 MB',
-    sha256: 'BUILD_PENDING_SHA256_MSI_AAAAAABBBBBBCCCCCCDDDDDDEEEEEEFFFFFFFF000000111111222222333333',
+    sha256: '0949B3D3F9129CD1C7F2E6255C40C009916F8F63C857E372F2966C85AE454920',
     requirements: 'Windows 10 / 11, 64-bit',
-    downloadUrl: '#',
+    downloadUrl: '/KnowToMigrate-1.0.0-x64-msi.zip',
   },
   {
-    filename: 'KnowToMigrate-1.0.0-x64.exe',
+    filename: 'KnowToMigrate-1.0.0-x64-exe.zip',
     version: '1.0.0',
     size: '~25 MB',
-    sha256: 'BUILD_PENDING_SHA256_EXE_AAAAAABBBBBBCCCCCCDDDDDDEEEEEEFFFFFFFF000000111111222222333333',
+    sha256: '3CBA22ED5F0E34BCE39212762F5F50F7D8C6A461C03F8946C0DD849B8DAF007B',
     requirements: 'Windows 10 / 11, 64-bit (portable)',
-    downloadUrl: '#',
+    downloadUrl: '/KnowToMigrate-1.0.0-x64-exe.zip',
   },
 ]
 
 const ANDROID_DOWNLOADS: DownloadEntry[] = [
   {
-    filename: 'KnowToMigrate-1.0.0.apk',
+    filename: 'KnowToMigrate-1.0.0-apk.zip',
     version: '1.0.0',
     size: '~18 MB',
-    sha256: 'BUILD_PENDING_SHA256_APK_AAAAAABBBBBBCCCCCCDDDDDDEEEEEEFFFFFFFF000000111111222222333333',
+    sha256: 'C2D996555FCDE6E739D96C5CA9EADDA1472124E0ABA800B0EDB0E63782F92A24',
     requirements: 'Android 8.0+ (API 26)',
-    downloadUrl: '#',
+    downloadUrl: '/KnowToMigrate-1.0.0-apk.zip',
   },
 ]
 
 function CopyHash({ hash }: { hash: string }) {
   const [copied, setCopied] = useState(false)
-  const short = hash.startsWith('BUILD_PENDING') ? 'Pending build...' : `${hash.slice(0, 16)}…`
+  const short = hash.startsWith('BUILD_PENDING') ? 'Pending build...' : `${hash.slice(0, 16)}â€¦`
   const handleCopy = () => {
     navigator.clipboard.writeText(hash)
     setCopied(true)
@@ -69,7 +69,7 @@ function DownloadCard({ entry, icon: Icon }: { entry: DownloadEntry; icon: React
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-white truncate">{entry.filename}</p>
-          <p className="text-xs text-[#555555] mt-0.5">{entry.requirements} · {entry.size}</p>
+          <p className="text-xs text-[#555555] mt-0.5">{entry.requirements} Â· {entry.size}</p>
         </div>
         <span className="text-xs bg-[#FF5A00]/10 text-[#FF5A00] border border-[#FF5A00]/20 rounded-full px-2 py-0.5 flex-shrink-0">
           v{entry.version}
@@ -80,6 +80,7 @@ function DownloadCard({ entry, icon: Icon }: { entry: DownloadEntry; icon: React
 
       <a
         href={entry.downloadUrl}
+        download={entry.filename}
         className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
         style={{
           background: entry.downloadUrl === '#'
@@ -146,7 +147,7 @@ export function DownloadPage() {
             </span>
           </h1>
           <p className="text-[#8A8A8A] text-lg max-w-xl mx-auto">
-            A standalone application — no account, no cloud, no browser required.
+            A standalone application â€” no account, no cloud, no browser required.
             Install once. Transfer forever.
           </p>
 
@@ -179,7 +180,7 @@ export function DownloadPage() {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">Windows</h2>
-                <p className="text-xs text-[#555]">WinUI 3 native app · Windows 10/11 x64</p>
+                <p className="text-xs text-[#555]">WinUI 3 native app Â· Windows 10/11 x64</p>
               </div>
               {/* Logo shown on card */}
               <img src="/logo.jpg" alt="KM" className="w-8 h-8 rounded-lg ml-auto border border-[#FF5A00]/20" />
@@ -191,8 +192,8 @@ export function DownloadPage() {
             </div>
             <div className="mt-4 p-4 rounded-xl border border-white/[0.05] bg-white/[0.02]">
               <p className="text-xs text-[#555555] leading-relaxed">
-                <span className="text-[#8A8A8A] font-medium">Installation:</span> Run the .msi installer or
-                double-click the .exe portable version. No administrator account needed for the portable .exe.
+                <span className="text-[#8A8A8A] font-medium">Installation:</span> Run the -msi.zip installer or
+                double-click the -exe.zip portable version. No administrator account needed for the portable -exe.zip.
                 The <strong className="text-[#FF5A00]">KM lightning-bolt icon</strong> will appear in your taskbar and Start menu.
               </p>
             </div>
@@ -206,7 +207,7 @@ export function DownloadPage() {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">Android</h2>
-                <p className="text-xs text-[#555]">Kotlin + Compose · Android 8.0+ (API 26)</p>
+                <p className="text-xs text-[#555]">Kotlin + Compose Â· Android 8.0+ (API 26)</p>
               </div>
               {/* Logo shown on card */}
               <img src="/logo.jpg" alt="KM" className="w-8 h-8 rounded-lg ml-auto border border-[#FF5A00]/20" />
@@ -219,7 +220,7 @@ export function DownloadPage() {
             <div className="mt-4 p-4 rounded-xl border border-white/[0.05] bg-white/[0.02]">
               <p className="text-xs text-[#555555] leading-relaxed">
                 <span className="text-[#8A8A8A] font-medium">Installation:</span> Enable "Install unknown apps"
-                in Settings → Security. Tap the .apk file in Downloads to install.
+                in Settings â†’ Security. Tap the -apk.zip file in Downloads to install.
                 The <strong className="text-[#FF5A00]">KM orange-on-black icon</strong> will appear on your home screen.
               </p>
             </div>
@@ -235,7 +236,7 @@ export function DownloadPage() {
               <p className="text-xs text-[#8A8A8A] leading-relaxed">
                 Always verify the SHA-256 hash of your download before installing. On Windows:
                 <code className="mx-1 px-1.5 py-0.5 bg-black/40 rounded text-[#FF8A00] text-xs">
-                  Get-FileHash KnowToMigrate.exe -Algorithm SHA256
+                  Get-FileHash KnowToMigrate-exe.zip -Algorithm SHA256
                 </code>
                 . On Android, use a hash checker app.
               </p>
@@ -277,3 +278,4 @@ export function DownloadPage() {
     </main>
   )
 }
+
