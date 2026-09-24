@@ -6,6 +6,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import com.knowtomigrate.app.ui.theme.KnowToMigrateTheme
 import com.knowtomigrate.app.ui.navigation.KtmNavGraph
 
@@ -34,16 +37,21 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        try {
-            com.knowtomigrate.app.network.KtmAndroidManager.getInstance(this).start()
-        } catch (_: Throwable) { }
+        lifecycleScope.launch(Dispatchers.IO) {
+            kotlinx.coroutines.delay(1000L)
+            try {
+                com.knowtomigrate.app.network.KtmAndroidManager.getInstance(applicationContext).start()
+            } catch (_: Throwable) { }
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        try {
-            com.knowtomigrate.app.network.KtmAndroidManager.getInstance(this).stop()
-        } catch (_: Throwable) { }
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                com.knowtomigrate.app.network.KtmAndroidManager.getInstance(applicationContext).stop()
+            } catch (_: Throwable) { }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

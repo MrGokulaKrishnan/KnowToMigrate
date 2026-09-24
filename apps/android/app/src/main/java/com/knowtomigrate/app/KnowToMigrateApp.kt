@@ -26,11 +26,5 @@ class KnowToMigrateApp : Application() {
             }
             defaultHandler?.uncaughtException(thread, throwable)
         }
-
-        try {
-            System.loadLibrary("ktm_jni")
-        } catch (_: Throwable) {
-            // Native library optional; pure Kotlin network engine runs seamlessly
-        }
     }
 }

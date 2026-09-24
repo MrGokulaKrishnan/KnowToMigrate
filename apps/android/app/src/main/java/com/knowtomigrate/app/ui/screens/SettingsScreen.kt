@@ -77,8 +77,36 @@ fun SettingsScreen(navController: NavController) {
 
             // About section
             SettingsSection(title = "About") {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    androidx.compose.foundation.Image(
+                        painter = androidx.compose.ui.res.painterResource(id = com.knowtomigrate.app.R.drawable.logo),
+                        contentDescription = "KnowToMigrate Logo",
+                        modifier = Modifier
+                            .size(54.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Column {
+                        Text(
+                            text = "KnowToMigrate",
+                            color = KmTextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                        Text(
+                            text = "Move Anything. Anywhere. Seamlessly.",
+                            color = KmTextMuted,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
                 SettingsInfoRow(label = "Version", value = "1.0.0")
-                SettingsInfoRow(label = "Build", value = "2026.09.20")
+                SettingsInfoRow(label = "Build", value = "2026.09.24")
                 SettingsInfoRow(label = "Protocol", value = "KTM v2")
                 SettingsInfoRow(label = "Encryption", value = "AES-256-GCM")
             }

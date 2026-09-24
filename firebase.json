@@ -2,25 +2,15 @@
   "hosting": {
     "public": "apps/website/dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "redirects": [
-      {
-        "source": "/download/KnowToMigrate-1.0.0-x64.msi",
-        "destination": "https://github.com/MrGokulaKrishnan/KnowToMigrate/raw/main/releases/windows/KnowToMigrate-1.0.0-x64.msi",
-        "type": 302
-      },
-      {
-        "source": "/download/KnowToMigrate-1.0.0-x64.exe",
-        "destination": "https://github.com/MrGokulaKrishnan/KnowToMigrate/raw/main/releases/windows/KnowToMigrate-1.0.0-x64.exe",
-        "type": 302
-      },
-      {
-        "source": "/download/KnowToMigrate-1.0.0.apk",
-        "destination": "https://github.com/MrGokulaKrishnan/KnowToMigrate/raw/main/releases/android/KnowToMigrate-1.0.0.apk",
-        "type": 302
-      }
-    ],
     "rewrites": [{ "source": "**", "destination": "/index.html" }],
     "headers": [
+      {
+        "source": "**/*.@(msi|exe|apk)",
+        "headers": [
+          { "key": "Content-Disposition", "value": "attachment" },
+          { "key": "Cache-Control", "value": "public, max-age=86400" }
+        ]
+      },
       {
         "source": "**/*.@(js|css|woff2|woff|ttf)",
         "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]

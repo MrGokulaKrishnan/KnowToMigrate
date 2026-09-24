@@ -14,18 +14,18 @@ const WINDOWS_DOWNLOADS: DownloadEntry[] = [
   {
     filename: 'KnowToMigrate-1.0.0-x64.msi',
     version: '1.0.0',
-    size: '62.9 MB',
-    sha256: '790F2B07B8FF154655EBF7485C7C7DBDFE246DA17ADFA89BF75CD9B69DCC19F9',
+    size: '65.9 MB',
+    sha256: 'E01BA8441DF7047B1824FCEE3A3EC5BCEDEF35A67E2FE83BA0AB1E92D5F8F5F6',
     requirements: 'Windows 10 / 11, 64-bit (Official MSI Installer with Desktop & Start Menu Shortcut)',
-    downloadUrl: '/download/KnowToMigrate-1.0.0-x64.msi',
+    downloadUrl: '/download/KnowToMigrate-1.0.0-x64.msi.bin',
   },
   {
     filename: 'KnowToMigrate-1.0.0-x64.exe',
     version: '1.0.0',
-    size: '69.0 MB',
-    sha256: '5711E5688D97F7C27C9CB46911A84A02311366A774CCD522F9A1B215D4234D2B',
+    size: '72.2 MB',
+    sha256: 'A3BD6F8A3A25E89004A12C22F05C11BFD46E7CBB7CF8E12B4BE12835EA9882B3',
     requirements: 'Windows 10 / 11, 64-bit (Portable Standalone Executable)',
-    downloadUrl: '/download/KnowToMigrate-1.0.0-x64.exe',
+    downloadUrl: '/download/KnowToMigrate-1.0.0-x64.exe.bin',
   },
 ]
 
@@ -33,10 +33,10 @@ const ANDROID_DOWNLOADS: DownloadEntry[] = [
   {
     filename: 'KnowToMigrate-1.0.0.apk',
     version: '1.0.0',
-    size: '12.35 MB',
-    sha256: '41C87D9DCC9091403C71DEACCB35F5DF02462CE0061581BE0ABC95ABA17D765B',
+    size: '10.8 MB',
+    sha256: '0A2206059DECEFF91941200A71051AC44FFF1F0809F1365444C8AA0D6E06BBD9',
     requirements: 'Android 8.0+ (API 26+) - Native APK Package',
-    downloadUrl: '/download/KnowToMigrate-1.0.0.apk',
+    downloadUrl: '/download/KnowToMigrate-1.0.0.apk.bin',
   },
 ]
 
@@ -108,10 +108,10 @@ function DownloadCard({ entry, icon: Icon }: { entry: DownloadEntry; icon: React
     setProgress(0)
     setCompleted(false)
 
-    const rawUrl = `https://raw.githubusercontent.com/MrGokulaKrishnan/KnowToMigrate/main/releases/${entry.filename.endsWith('.apk') ? 'android' : 'windows'}/${entry.filename}`
+    const downloadUrl = entry.downloadUrl
 
     try {
-      const response = await fetch(rawUrl)
+      const response = await fetch(downloadUrl)
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
 
       const contentLength = response.headers.get('content-length')
@@ -158,8 +158,13 @@ function DownloadCard({ entry, icon: Icon }: { entry: DownloadEntry; icon: React
         setProgress(null)
       }, 2500)
     } catch (_err) {
-      // Instant fallback to direct redirect if browser restricts in-memory blob
-      window.location.href = entry.downloadUrl
+      // Fallback: direct same-origin link download
+      const a = document.createElement('a')
+      a.href = entry.downloadUrl
+      a.download = entry.filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
       setDownloading(false)
       setProgress(null)
     }

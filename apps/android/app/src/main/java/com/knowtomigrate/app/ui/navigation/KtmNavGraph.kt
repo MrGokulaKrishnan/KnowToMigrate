@@ -7,6 +7,7 @@ import androidx.navigation.compose.*
 import com.knowtomigrate.app.ui.screens.*
 
 sealed class Screen(val route: String) {
+    object Splash : Screen("splash")
     object Home : Screen("home")
     object Send : Screen("send")
     object Receive : Screen("receive")
@@ -21,7 +22,8 @@ sealed class Screen(val route: String) {
 @Composable
 fun KtmNavGraph(sharedUris: List<Uri> = emptyList()) {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = Screen.Home.route) {
+    NavHost(navController = navController, startDestination = Screen.Splash.route) {
+        composable(Screen.Splash.route) { SplashScreen(navController) }
         composable(Screen.Home.route) { HomeScreen(navController, sharedUris) }
         composable(Screen.Send.route) { SendScreen(navController) }
         composable(Screen.Receive.route) { ReceiveScreen(navController) }

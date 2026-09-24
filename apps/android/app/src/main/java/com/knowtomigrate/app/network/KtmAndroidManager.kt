@@ -10,8 +10,8 @@ import java.util.UUID
 
 class KtmAndroidManager private constructor(private val context: Context) {
 
-    val localDeviceId: String = "ktm-and-" + Build.MODEL.replace(" ", "-").lowercase() + "-" + UUID.randomUUID().toString().take(6)
-    val localDeviceName: String = Build.MODEL ?: "Android Device"
+    val localDeviceName: String = (Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android Device").trim()
+    val localDeviceId: String = "ktm-and-" + localDeviceName.replace(Regex("[^a-zA-Z0-9-]"), "-").lowercase().take(20) + "-" + UUID.randomUUID().toString().take(6)
 
     val downloadDirectory: File by lazy {
         try {
