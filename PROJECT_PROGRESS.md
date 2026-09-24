@@ -72,6 +72,12 @@ Task 49 — Establish persistent work state, checkpoints, and automated resumpti
   - Preserved Windows logo and 15% corner radius presentation unaltered.
   - Recompiled and verified `releases/android/KnowToMigrate-1.0.0.apk`.
   - Deployed updated website to Firebase Hosting.
+- [x] **CHECKPOINT 12 — Release Code Signing & LAN Testing Suite**
+  - Integrated `signingConfigs` in `apps/android/app/build.gradle.kts` with dynamic environment variables (`KTM_KEYSTORE_PATH`) and automated fallback to debug signing for sideloading.
+  - Authored release keystore generation utility: `scripts/generate-android-keystore.ps1`.
+  - Authored Windows Authenticode signing utility: `scripts/sign-windows.ps1`.
+  - Configured Windows Firewall automation: `scripts/setup-firewall.ps1` for UDP 54123 and TCP 54124.
+  - Implemented interactive LAN diagnostics and pairing helper: `scripts/verify-lan-transfer.ps1`.
 
 ---
 

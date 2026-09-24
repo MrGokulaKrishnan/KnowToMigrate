@@ -22,9 +22,25 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            val envPath = System.getenv("KTM_KEYSTORE_PATH")
+            val keystoreFile = if (!envPath.isNullOrBlank()) file(envPath) else null
+            if (keystoreFile != null && keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = System.getenv("KTM_KEYSTORE_PASSWORD") ?: ""
+                keyAlias = System.getenv("KTM_KEY_ALIAS") ?: ""
+                keyPassword = System.getenv("KTM_KEY_PASSWORD") ?: ""
+            } else {
+                initWith(getByName("debug"))
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
