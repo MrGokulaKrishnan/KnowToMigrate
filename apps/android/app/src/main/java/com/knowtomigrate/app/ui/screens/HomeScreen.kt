@@ -213,7 +213,7 @@ private fun HomeHeader() {
             androidx.compose.foundation.Image(
                 painter = androidx.compose.ui.res.painterResource(id = com.knowtomigrate.app.R.drawable.logo),
                 contentDescription = "KnowToMigrate Logo",
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(2.dp),
                 contentScale = androidx.compose.ui.layout.ContentScale.Fit
             )
         }

@@ -26,7 +26,10 @@ class KtmDiscoveryService(
 
     fun start() {
         if (scope != null) return
-        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        val handler = CoroutineExceptionHandler { _, t ->
+            android.util.Log.w("KtmDiscovery", "Handled discovery error", t)
+        }
+        scope = CoroutineScope(Dispatchers.IO + SupervisorJob() + handler)
 
         try {
             val wifi = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
@@ -34,8 +37,8 @@ class KtmDiscoveryService(
                 setReferenceCounted(true)
                 acquire()
             }
-        } catch (e: Exception) {
-            // Ignore if lock fails on non-wifi
+        } catch (_: Throwable) {
+            // Ignore if lock fails on cellular or unsupported devices
         }
 
         startListener()
@@ -46,11 +49,11 @@ class KtmDiscoveryService(
     fun stop() {
         scope?.cancel()
         scope = null
-        try { listenerSocket?.close() } catch (_: Exception) {}
+        try { listenerSocket?.close() } catch (_: Throwable) {}
         listenerSocket = null
         try {
             if (multicastLock?.isHeld == true) multicastLock?.release()
-        } catch (_: Exception) {}
+        } catch (_: Throwable) {}
         multicastLock = null
     }
 
@@ -68,47 +71,49 @@ class KtmDiscoveryService(
                     val packet = DatagramPacket(buffer, buffer.size)
                     try {
                         listenerSocket?.receive(packet)
-                    } catch (e: Exception) {
+                    } catch (_: Throwable) {
                         break
                     }
 
-                    val json = String(packet.data, 0, packet.length, Charsets.UTF_8)
-                    if (json.contains(KtmConstants.DISCOVERY_MAGIC)) {
-                        val senderIp = packet.address.hostAddress ?: ""
-                        val device = DiscoveredDevice.fromJson(json, senderIp)
-                        if (device != null && device.deviceId != localDeviceId) {
-                            deviceMap[device.deviceId] = device
-                            updateDeviceList()
+                    try {
+                        val json = String(packet.data, 0, packet.length, Charsets.UTF_8)
+                        if (json.contains(KtmConstants.DISCOVERY_MAGIC)) {
+                            val senderIp = packet.address?.hostAddress ?: ""
+                            val device = DiscoveredDevice.fromJson(json, senderIp)
+                            if (device != null && device.deviceId != localDeviceId) {
+                                deviceMap[device.deviceId] = device
+                                updateDeviceList()
+                            }
                         }
-                    }
+                    } catch (_: Throwable) {}
                 }
-            } catch (e: Exception) {
-                // Socket closed or error
+            } catch (_: Throwable) {
+                // Socket unavailable or port bound
             }
         }
     }
 
     private fun startBroadcaster() {
         scope?.launch {
-            val localDev = DiscoveredDevice(
-                deviceId = localDeviceId,
-                deviceName = localDeviceName,
-                platform = "Android",
-                transferPort = KtmConstants.TRANSFER_PORT,
-                version = "1.0.0"
-            )
-            val jsonBytes = localDev.toJson().toByteArray(Charsets.UTF_8)
-            val broadcastAddr = InetAddress.getByName("255.255.255.255")
-
             while (isActive) {
                 try {
+                    val localDev = DiscoveredDevice(
+                        deviceId = localDeviceId,
+                        deviceName = localDeviceName,
+                        platform = "Android",
+                        transferPort = KtmConstants.TRANSFER_PORT,
+                        version = "1.0.0"
+                    )
+                    val jsonBytes = localDev.toJson().toByteArray(Charsets.UTF_8)
+                    val broadcastAddr = InetAddress.getByName("255.255.255.255")
+
                     DatagramSocket().use { socket ->
                         socket.broadcast = true
                         val packet = DatagramPacket(jsonBytes, jsonBytes.size, broadcastAddr, KtmConstants.DISCOVERY_PORT)
                         socket.send(packet)
                     }
-                } catch (e: Exception) {
-                    // Ignore transient network errors
+                } catch (_: Throwable) {
+                    // Ignore transient network errors on cellular/offline
                 }
                 delay(KtmConstants.DISCOVERY_INTERVAL_MS)
             }
@@ -118,20 +123,22 @@ class KtmDiscoveryService(
     private fun startPruner() {
         scope?.launch {
             while (isActive) {
-                delay(2000L)
-                val now = System.currentTimeMillis()
-                var changed = false
-                val iterator = deviceMap.entries.iterator()
-                while (iterator.hasNext()) {
-                    val entry = iterator.next()
-                    if (now - entry.value.lastSeen > KtmConstants.DEVICE_TIMEOUT_MS) {
-                        iterator.remove()
-                        changed = true
+                try {
+                    delay(2000L)
+                    val now = System.currentTimeMillis()
+                    var changed = false
+                    val iterator = deviceMap.entries.iterator()
+                    while (iterator.hasNext()) {
+                        val entry = iterator.next()
+                        if (now - entry.value.lastSeen > KtmConstants.DEVICE_TIMEOUT_MS) {
+                            iterator.remove()
+                            changed = true
+                        }
                     }
-                }
-                if (changed) {
-                    updateDeviceList()
-                }
+                    if (changed) {
+                        updateDeviceList()
+                    }
+                } catch (_: Throwable) {}
             }
         }
     }

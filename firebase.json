@@ -5,17 +5,17 @@
     "redirects": [
       {
         "source": "/download/KnowToMigrate-1.0.0-x64.msi",
-        "destination": "https://github.com/MrGokulaKrishnan/KnowToMigrate/releases/download/v1.0.0/KnowToMigrate-1.0.0-x64.msi",
+        "destination": "https://github.com/MrGokulaKrishnan/KnowToMigrate/raw/main/releases/windows/KnowToMigrate-1.0.0-x64.msi",
         "type": 302
       },
       {
         "source": "/download/KnowToMigrate-1.0.0-x64.exe",
-        "destination": "https://github.com/MrGokulaKrishnan/KnowToMigrate/releases/download/v1.0.0/KnowToMigrate-1.0.0-x64.exe",
+        "destination": "https://github.com/MrGokulaKrishnan/KnowToMigrate/raw/main/releases/windows/KnowToMigrate-1.0.0-x64.exe",
         "type": 302
       },
       {
         "source": "/download/KnowToMigrate-1.0.0.apk",
-        "destination": "https://github.com/MrGokulaKrishnan/KnowToMigrate/releases/download/v1.0.0/KnowToMigrate-1.0.0.apk",
+        "destination": "https://github.com/MrGokulaKrishnan/KnowToMigrate/raw/main/releases/android/KnowToMigrate-1.0.0.apk",
         "type": 302
       }
     ],

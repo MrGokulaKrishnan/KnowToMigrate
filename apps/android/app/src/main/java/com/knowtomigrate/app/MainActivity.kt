@@ -15,12 +15,20 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        handleIntent(intent)
-        setContent {
-            KnowToMigrateTheme {
-                KtmNavGraph(sharedUris = sharedUris)
+        try {
+            enableEdgeToEdge()
+        } catch (_: Throwable) { }
+        try {
+            handleIntent(intent)
+        } catch (_: Throwable) { }
+        try {
+            setContent {
+                KnowToMigrateTheme {
+                    KtmNavGraph(sharedUris = sharedUris)
+                }
             }
+        } catch (t: Throwable) {
+            android.util.Log.e("KnowToMigrate", "Failed to set Compose content", t)
         }
     }
 

@@ -30,7 +30,10 @@ class KtmTransferServer(
 
     fun start() {
         if (scope != null) return
-        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        val handler = CoroutineExceptionHandler { _, t ->
+            android.util.Log.w("KtmTransferServer", "Handled server exception", t)
+        }
+        scope = CoroutineScope(Dispatchers.IO + SupervisorJob() + handler)
 
         scope?.launch {
             try {
@@ -41,10 +44,12 @@ class KtmTransferServer(
                 while (isActive) {
                     val client = serverSocket?.accept() ?: break
                     launch {
-                        handleClient(client)
+                        try {
+                            handleClient(client)
+                        } catch (_: Throwable) {}
                     }
                 }
-            } catch (e: Exception) {
+            } catch (_: Throwable) {
                 // Server closed or port bound
             }
         }

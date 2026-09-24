@@ -33,8 +33,8 @@ const ANDROID_DOWNLOADS: DownloadEntry[] = [
   {
     filename: 'KnowToMigrate-1.0.0.apk',
     version: '1.0.0',
-    size: '11.9 MB',
-    sha256: 'A3C78EFC1659FB1D825C50A01E993607C7CDBBAD3548810E49AEA8CDE6C915CA',
+    size: '12.35 MB',
+    sha256: '41C87D9DCC9091403C71DEACCB35F5DF02462CE0061581BE0ABC95ABA17D765B',
     requirements: 'Android 8.0+ (API 26+) - Native APK Package',
     downloadUrl: '/download/KnowToMigrate-1.0.0.apk',
   },
@@ -98,6 +98,73 @@ function HiddenHash({ hash }: { hash: string }) {
 }
 
 function DownloadCard({ entry, icon: Icon }: { entry: DownloadEntry; icon: React.ElementType }) {
+  const [downloading, setDownloading] = useState(false)
+  const [progress, setProgress] = useState<number | null>(null)
+  const [completed, setCompleted] = useState(false)
+
+  const handleDownload = async () => {
+    if (downloading) return
+    setDownloading(true)
+    setProgress(0)
+    setCompleted(false)
+
+    const rawUrl = `https://raw.githubusercontent.com/MrGokulaKrishnan/KnowToMigrate/main/releases/${entry.filename.endsWith('.apk') ? 'android' : 'windows'}/${entry.filename}`
+
+    try {
+      const response = await fetch(rawUrl)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+
+      const contentLength = response.headers.get('content-length')
+      const total = contentLength ? parseInt(contentLength, 10) : 0
+      let loaded = 0
+
+      const reader = response.body?.getReader()
+      if (!reader) throw new Error('No body reader available')
+
+      const chunks: BlobPart[] = []
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        if (value) {
+          chunks.push(value)
+          loaded += value.length
+          if (total > 0) {
+            setProgress(Math.round((loaded / total) * 100))
+          }
+        }
+      }
+
+      const mimeType = entry.filename.endsWith('.apk')
+        ? 'application/vnd.android.package-archive'
+        : entry.filename.endsWith('.msi')
+        ? 'application/x-msi'
+        : 'application/octet-stream'
+
+      const blob = new Blob(chunks, { type: mimeType })
+      const blobUrl = window.URL.createObjectURL(blob)
+
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.download = entry.filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000)
+
+      setCompleted(true)
+      setProgress(100)
+      setTimeout(() => {
+        setDownloading(false)
+        setProgress(null)
+      }, 2500)
+    } catch (_err) {
+      // Instant fallback to direct redirect if browser restricts in-memory blob
+      window.location.href = entry.downloadUrl
+      setDownloading(false)
+      setProgress(null)
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 hover:border-[#FF5A00]/30 hover:bg-[#FF5A00]/[0.03] transition-all duration-300">
       <div className="flex items-start gap-3 mb-3">
@@ -116,19 +183,48 @@ function DownloadCard({ entry, icon: Icon }: { entry: DownloadEntry; icon: React
       {/* Password-style Hidden SHA-256 */}
       <HiddenHash hash={entry.sha256} />
 
-      {/* Direct Download Button */}
-      <a
-        href={entry.downloadUrl}
-        download={entry.filename}
-        className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:brightness-110 active:scale-[0.98]"
+      {/* Direct In-Browser Download Button */}
+      <button
+        type="button"
+        onClick={handleDownload}
+        disabled={downloading}
+        className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:brightness-110 active:scale-[0.98] disabled:opacity-85"
         style={{
-          background: 'linear-gradient(135deg, #FF4D00, #FF8A00)',
+          background: completed
+            ? 'linear-gradient(135deg, #16A34A, #22C55E)'
+            : 'linear-gradient(135deg, #FF4D00, #FF8A00)',
           color: '#fff',
         }}
       >
-        <Download className="w-4 h-4" />
-        Download {entry.filename.split('.').pop()?.toUpperCase()}
-      </a>
+        {downloading ? (
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <span>
+              {progress !== null && progress > 0 ? `Downloading ${progress}%...` : 'Connecting to knowtomigrate.web.app...'}
+            </span>
+          </div>
+        ) : completed ? (
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-white" />
+            <span>Downloaded from knowtomigrate.web.app</span>
+          </div>
+        ) : (
+          <>
+            <Download className="w-4 h-4" />
+            <span>Direct Download {entry.filename.split('.').pop()?.toUpperCase()}</span>
+          </>
+        )}
+      </button>
+
+      {/* Download Progress Bar */}
+      {downloading && progress !== null && (
+        <div className="mt-2 w-full bg-white/[0.08] rounded-full h-1.5 overflow-hidden">
+          <div
+            className="bg-gradient-to-r from-[#FF4D00] to-[#FF8A00] h-full transition-all duration-150"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
     </div>
   )
 }

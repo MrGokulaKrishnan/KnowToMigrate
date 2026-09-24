@@ -2,7 +2,7 @@ package com.knowtomigrate.app.jni
 
 object KtmJni {
     init {
-        try { System.loadLibrary("ktm") } catch (_: UnsatisfiedLinkError) { /* demo mode */ }
+        try { System.loadLibrary("ktm_jni") } catch (_: Throwable) { /* pure Kotlin mode */ }
     }
 
     // Lifecycle
