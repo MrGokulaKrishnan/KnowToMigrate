@@ -79,7 +79,7 @@ Task 49 — Establish persistent work state, checkpoints, and automated resumpti
   - Windows EXE: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0-x64.exe` (68.7 MB, HTTP 200 OK)
   - Android APK: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0.apk` (17.8 MB, HTTP 200 OK)
 - **Binaries & Checksums**:
-  - `KnowToMigrate-1.0.0-x64.msi`: `28F8A7D4D41024762D88DB24DD27AA3F1A14A37E2B1B483AF30A033474557BDF`
+  - `KnowToMigrate-1.0.0-x64.msi`: `868343320CA6DB934C1DF4747983F62AF01A6471390F0710974B13EF203E8A8F`
   - `KnowToMigrate-1.0.0-x64.exe`: `2B888126CE08F5C8F52BD7CAC775DA2C6FCA25475F1B29CA9B3609F367DAADE9`
   - `KnowToMigrate-1.0.0.apk`: `239D0A3FD506EAFE5A09ECC92F7E4815171B197C55A95B7BB73FC14A2FD1EADA`
 - **Git Tree**: Clean, synced with `origin/main` (`MrGokulaKrishnan/KnowToMigrate`).

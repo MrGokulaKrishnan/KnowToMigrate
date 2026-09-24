@@ -10,7 +10,7 @@
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="KnowToMigrate">
         <Component Id="MainExecutable" Bitness="always64">
-          <File Id="KnowToMigrateEXE" Source="c:\KnowToMigrate\releases\windows\KnowToMigrate-1.0.0-x64.exe" KeyPath="yes" />
+          <File Id="KnowToMigrateEXE" Source="releases\windows\KnowToMigrate-1.0.0-x64.exe" KeyPath="yes" />
         </Component>
       </Directory>
     </StandardDirectory>

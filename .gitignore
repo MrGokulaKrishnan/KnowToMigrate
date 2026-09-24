@@ -23,3 +23,5 @@ apps/windows/obj/
 apps/windows-wpf/bin/
 apps/windows-wpf/obj/
 test_wpf/
+*.wixpdb
+.firebase/

@@ -15,7 +15,7 @@ const WINDOWS_DOWNLOADS: DownloadEntry[] = [
     filename: 'KnowToMigrate-1.0.0-x64.msi',
     version: '1.0.0',
     size: '62.7 MB',
-    sha256: '28F8A7D4D41024762D88DB24DD27AA3F1A14A37E2B1B483AF30A033474557BDF',
+    sha256: '868343320CA6DB934C1DF4747983F62AF01A6471390F0710974B13EF203E8A8F',
     requirements: 'Windows 10 / 11, 64-bit (Official MSI Installer)',
     downloadUrl: '/download/KnowToMigrate-1.0.0-x64.msi',
   },
