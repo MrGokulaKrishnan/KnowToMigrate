@@ -244,7 +244,7 @@ fun SendScreen(navController: NavController) {
                                 val success = com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).sendUris(targetRaw, selectedUris)
                                 isSending = false
                                 if (success) {
-                                    android.widget.Toast.makeText(context, "✓ Transfer completed & verified!", android.widget.Toast.LENGTH_LONG).show()
+                                    android.widget.Toast.makeText(context, "Transfer completed and verified", android.widget.Toast.LENGTH_LONG).show()
                                     navController.navigate(Screen.Home.route)
                                 } else {
                                     android.widget.Toast.makeText(context, "Transfer failed or was rejected by recipient", android.widget.Toast.LENGTH_LONG).show()

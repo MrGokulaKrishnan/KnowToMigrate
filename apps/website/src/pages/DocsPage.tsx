@@ -44,7 +44,7 @@ export function DocsPage() {
             The receiving device shows an incoming transfer request. Tap <strong>Accept</strong>.
           </DocStep>
           <DocStep num={5} title="Wait for verification">
-            After transfer completes, KnowToMigrate verifies SHA-256 checksums on both ends. You'll see <span className="text-[#22C55E] font-semibold">✓ Integrity Verified</span>.
+            After transfer completes, KnowToMigrate verifies SHA-256 checksums on both ends. You'll see <span className="text-[#22C55E] font-semibold">Integrity Verified</span>.
           </DocStep>
         </DocSection>
 

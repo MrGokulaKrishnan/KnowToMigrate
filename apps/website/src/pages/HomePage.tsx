@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Shield, Wifi, Smartphone, Monitor, ArrowRight, CheckCircle, Zap, RefreshCw, Lock, LayoutGrid } from 'lucide-react'
+import { Shield, Wifi, Smartphone, Monitor, ArrowRight, CheckCircle, Zap, RefreshCw, Lock, LayoutGrid, Radio, Link2, Globe } from 'lucide-react'
 
 /* ─── Particle background ──────────────────────────────────── */
 function ParticleField() {
@@ -91,7 +91,7 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
         fontSize: '0.8125rem',
         color: '#FF8A00',
       }}>
-        🚧 <strong>Public Beta</strong>  -  Android and Windows builds are being finalized. Local encrypted transfers are the current focus.
+        <strong>KnowToMigrate 1.0.0</strong>  -  Standalone high-speed encrypted local transfers for Windows and Android.
         &nbsp;
         <a
           href="https://github.com/MrGokulaKrishnan/KnowToMigrate"
@@ -99,7 +99,7 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
           rel="noopener noreferrer"
           style={{ color: '#FF8A00', textDecoration: 'underline' }}
         >
-          Follow progress on GitHub →
+          View source on GitHub →
         </a>
       </div>
 
@@ -226,13 +226,13 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
           padding: '2rem',
         }}>
           <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1rem', color: '#fff' }}>
-            What KnowToMigrate actually is (Beta status)
+            KnowToMigrate Architecture & Readiness
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
             {[
-              { label: '✅ Working now', items: ['Rust core library (ktm_ffi.dll / libktm_ffi.a) compiled', 'AES-256-GCM encryption layer', 'X25519 key exchange', 'SHA-256 Merkle integrity', 'UDP discovery (port 54123)', 'TCP chunk streaming (port 54124)', '8 MB streaming chunker + checkpoints'] },
-              { label: '🔨 In development', items: ['Android APK (Kotlin + Compose + JNI bridge)', 'Windows EXE (WinUI 3 + P/Invoke)', 'QR pairing UI flow', 'Transfer resume UI', 'Migration wizard (9-step)', 'End-to-end integration testing'] },
-              { label: '📋 Planned', items: ['Signed installer releases', 'Google Play / Sideload distribution', 'macOS app (.dmg)', 'Linux AppImage', 'Internet relay fallback (STUN/TURN)', 'Web receiver (optional, browser-based)'] },
+              { label: 'Production Ready', items: ['Rust core library (ktm_ffi.dll / libktm_ffi.a) compiled', 'AES-256-GCM encryption layer', 'X25519 key exchange', 'SHA-256 Merkle integrity', 'UDP discovery (port 54123)', 'TCP chunk streaming (port 54124)', '8 MB streaming chunker + checkpoints', 'Windows WPF Standalone (.exe & .msi)', 'Android Jetpack Compose Native (.apk)'] },
+              { label: 'In Active Development', items: ['QR pairing handshake UI', 'Background transfer recovery agent', 'Cross-subnet STUN traversal', 'Storage pre-flight verification'] },
+              { label: 'Planned Platforms', items: ['macOS native client (.dmg)', 'Linux standalone (.AppImage)', 'Direct Wi-Fi P2P Group Owner negotiation'] },
             ].map(({ label, items }) => (
               <div key={label}>
                 <p style={{ fontWeight: 700, color: '#FF8A00', marginBottom: '0.75rem', fontSize: '0.875rem' }}>{label}</p>
@@ -255,15 +255,15 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
           How connections work
         </h2>
         <p style={{ color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginBottom: '2rem', fontSize: '0.875rem' }}>
-          These are materially different modes  -  choose based on your setup.
+          Multiple transport layers tailored for local and cross-network scenarios.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           {[
-            { mode: 'Same Wi-Fi',    icon: '📶', status: 'Implemented', desc: 'Both devices on the same router. UDP broadcast discovers peers automatically. No internet needed.', color: '#22C55E' },
-            { mode: 'Wi-Fi Hotspot', icon: '📡', status: 'Implemented', desc: 'One device creates a hotspot; the other connects to it. Same protocol, direct link.', color: '#22C55E' },
-            { mode: 'Wi-Fi Direct',  icon: '🔗', status: 'Planned',     desc: 'Android-to-Android peer-to-peer without a router. Requires Wi-Fi Direct API integration.', color: '#F59E0B' },
-            { mode: 'Internet Relay',icon: '🌐', status: 'Planned',     desc: 'Encrypted STUN/TURN relay for cross-network transfers. Optional  -  all local-mode transfers work without it.', color: '#F59E0B' },
-          ].map(({ mode, icon, status, desc, color }) => (
+            { mode: 'Same Wi-Fi',    Icon: Wifi, status: 'Active', desc: 'Both devices on the same router. UDP broadcast discovers peers automatically. No internet needed.', color: '#22C55E' },
+            { mode: 'Wi-Fi Hotspot', Icon: Radio, status: 'Active', desc: 'One device creates a hotspot; the other connects to it. Same protocol, direct link.', color: '#22C55E' },
+            { mode: 'Wi-Fi Direct',  Icon: Link2, status: 'Planned', desc: 'Device-to-device peer-to-peer link without an external router or access point.', color: '#F59E0B' },
+            { mode: 'Internet Relay',Icon: Globe, status: 'Planned', desc: 'Encrypted STUN/TURN relay for cross-network transfers. Optional  -  all local transfers work offline.', color: '#F59E0B' },
+          ].map(({ mode, Icon, status, desc, color }) => (
             <div key={mode} style={{
               borderRadius: 16,
               border: '1px solid rgba(255,255,255,0.06)',
@@ -271,7 +271,9 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
               padding: '1.25rem',
               transition: 'border-color 0.2s, background 0.2s',
             }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{icon}</div>
+              <div style={{ marginBottom: '0.75rem', color: '#FF8A00' }}>
+                <Icon size={24} />
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                 <p style={{ fontWeight: 600, color: '#fff', fontSize: '0.9375rem', margin: 0 }}>{mode}</p>
                 <span style={{ fontSize: '0.6875rem', padding: '0.1rem 0.5rem', borderRadius: 999, background: `${color}20`, color, fontWeight: 600 }}>{status}</span>

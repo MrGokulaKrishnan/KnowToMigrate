@@ -6,11 +6,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import dagger.hilt.android.AndroidEntryPoint
 import com.knowtomigrate.app.ui.theme.KnowToMigrateTheme
 import com.knowtomigrate.app.ui.navigation.KtmNavGraph
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private var sharedUris: List<Uri> = emptyList()
@@ -28,12 +26,16 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        com.knowtomigrate.app.network.KtmAndroidManager.getInstance(this).start()
+        try {
+            com.knowtomigrate.app.network.KtmAndroidManager.getInstance(this).start()
+        } catch (_: Throwable) { }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        com.knowtomigrate.app.network.KtmAndroidManager.getInstance(this).stop()
+        try {
+            com.knowtomigrate.app.network.KtmAndroidManager.getInstance(this).stop()
+        } catch (_: Throwable) { }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -42,16 +44,18 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleIntent(intent: Intent) {
-        when (intent.action) {
-            Intent.ACTION_SEND -> {
-                @Suppress("DEPRECATION")
-                val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-                sharedUris = listOfNotNull(uri)
+        try {
+            when (intent.action) {
+                Intent.ACTION_SEND -> {
+                    @Suppress("DEPRECATION")
+                    val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+                    sharedUris = listOfNotNull(uri)
+                }
+                Intent.ACTION_SEND_MULTIPLE -> {
+                    @Suppress("DEPRECATION")
+                    sharedUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM) ?: emptyList()
+                }
             }
-            Intent.ACTION_SEND_MULTIPLE -> {
-                @Suppress("DEPRECATION")
-                sharedUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM) ?: emptyList()
-            }
-        }
+        } catch (_: Throwable) { }
     }
 }

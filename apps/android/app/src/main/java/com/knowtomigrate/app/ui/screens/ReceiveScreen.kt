@@ -117,7 +117,7 @@ fun ReceiveScreen(navController: NavController) {
                     KmGlassCard(modifier = Modifier.fillMaxWidth()) {
                         Column {
                             Text(
-                                text = if (serverProg.isCompleted) "✓ Transfer Complete!" else "Receiving from ${serverProg.peerName}...",
+                                text = if (serverProg.isCompleted) "Transfer Complete" else "Receiving from ${serverProg.peerName}...",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = if (serverProg.isCompleted) KmSuccess else KmTextPrimary,
                                 fontWeight = FontWeight.Bold

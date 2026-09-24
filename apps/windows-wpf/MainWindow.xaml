@@ -27,7 +27,7 @@
                             <Grid>
                                 <Border CornerRadius="7.2">
                                     <Border.Background>
-                                        <ImageBrush ImageSource="pack://application:,,,/Assets/logo.jpg" Stretch="UniformToFill" />
+                                        <ImageBrush x:Name="LogoHeaderBrush" Stretch="UniformToFill" />
                                     </Border.Background>
                                 </Border>
                                 <!-- Liquid Glossy Sheen Overlay -->
@@ -42,7 +42,7 @@
                     </StackPanel>
                     
                     <Border Margin="0,16,0,0" Background="#140900" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="8" Padding="10,6">
-                        <TextBlock x:Name="TxtCoreStatus" Text="● P2P Engine Active (Port 54124)" Foreground="#FF8A00" FontSize="11" FontWeight="SemiBold" />
+                        <TextBlock x:Name="TxtCoreStatus" Text="Engine Active (Port 54124)" Foreground="#FF8A00" FontSize="11" FontWeight="SemiBold" />
                     </Border>
                 </StackPanel>
 
@@ -50,19 +50,19 @@
                 <StackPanel DockPanel.Dock="Bottom">
                     <Border Background="#0C0C0C" BorderBrush="#181818" BorderThickness="1" CornerRadius="8" Padding="10,8">
                         <StackPanel>
-                            <TextBlock Text="🔒 AES-256-GCM · SHA-256 Verified" Foreground="#777777" FontSize="11" />
-                            <TextBlock Text="⚡ Local Offline P2P Transfer" Foreground="#777777" FontSize="11" Margin="0,2,0,0" />
+                            <TextBlock Text="AES-256-GCM · SHA-256 Verified" Foreground="#777777" FontSize="11" />
+                            <TextBlock Text="Local Offline P2P Transfer" Foreground="#777777" FontSize="11" Margin="0,2,0,0" />
                             <TextBlock x:Name="TxtLocalInfo" Text="Device: Windows PC" Foreground="#555555" FontSize="10" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
                         </StackPanel>
                     </Border>
                 </StackPanel>
 
-                <!-- Navigation Buttons -->
+                <!-- Navigation Buttons (Zero Emojis, Clean Apple-grade) -->
                 <StackPanel DockPanel.Dock="Top">
-                    <Button x:Name="BtnNavHome" Content="⚡ Quick Share" Click="Nav_Click" Tag="Home" Style="{StaticResource KmNavButton}" Background="#1C0E00" Foreground="#FF8A00" BorderBrush="#FF5A00" FontWeight="Bold" />
-                    <Button x:Name="BtnNavReceive" Content="📥 Receive Files" Click="Nav_Click" Tag="Receive" Style="{StaticResource KmNavButton}" />
-                    <Button x:Name="BtnNavMigration" Content="🔄 PC Migration Wizard" Click="Nav_Click" Tag="Migration" Style="{StaticResource KmNavButton}" />
-                    <Button x:Name="BtnNavHistory" Content="📋 History &amp; Checkpoints" Click="Nav_Click" Tag="History" Style="{StaticResource KmNavButton}" />
+                    <Button x:Name="BtnNavHome" Content="Quick Share" Click="Nav_Click" Tag="Home" Style="{StaticResource KmNavButton}" Background="#1C0E00" Foreground="#FF8A00" BorderBrush="#FF5A00" FontWeight="Bold" />
+                    <Button x:Name="BtnNavReceive" Content="Receive Files" Click="Nav_Click" Tag="Receive" Style="{StaticResource KmNavButton}" />
+                    <Button x:Name="BtnNavMigration" Content="Migration Wizard" Click="Nav_Click" Tag="Migration" Style="{StaticResource KmNavButton}" />
+                    <Button x:Name="BtnNavHistory" Content="Transfer History" Click="Nav_Click" Tag="History" Style="{StaticResource KmNavButton}" />
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -97,7 +97,7 @@
                                 <Border.Effect>
                                     <DropShadowEffect Color="#FF5A00" BlurRadius="16" ShadowDepth="0" Opacity="0.4"/>
                                 </Border.Effect>
-                                <TextBlock Text="⚡" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <Path Data="M13,2 L3,14 L12,14 L11,22 L21,10 L12,10 Z" Fill="#FF8A00" Width="22" Height="22" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <TextBlock Text="Drag and drop files or folders" Foreground="#FFFFFF" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" />
                             <TextBlock Text="Streaming 256 KB chunks · SHA-256 verification · Resumable" Foreground="#666666" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,18" />
@@ -111,7 +111,7 @@
                     <!-- Nearby Devices Discovery Panel (Glass Card) -->
                     <Border Grid.Column="1" Background="#080808" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="16" Padding="16">
                         <DockPanel>
-                            <TextBlock DockPanel.Dock="Top" Text="📡 Nearby Discovered Devices" Foreground="#FFFFFF" FontWeight="Bold" FontSize="14" Margin="0,0,0,10" />
+                            <TextBlock DockPanel.Dock="Top" Text="Nearby Discovered Devices" Foreground="#FFFFFF" FontWeight="Bold" FontSize="14" Margin="0,0,0,10" />
                             
                             <!-- Direct Connect Bar -->
                             <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
@@ -121,7 +121,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBox x:Name="TxtManualIp" Grid.Column="0" Text="192.168.1." Background="#141414" Foreground="#FFFFFF" BorderBrush="#333333" Padding="10,6" FontSize="12" />
+                                    <TextBox x:Name="TxtManualIp" Grid.Column="0" Text="192.168." Background="#141414" Foreground="#FFFFFF" BorderBrush="#333333" Padding="10,6" FontSize="12" />
                                     <Button Grid.Column="1" Content="Add" Click="AddManualDevice_Click" Style="{StaticResource KmGlassButton}" Height="34" Padding="14,0" Margin="8,0,0,0" />
                                 </Grid>
                             </StackPanel>
@@ -137,7 +137,9 @@
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0" Text="📱" FontSize="20" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                                <Border Grid.Column="0" Width="28" Height="28" CornerRadius="6" Background="#1A1A1A" BorderBrush="#333333" BorderThickness="1" Margin="0,0,12,0" VerticalAlignment="Center">
+                                                    <Path Data="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14z" Fill="#888888" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding DeviceName}" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13" />
                                                     <TextBlock Text="{Binding IpAddress}" Foreground="#888888" FontSize="11" />
@@ -190,7 +192,7 @@
                             <TextBlock x:Name="TxtStatus" Text="Ready to transfer · UDP Discovery Active (Port 54123)" Foreground="#FF8A00" FontWeight="SemiBold" FontSize="13" />
                             <TextBlock x:Name="TxtFileInfo" Text="0 files staged (0 B) · Select a device on the right" Foreground="#777777" FontSize="12" Margin="0,2,0,0" />
                         </StackPanel>
-                        <Button x:Name="BtnTransfer" Grid.Column="1" Content="Transfer Now →" Click="TransferNow_Click" Style="{StaticResource KmPrimaryButton}" Height="46" Padding="24,0" FontSize="14" />
+                        <Button x:Name="BtnTransfer" Grid.Column="1" Content="Transfer Files" Click="TransferNow_Click" Style="{StaticResource KmPrimaryButton}" Height="46" Padding="24,0" FontSize="14" />
                     </Grid>
                 </Border>
             </Grid>
@@ -203,7 +205,7 @@
                             <Border.Effect>
                                 <DropShadowEffect Color="#FF5A00" BlurRadius="18" ShadowDepth="0" Opacity="0.4"/>
                             </Border.Effect>
-                            <TextBlock Text="📥" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Path Data="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" Fill="#FF8A00" Width="26" Height="26" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <TextBlock Text="Receive Mode Active" Foreground="#FFFFFF" FontWeight="Bold" FontSize="22" HorizontalAlignment="Center" />
                         <TextBlock Text="Listening for incoming P2P transfers on TCP port 54124" Foreground="#888888" FontSize="13" HorizontalAlignment="Center" Margin="0,4,0,22" />
@@ -218,7 +220,7 @@
 
                         <Border Background="#140D00" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="12" Padding="16">
                             <StackPanel>
-                                <TextBlock Text="🛡️ Transfer Security Guarantee" Foreground="#FF8A00" FontWeight="Bold" FontSize="13" />
+                                <TextBlock Text="Transfer Security Guarantee" Foreground="#FF8A00" FontWeight="Bold" FontSize="13" />
                                 <TextBlock Text="• Anti-path traversal sanitization enabled&#x0a;• Pre-allocation and free disk space pre-check&#x0a;• SHA-256 hash verified before finalization&#x0a;• Resumable chunked streaming via .part files" Foreground="#CCCCCC" FontSize="12" Margin="0,6,0,0" LineHeight="18" />
                             </StackPanel>
                         </Border>
@@ -230,7 +232,7 @@
             <Grid x:Name="ViewMigration" Visibility="Collapsed">
                 <Border Background="#080808" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="16" Padding="28">
                     <DockPanel>
-                        <!-- Top Header with 100x100 Logo Badge (15% Corner Radius = 15) -->
+                        <!-- Top Header with 80x80 Logo Badge (15% Corner Radius = 12) -->
                         <Grid DockPanel.Dock="Top" Margin="0,0,0,24">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -238,39 +240,39 @@
                             </Grid.ColumnDefinitions>
                             
                             <!-- Master KM Logo with 15% Corner Radius in Windows -->
-                            <Border Grid.Column="0" CornerRadius="15" Width="80" Height="80" BorderBrush="#FF5A00" BorderThickness="2" Background="#000000" SnapsToDevicePixels="True" Margin="0,0,20,0">
+                            <Border Grid.Column="0" CornerRadius="12" Width="80" Height="80" BorderBrush="#FF5A00" BorderThickness="2" Background="#000000" SnapsToDevicePixels="True" Margin="0,0,20,0">
                                 <Border.Effect>
                                     <DropShadowEffect Color="#FF5A00" BlurRadius="22" ShadowDepth="0" Opacity="0.45"/>
                                 </Border.Effect>
                                 <Grid>
-                                    <Border CornerRadius="15">
+                                    <Border CornerRadius="12">
                                         <Border.Background>
-                                            <ImageBrush ImageSource="pack://application:,,,/Assets/logo.jpg" Stretch="UniformToFill" />
+                                            <ImageBrush x:Name="LogoMigrationBrush" Stretch="UniformToFill" />
                                         </Border.Background>
                                     </Border>
-                                    <Border CornerRadius="14,14,0,0" Height="36" VerticalAlignment="Top" Background="{StaticResource GlossySheenBrush}" Opacity="0.6"/>
+                                    <Border CornerRadius="11,11,0,0" Height="36" VerticalAlignment="Top" Background="{StaticResource GlossySheenBrush}" Opacity="0.6"/>
                                 </Grid>
                             </Border>
 
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="🔄 Complete PC Migration Wizard" Foreground="#FFFFFF" FontWeight="Bold" FontSize="22" />
+                                <TextBlock Text="PC Migration Wizard" Foreground="#FFFFFF" FontWeight="Bold" FontSize="22" />
                                 <TextBlock Text="Seamlessly clone and migrate documents, desktop, and media to another PC or phone." Foreground="#888888" FontSize="13" Margin="0,4,0,0" />
                             </StackPanel>
                         </Grid>
 
                         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
                             <Button Content="Scan Selected Items" Click="ScanMigration_Click" Style="{StaticResource KmGlassButton}" Margin="0,0,12,0" />
-                            <Button Content="Start Migration Transfer →" Click="StartMigration_Click" Style="{StaticResource KmPrimaryButton}" />
+                            <Button Content="Start Migration" Click="StartMigration_Click" Style="{StaticResource KmPrimaryButton}" />
                         </StackPanel>
 
                         <Border Background="#0E0E0E" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="12" Padding="20">
                             <UniformGrid Columns="2">
-                                <CheckBox x:Name="ChkDocs" Content="📄 Personal Documents (My Documents)" Foreground="#FFFFFF" FontSize="13" Margin="0,12" IsChecked="True" />
-                                <CheckBox x:Name="ChkDesktop" Content="🖥️ Desktop Files &amp; Shortcuts" Foreground="#FFFFFF" FontSize="13" Margin="0,12" IsChecked="True" />
-                                <CheckBox x:Name="ChkPictures" Content="🖼️ Pictures &amp; Photos Album" Foreground="#FFFFFF" FontSize="13" Margin="0,12" IsChecked="True" />
-                                <CheckBox x:Name="ChkDownloads" Content="📥 Downloads Folder" Foreground="#FFFFFF" FontSize="13" Margin="0,12" IsChecked="False" />
-                                <CheckBox x:Name="ChkMusic" Content="🎵 Music &amp; Audio Library" Foreground="#FFFFFF" FontSize="13" Margin="0,12" IsChecked="False" />
-                                <CheckBox x:Name="ChkVideos" Content="🎬 Videos &amp; Screen Recordings" Foreground="#FFFFFF" FontSize="13" Margin="0,12" IsChecked="False" />
+                                <CheckBox x:Name="ChkDocs" Content="Personal Documents (My Documents)" Foreground="#FFFFFF" FontSize="13" Margin="0,12" IsChecked="True" />
+                                <CheckBox x:Name="ChkDesktop" Content="Desktop Files &amp; Shortcuts" Foreground="#FFFFFF" FontSize="13" Margin="0,12" IsChecked="True" />
+                                <CheckBox x:Name="ChkPictures" Content="Pictures &amp; Photos Album" Foreground="#FFFFFF" FontSize="13" Margin="0,12" IsChecked="True" />
+                                <CheckBox x:Name="ChkDownloads" Content="Downloads Folder" Foreground="#FFFFFF" FontSize="13" Margin="0,12" IsChecked="False" />
+                                <CheckBox x:Name="ChkMusic" Content="Music &amp; Audio Library" Foreground="#FFFFFF" FontSize="13" Margin="0,12" IsChecked="False" />
+                                <CheckBox x:Name="ChkVideos" Content="Videos &amp; Screen Recordings" Foreground="#FFFFFF" FontSize="13" Margin="0,12" IsChecked="False" />
                             </UniformGrid>
                         </Border>
                     </DockPanel>
@@ -281,7 +283,7 @@
             <Grid x:Name="ViewHistory" Visibility="Collapsed">
                 <Border Background="#080808" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="16" Padding="22">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="📋 Transfer History &amp; Cryptographic Checkpoints" Foreground="#FFFFFF" FontWeight="Bold" FontSize="16" Margin="0,0,0,16" />
+                        <TextBlock DockPanel.Dock="Top" Text="Transfer History &amp; Cryptographic Checkpoints" Foreground="#FFFFFF" FontWeight="Bold" FontSize="16" Margin="0,0,0,16" />
                         <ListBox x:Name="ListHistory" Background="Transparent" BorderThickness="0">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
@@ -296,7 +298,7 @@
                                                 <TextBlock Text="{Binding PeerName}" Foreground="#888888" FontSize="11" />
                                             </StackPanel>
                                             <Border Grid.Column="1" Background="#0D2614" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="6" Padding="8,3" VerticalAlignment="Center">
-                                                <TextBlock Text="✓ SHA-256 VERIFIED" Foreground="#22C55E" FontSize="10" FontWeight="Bold" />
+                                                <TextBlock Text="SHA-256 VERIFIED" Foreground="#22C55E" FontSize="10" FontWeight="Bold" />
                                             </Border>
                                         </Grid>
                                     </Border>

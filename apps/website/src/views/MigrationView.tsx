@@ -89,7 +89,7 @@ export const MigrationView: React.FC<MigrationViewProps> = ({ onStartMigrationTr
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[#FF5A00] font-black text-2xl">⚡</span>
+            <Zap className="w-6 h-6 text-[#FF5A00]" />
             <h2 className="text-2xl font-black text-white">Smart Device Migration Wizard</h2>
           </div>
           <p className="text-sm text-gray-400 mt-0.5">

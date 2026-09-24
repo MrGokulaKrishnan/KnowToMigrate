@@ -24,12 +24,46 @@ namespace KnowToMigrate
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            // Safely set window icon
             try
             {
-                var iconUri = new Uri("pack://application:,,,/Assets/KnowToMigrate.ico", UriKind.RelativeOrAbsolute);
-                this.Icon = System.Windows.Media.Imaging.BitmapFrame.Create(iconUri);
+                var iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/KnowToMigrate;component/Assets/KnowToMigrate.ico", UriKind.Absolute));
+                if (iconStream != null)
+                {
+                    this.Icon = System.Windows.Media.Imaging.BitmapFrame.Create(iconStream.Stream);
+                }
             }
             catch { }
+
+            // Safely set header and migration logos
+            try
+            {
+                var logoStream = Application.GetResourceStream(new Uri("pack://application:,,,/KnowToMigrate;component/Assets/logo.jpg", UriKind.Absolute));
+                if (logoStream != null)
+                {
+                    var bmp = new System.Windows.Media.Imaging.BitmapImage();
+                    bmp.BeginInit();
+                    bmp.StreamSource = logoStream.Stream;
+                    bmp.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    bmp.EndInit();
+                    LogoHeaderBrush.ImageSource = bmp;
+                    LogoMigrationBrush.ImageSource = bmp;
+                }
+            }
+            catch
+            {
+                try
+                {
+                    string localPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory ?? "", "Assets", "logo.jpg");
+                    if (File.Exists(localPath))
+                    {
+                        var bmp = new System.Windows.Media.Imaging.BitmapImage(new Uri(localPath, UriKind.Absolute));
+                        LogoHeaderBrush.ImageSource = bmp;
+                        LogoMigrationBrush.ImageSource = bmp;
+                    }
+                }
+                catch { }
+            }
 
             try
             {
@@ -65,7 +99,7 @@ namespace KnowToMigrate
 
                 if (info.IsCompleted)
                 {
-                    TxtProgressTitle.Text = "✓ Transfer Complete and Verified!";
+                    TxtProgressTitle.Text = "Transfer Complete and Verified";
                     TxtProgressDetail.Text = "All files cryptographically verified with SHA-256.";
                     BtnCancelTransfer.Visibility = Visibility.Collapsed;
                 }
@@ -218,7 +252,7 @@ namespace KnowToMigrate
                 }
             }
 
-            TxtStatus.Text = $"✓ {_selectedFiles.Count} item(s) staged for transfer";
+            TxtStatus.Text = $"{_selectedFiles.Count} item(s) staged for transfer";
             TxtFileInfo.Text = $"{FormatBytes(totalBytes)} staged · Select a target device and click Transfer Now";
         }
 

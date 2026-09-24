@@ -29,7 +29,7 @@ const features = [
   {
     icon: Shield,
     title: 'SHA-256 Integrity Verification',
-    description: 'Every transferred file is verified with a SHA-256 Merkle tree hash. You only see ✓ Integrity Verified after actual cryptographic confirmation.',
+    description: 'Every transferred file is verified with a SHA-256 Merkle tree hash. Status confirms Integrity Verified only after actual cryptographic confirmation.',
     badge: 'Security',
   },
   {

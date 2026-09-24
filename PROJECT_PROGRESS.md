@@ -78,19 +78,26 @@ Task 49 — Establish persistent work state, checkpoints, and automated resumpti
   - Authored Windows Authenticode signing utility: `scripts/sign-windows.ps1`.
   - Configured Windows Firewall automation: `scripts/setup-firewall.ps1` for UDP 54123 and TCP 54124.
   - Implemented interactive LAN diagnostics and pairing helper: `scripts/verify-lan-transfer.ps1`.
+- [x] **CHECKPOINT 13 — Unified Master Logo, Professional Zero-Emoji Apple-Grade UI, Direct Website Downloads & Windows Crash Fix**
+  - Processed new master branding image `media_1790243023948.jpg` uniformly across Website (`/logo.jpg`, `/logo.png`, `favicon.ico`), Windows (`Assets/logo.jpg`, `KnowToMigrate.ico`), and Android (`drawable/logo.png`, density mipmaps `mdpi` through `xxxhdpi`).
+  - Purged 100% of emojis across Website, Windows WPF, and Android Native apps for a clean, classic, Apple-style aesthetic.
+  - Resolved Windows single-file startup crash: dynamically loaded embedded assembly resources in code-behind with filesystem fallback, eliminating `XamlParseException`. Verified active execution (`Responding = True`).
+  - Enhanced WiX MSI package with desktop and Start Menu shortcuts and application icon metadata.
+  - Switched from GitHub 302 redirects to direct native binary downloads served directly from `knowtomigrate.web.app` (`/download/*`) with `Content-Disposition: attachment`.
+  - Streamlined Android architecture: eliminated redundant Dagger/Hilt kapt overhead and ensured crash-proof lifecycle.
 
 ---
 
 ## Last Verified State
-- **Website**: Live at [https://knowtomigrate.web.app](https://knowtomigrate.web.app) with 100% working direct download endpoints:
-  - Windows MSI: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0-x64.msi` (62.8 MB, HTTP 200 OK)
-  - Windows EXE: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0-x64.exe` (68.8 MB, HTTP 200 OK)
-  - Android APK: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0.apk` (18.1 MB, HTTP 200 OK)
+- **Website**: Live at [https://knowtomigrate.web.app](https://knowtomigrate.web.app) with 100% direct binary downloads:
+  - Windows MSI: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0-x64.msi` (62.9 MB, HTTP 200 OK)
+  - Windows EXE: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0-x64.exe` (69.0 MB, HTTP 200 OK)
+  - Android APK: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0.apk` (11.9 MB, HTTP 200 OK)
 - **Binaries & Checksums**:
-  - `KnowToMigrate-1.0.0-x64.msi`: `67A82933748157879F583CBCFA8A1A5D53C7CD860BD596564319AA2E401F4A68`
-  - `KnowToMigrate-1.0.0-x64.exe`: `6D4A4EAD6A741E82C8725E29B04A9B85A1FE76AB01F2DC87D6F8386E94AA720B`
-  - `KnowToMigrate-1.0.0.apk`: `349742BB848F4058E1CA3D50EFD435AFBB1BAE323126882B02B28CC2CE15B5F3`
-- **Git Tree**: Clean, synced with `origin/main` (`MrGokulaKrishnan/KnowToMigrate`).
+  - `KnowToMigrate-1.0.0-x64.msi`: `790F2B07B8FF154655EBF7485C7C7DBDFE246DA17ADFA89BF75CD9B69DCC19F9`
+  - `KnowToMigrate-1.0.0-x64.exe`: `5711E5688D97F7C27C9CB46911A84A02311366A774CCD522F9A1B215D4234D2B`
+  - `KnowToMigrate-1.0.0.apk`: `A3C78EFC1659FB1D825C50A01E993607C7CDBBAD3548810E49AEA8CDE6C915CA`
+- **Git Tree**: Synced with `origin/main` (`MrGokulaKrishnan/KnowToMigrate`).
 
 ---
 
