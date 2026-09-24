@@ -203,26 +203,18 @@ private fun HomeHeader() {
             .padding(top = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Lightning bolt logo drawn with Canvas
-        Canvas(modifier = Modifier.size(40.dp)) {
-            val w = size.width
-            val h = size.height
-            val boltPath = Path().apply {
-                moveTo(w * 0.60f, 0f)
-                lineTo(w * 0.25f, h * 0.48f)
-                lineTo(w * 0.52f, h * 0.48f)
-                lineTo(w * 0.40f, h)
-                lineTo(w * 0.75f, h * 0.52f)
-                lineTo(w * 0.48f, h * 0.52f)
-                close()
-            }
-            drawPath(
-                path = boltPath,
-                brush = Brush.linearGradient(
-                    colors = listOf(KmOrangeLight, KmOrange, KmOrangeDark),
-                    start = Offset(0f, 0f),
-                    end = Offset(w, h)
-                )
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.Black)
+                .border(1.dp, KmOrange, RoundedCornerShape(8.dp))
+        ) {
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(id = com.knowtomigrate.app.R.drawable.logo),
+                contentDescription = "KnowToMigrate Logo",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = androidx.compose.ui.layout.ContentScale.Fit
             )
         }
         Spacer(modifier = Modifier.width(10.dp))

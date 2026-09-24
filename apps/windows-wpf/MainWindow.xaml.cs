@@ -26,6 +26,13 @@ namespace KnowToMigrate
         {
             try
             {
+                var iconUri = new Uri("pack://application:,,,/Assets/KnowToMigrate.ico", UriKind.RelativeOrAbsolute);
+                this.Icon = System.Windows.Media.Imaging.BitmapFrame.Create(iconUri);
+            }
+            catch { }
+
+            try
+            {
                 KtmManager.Instance.Start();
                 ListDevices.ItemsSource = KtmManager.Instance.NearbyDevices;
                 ListHistory.ItemsSource = KtmManager.Instance.TransferHistory;
@@ -49,41 +56,47 @@ namespace KnowToMigrate
 
         private void OnTransferProgress(TransferProgressInfo info)
         {
-            PanelProgress.Visibility = Visibility.Visible;
-            ProgressBarTransfer.Value = info.Percentage;
-            TxtProgressTitle.Text = $"Transferring: {info.CurrentFileName} ({info.CurrentFileIndex}/{info.TotalFiles})";
-            TxtProgressDetail.Text = $"{FormatBytes(info.BytesTransferred)} / {FormatBytes(info.TotalBytes)} ({info.Percentage:0.0}%) · {info.SpeedMBps:0.0} MB/s";
+            Dispatcher.Invoke(() =>
+            {
+                PanelProgress.Visibility = Visibility.Visible;
+                ProgressBarTransfer.Value = info.Percentage;
+                TxtProgressTitle.Text = $"Transferring: {info.CurrentFileName} ({info.CurrentFileIndex}/{info.TotalFiles})";
+                TxtProgressDetail.Text = $"{FormatBytes(info.BytesTransferred)} / {FormatBytes(info.TotalBytes)} ({info.Percentage:0.0}%) · {info.SpeedMBps:0.0} MB/s";
 
-            if (info.IsCompleted)
-            {
-                TxtProgressTitle.Text = "✓ Transfer Complete and Verified!";
-                TxtProgressDetail.Text = "All files cryptographically verified with SHA-256.";
-                BtnCancelTransfer.Visibility = Visibility.Collapsed;
-            }
-            else if (!string.IsNullOrEmpty(info.ErrorMessage))
-            {
-                TxtProgressTitle.Text = "Transfer Failed";
-                TxtProgressDetail.Text = info.ErrorMessage;
-                BtnCancelTransfer.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                BtnCancelTransfer.Visibility = Visibility.Visible;
-            }
+                if (info.IsCompleted)
+                {
+                    TxtProgressTitle.Text = "✓ Transfer Complete and Verified!";
+                    TxtProgressDetail.Text = "All files cryptographically verified with SHA-256.";
+                    BtnCancelTransfer.Visibility = Visibility.Collapsed;
+                }
+                else if (!string.IsNullOrEmpty(info.ErrorMessage))
+                {
+                    TxtProgressTitle.Text = "Transfer Failed";
+                    TxtProgressDetail.Text = info.ErrorMessage;
+                    BtnCancelTransfer.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    BtnCancelTransfer.Visibility = Visibility.Visible;
+                }
+            });
         }
 
         private void OnTransferCompleted(string sessionId, bool success, string message)
         {
-            if (success)
+            Dispatcher.Invoke(() =>
             {
-                KtmManager.Instance.TransferHistory.Add(new TransferProgressInfo
+                if (success)
                 {
-                    SessionId = sessionId,
-                    CurrentFileName = $"{_selectedFiles.Count} items transferred",
-                    PeerName = "Completed",
-                    IsCompleted = true
-                });
-            }
+                    KtmManager.Instance.TransferHistory.Add(new TransferProgressInfo
+                    {
+                        SessionId = sessionId,
+                        CurrentFileName = $"{_selectedFiles.Count} items transferred",
+                        PeerName = "Completed",
+                        IsCompleted = true
+                    });
+                }
+            });
         }
 
         private void Nav_Click(object sender, RoutedEventArgs e)

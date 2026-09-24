@@ -5,11 +5,168 @@
     <Application.Resources>
         <!-- Dark AMOLED Theme Resources -->
         <SolidColorBrush x:Key="DarkBg" Color="#000000" />
-        <SolidColorBrush x:Key="CardBg" Color="#0D0D0D" />
-        <SolidColorBrush x:Key="BorderBrush" Color="#1F1F1F" />
+        <SolidColorBrush x:Key="CardBg" Color="#0C0C0C" />
+        <SolidColorBrush x:Key="ElevatedBg" Color="#121212" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#1C1C1C" />
         <SolidColorBrush x:Key="KmOrange" Color="#FF5A00" />
         <SolidColorBrush x:Key="KmOrangeGlow" Color="#FF8A00" />
         <SolidColorBrush x:Key="TextPrimary" Color="#FFFFFF" />
         <SolidColorBrush x:Key="TextSecondary" Color="#8A8A8A" />
+        <SolidColorBrush x:Key="TextMuted" Color="#555555" />
+
+        <!-- Brand Gradients -->
+        <LinearGradientBrush x:Key="KmBrandGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FF4D00" Offset="0"/>
+            <GradientStop Color="#FF6A00" Offset="0.5"/>
+            <GradientStop Color="#FF8A00" Offset="1"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="KmBrandGradientHover" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FF6014" Offset="0"/>
+            <GradientStop Color="#FF7A1A" Offset="0.5"/>
+            <GradientStop Color="#FFA040" Offset="1"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="KmBrandGradientPressed" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#CC3700" Offset="0"/>
+            <GradientStop Color="#E04D00" Offset="0.5"/>
+            <GradientStop Color="#FF6A00" Offset="1"/>
+        </LinearGradientBrush>
+
+        <!-- Glossy Sheen Overlay Brush -->
+        <LinearGradientBrush x:Key="GlossySheenBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#30FFFFFF" Offset="0"/>
+            <GradientStop Color="#00FFFFFF" Offset="0.6"/>
+        </LinearGradientBrush>
+
+        <!-- Primary Glossy Gradient Button Style -->
+        <Style x:Key="KmPrimaryButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="42" />
+            <Setter Property="Padding" Value="18,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="OuterBorder"
+                                    Background="{StaticResource KmBrandGradient}"
+                                    BorderBrush="#FFA366"
+                                    BorderThickness="1"
+                                    CornerRadius="10">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#FF5A00" BlurRadius="12" ShadowDepth="0" Opacity="0.3"/>
+                                </Border.Effect>
+                                <Grid>
+                                    <!-- Glossy Sheen -->
+                                    <Border CornerRadius="9,9,0,0"
+                                            VerticalAlignment="Top"
+                                            Height="20"
+                                            Background="{StaticResource GlossySheenBrush}" />
+                                    <!-- Button Content -->
+                                    <ContentPresenter HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      Margin="{TemplateBinding Padding}"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="OuterBorder" Property="Background" Value="{StaticResource KmBrandGradientHover}" />
+                                <Setter TargetName="OuterBorder" Property="BorderBrush" Value="#FFCC99" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="OuterBorder" Property="Background" Value="{StaticResource KmBrandGradientPressed}" />
+                                <Setter TargetName="OuterBorder" Property="BorderBrush" Value="#E05500" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="OuterBorder" Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Glass Outlined Button Style -->
+        <Style x:Key="KmGlassButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#CCCCCC" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="42" />
+            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="GlassBorder"
+                                Background="#121212"
+                                BorderBrush="#262626"
+                                BorderThickness="1"
+                                CornerRadius="10">
+                            <Grid>
+                                <Border CornerRadius="9,9,0,0"
+                                        VerticalAlignment="Top"
+                                        Height="18"
+                                        Background="{StaticResource GlossySheenBrush}"
+                                        Opacity="0.4" />
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Margin="{TemplateBinding Padding}"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="GlassBorder" Property="Background" Value="#1C1C1C" />
+                                <Setter TargetName="GlassBorder" Property="BorderBrush" Value="#FF5A00" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="GlassBorder" Property="Background" Value="#0A0A0A" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="GlassBorder" Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Sidebar Navigation Button Style -->
+        <Style x:Key="KmNavButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#AAAAAA" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="42" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="NavBorder"
+                                Background="Transparent"
+                                BorderThickness="1"
+                                BorderBrush="Transparent"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Left"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="NavBorder" Property="Background" Value="#121212" />
+                                <Setter TargetName="NavBorder" Property="BorderBrush" Value="#222222" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Application.Resources>
 </Application>

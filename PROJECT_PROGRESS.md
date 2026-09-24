@@ -58,30 +58,27 @@ Task 49 — Establish persistent work state, checkpoints, and automated resumpti
   - Standardized cross-platform wire protocol (UDP 54123 discovery beaconing, TCP 54124 streaming chunk transfer with 20-byte `KTMC` binary frame).
   - Executed automated integration stress test suite (`KtmIntegrationTests`): 100 MB large file transfer (50.2 MB/s), recursive folder reconstruction, network drop simulation & offset resumption, path traversal security. 4/4 tests PASSED.
   - Updated all production binaries and deployed to Firebase Hosting.
-
----
-
-## In Progress
-- [ ] Real physical device LAN testing between Windows laptop and Android phone.
-
----
-
-## Pending Tasks
-- [ ] Setup GitHub Actions CI/CD workflow (`.github/workflows/build.yml`) for automated cross-platform releases.
-- [ ] Prepare Signed Android Release AAB / Keystore signing for Google Play Store publication.
-- [ ] Prepare Windows Authenticode code signing / EV certificate integration.
+- [x] **CHECKPOINT 10 — Production Refix, Uniform Master Logo & 15% Windows Corner Radius**
+  - Fixed Windows single-file startup crash: resolved `ContentFilePart` missing loose files error by converting `<Content>` to `<Resource>` embedding in `KnowToMigrate.csproj`, and added safe fallback icon loading.
+  - Fixed WPF cross-thread UI exceptions: wrapped progress and completion event listeners with `Dispatcher.Invoke`.
+  - Added global unhandled exception boundary in `App.xaml.cs`.
+  - Implemented 15% corner radius for Windows master logo presentation with liquid glass sheen and brand gradient buttons.
+  - Fixed Android scoped storage `SecurityException`: secured app-specific external storage downloads with internal fallback.
+  - Fixed Android `DatagramSocket` and `ServerSocket` reuseAddress binding order.
+  - Integrated official master logo across Android mipmap launcher icons and Compose `HomeHeader`.
+  - Verified live running process on Windows (`KnowToMigrate-1.0.0-x64.exe`).
 
 ---
 
 ## Last Verified State
 - **Website**: Live at [https://knowtomigrate.web.app](https://knowtomigrate.web.app) with 100% working direct download endpoints:
-  - Windows MSI: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0-x64.msi` (62.7 MB, HTTP 200 OK)
-  - Windows EXE: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0-x64.exe` (68.7 MB, HTTP 200 OK)
-  - Android APK: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0.apk` (17.8 MB, HTTP 200 OK)
+  - Windows MSI: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0-x64.msi` (62.8 MB, HTTP 200 OK)
+  - Windows EXE: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0-x64.exe` (68.8 MB, HTTP 200 OK)
+  - Android APK: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0.apk` (18.1 MB, HTTP 200 OK)
 - **Binaries & Checksums**:
-  - `KnowToMigrate-1.0.0-x64.msi`: `868343320CA6DB934C1DF4747983F62AF01A6471390F0710974B13EF203E8A8F`
-  - `KnowToMigrate-1.0.0-x64.exe`: `2B888126CE08F5C8F52BD7CAC775DA2C6FCA25475F1B29CA9B3609F367DAADE9`
-  - `KnowToMigrate-1.0.0.apk`: `239D0A3FD506EAFE5A09ECC92F7E4815171B197C55A95B7BB73FC14A2FD1EADA`
+  - `KnowToMigrate-1.0.0-x64.msi`: `67A82933748157879F583CBCFA8A1A5D53C7CD860BD596564319AA2E401F4A68`
+  - `KnowToMigrate-1.0.0-x64.exe`: `6D4A4EAD6A741E82C8725E29B04A9B85A1FE76AB01F2DC87D6F8386E94AA720B`
+  - `KnowToMigrate-1.0.0.apk`: `8E2E33BD15EEB08E4A61CEEFDCA2A3373CE2736F06BFF563F22796202BBB06E9`
 - **Git Tree**: Clean, synced with `origin/main` (`MrGokulaKrishnan/KnowToMigrate`).
 
 ---

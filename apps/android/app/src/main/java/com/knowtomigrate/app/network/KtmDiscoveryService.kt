@@ -57,9 +57,10 @@ class KtmDiscoveryService(
     private fun startListener() {
         scope?.launch {
             try {
-                listenerSocket = DatagramSocket(KtmConstants.DISCOVERY_PORT).apply {
+                listenerSocket = DatagramSocket(null).apply {
                     reuseAddress = true
                     broadcast = true
+                    bind(java.net.InetSocketAddress(KtmConstants.DISCOVERY_PORT))
                 }
                 val buffer = ByteArray(4096)
 

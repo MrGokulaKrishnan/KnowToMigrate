@@ -14,28 +14,44 @@ class KtmAndroidManager private constructor(private val context: Context) {
     val localDeviceName: String = Build.MODEL ?: "Android Device"
 
     val downloadDirectory: File by lazy {
-        val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val ktmDir = File(publicDownloads, "KnowToMigrate")
-        if (!ktmDir.exists()) ktmDir.mkdirs()
-        if (ktmDir.canWrite()) ktmDir else File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "KnowToMigrate").apply { mkdirs() }
+        try {
+            val appSpecific = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            if (appSpecific != null && (appSpecific.exists() || appSpecific.mkdirs())) {
+                val ktmDir = File(appSpecific, "KnowToMigrate")
+                if (!ktmDir.exists()) ktmDir.mkdirs()
+                return@lazy ktmDir
+            }
+        } catch (_: Exception) {}
+
+        try {
+            val fallback = File(context.filesDir, "KnowToMigrate")
+            if (!fallback.exists()) fallback.mkdirs()
+            return@lazy fallback
+        } catch (_: Exception) {}
+
+        File(context.cacheDir, "KnowToMigrate").apply { mkdirs() }
     }
 
     val discoveryService = KtmDiscoveryService(context, localDeviceId, localDeviceName)
-    val transferServer = KtmTransferServer(downloadDirectory)
+    val transferServer by lazy { KtmTransferServer(downloadDirectory) }
     val transferClient = KtmTransferClient(context)
 
     val discoveredDevices: StateFlow<List<DiscoveredDevice>> = discoveryService.devices
-    val serverProgress: StateFlow<TransferProgressInfo> = transferServer.progress
+    val serverProgress: StateFlow<TransferProgressInfo> get() = transferServer.progress
     val clientProgress: StateFlow<TransferProgressInfo> = transferClient.progress
 
     fun start() {
-        discoveryService.start()
-        transferServer.start()
+        try {
+            discoveryService.start()
+            transferServer.start()
+        } catch (_: Exception) {}
     }
 
     fun stop() {
-        discoveryService.stop()
-        transferServer.stop()
+        try {
+            discoveryService.stop()
+            transferServer.stop()
+        } catch (_: Exception) {}
     }
 
     suspend fun sendUris(target: DiscoveredDevice, uris: List<Uri>): Boolean {

@@ -25,3 +25,4 @@ apps/windows-wpf/obj/
 test_wpf/
 *.wixpdb
 .firebase/
+releases/windows/publish/

@@ -34,8 +34,9 @@ class KtmTransferServer(
 
         scope?.launch {
             try {
-                serverSocket = ServerSocket(port).apply {
+                serverSocket = ServerSocket().apply {
                     reuseAddress = true
+                    bind(java.net.InetSocketAddress(port))
                 }
                 while (isActive) {
                     val client = serverSocket?.accept() ?: break
