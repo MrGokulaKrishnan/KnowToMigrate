@@ -300,6 +300,7 @@ fun KmDiscoveryRadar(modifier: Modifier = Modifier) {
 
             fun drawRing(progress: Float) {
                 val radius = maxRadius * progress
+                if (radius <= 1f) return
                 val alpha = (1f - progress).coerceIn(0f, 1f)
                 drawCircle(
                     color = KmOrange.copy(alpha = alpha * 0.5f),
@@ -323,16 +324,22 @@ fun KmDiscoveryRadar(modifier: Modifier = Modifier) {
             drawRing(ring3.value)
 
             // Center dot
-            drawCircle(color = KmOrange, radius = 8.dp.toPx(), center = Offset(cx, cy))
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(KmOrange.copy(alpha = 0.4f), Color.Transparent),
-                    center = Offset(cx, cy),
-                    radius = 24.dp.toPx()
-                ),
-                radius = 24.dp.toPx(),
-                center = Offset(cx, cy)
-            )
+            val dotRadius = 8.dp.toPx()
+            val glowRadius = 24.dp.toPx()
+            if (dotRadius > 0f) {
+                drawCircle(color = KmOrange, radius = dotRadius, center = Offset(cx, cy))
+            }
+            if (glowRadius > 0f) {
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(KmOrange.copy(alpha = 0.4f), Color.Transparent),
+                        center = Offset(cx, cy),
+                        radius = glowRadius
+                    ),
+                    radius = glowRadius,
+                    center = Offset(cx, cy)
+                )
+            }
         }
     }
 }

@@ -128,19 +128,21 @@ fun SplashScreen(navController: NavController) {
             ) {
                 val centerOffset = Offset(size.width / 2f, size.height / 2f)
                 val radius = size.minDimension / 2f
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            KmOrange.copy(alpha = glowAlpha.value * 0.55f),
-                            KmOrange.copy(alpha = glowAlpha.value * 0.15f),
-                            Color.Transparent
+                if (radius > 1f) {
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                KmOrange.copy(alpha = glowAlpha.value * 0.55f),
+                                KmOrange.copy(alpha = glowAlpha.value * 0.15f),
+                                Color.Transparent
+                            ),
+                            center = centerOffset,
+                            radius = radius
                         ),
-                        center = centerOffset,
-                        radius = radius
-                    ),
-                    radius = radius,
-                    center = centerOffset
-                )
+                        radius = radius,
+                        center = centerOffset
+                    )
+                }
             }
         }
 
