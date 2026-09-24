@@ -28,9 +28,24 @@ fun ReceiveScreen(navController: NavController) {
     var showIncomingRequest by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
-    // Simulate an incoming request after 3 seconds in preview/demo
-    val sampleIncomingDevice = UiDevice("demo", "iPhone 15 Pro", "ios", "192.168.1.10", "online")
-    val sampleFiles = listOf("photos_2024.zip (2.3 GB)", "contacts.vcf (48 KB)")
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val manager = com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context)
+    val serverProg by manager.serverProgress.collectAsState()
+
+    var incomingSender by remember { mutableStateOf("") }
+    var incomingPin by remember { mutableStateOf("") }
+
+    DisposableEffect(Unit) {
+        manager.transferServer.onHandshakeReceived = { sender, pin ->
+            incomingSender = sender
+            incomingPin = pin
+            showIncomingRequest = true
+            true // auto-accept or display dialog
+        }
+        onDispose {
+            manager.transferServer.onHandshakeReceived = null
+        }
+    }
 
     Scaffold(
         containerColor = KmBlack,
@@ -77,7 +92,7 @@ fun ReceiveScreen(navController: NavController) {
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = if (isDiscoverable) "Visible to nearby devices" else "Hidden from other devices",
+                                text = if (isDiscoverable) "Listening on TCP port 54124" else "Hidden from other devices",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (isDiscoverable) KmSuccess else KmTextMuted
                             )
@@ -96,42 +111,71 @@ fun ReceiveScreen(navController: NavController) {
                 }
             }
 
-            // Device info / QR display
-            item {
-                KmSectionHeader(
-                    title = "Your Device",
-                    subtitle = "Share this code with the sender"
-                )
-            }
-
-            item {
-                DeviceQrDisplay(deviceName = "My Android Device", deviceId = "KTM-A8F2-3C9D")
-            }
-
-            // Status
-            item {
-                if (isDiscoverable) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        KmStatusDot(status = "online")
-                        Text(
-                            text = "Listening for connections on port 7979",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = KmTextMuted
-                        )
+            // Live Incoming Progress Card
+            if (serverProg.totalBytes > 0) {
+                item {
+                    KmGlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Column {
+                            Text(
+                                text = if (serverProg.isCompleted) "✓ Transfer Complete!" else "Receiving from ${serverProg.peerName}...",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = if (serverProg.isCompleted) KmSuccess else KmTextPrimary,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "File: ${serverProg.currentFileName} (${serverProg.currentFileIndex}/${serverProg.totalFiles})",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = KmOrange
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Speed: ${"%.1f".format(serverProg.speedMBps)} MB/s · ${serverProg.bytesTransferred / 1048576} MB / ${serverProg.totalBytes / 1048576} MB",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = KmTextMuted
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            LinearProgressIndicator(
+                                progress = { (serverProg.percentage / 100f).toFloat().coerceIn(0f, 1f) },
+                                modifier = Modifier.fillMaxWidth(),
+                                color = KmOrange,
+                                trackColor = KmBlackCard
+                            )
+                        }
                     }
                 }
             }
 
-            // Simulate incoming button (demo only)
+            // Device info / QR display
             item {
-                KmSecondaryButton(
-                    text = "Simulate Incoming Request",
-                    onClick = { showIncomingRequest = true },
-                    modifier = Modifier.fillMaxWidth()
+                KmSectionHeader(
+                    title = "Your Device",
+                    subtitle = "This phone is ready to receive transfers"
                 )
+            }
+
+            item {
+                DeviceQrDisplay(deviceName = manager.localDeviceName, deviceId = manager.localDeviceId)
+            }
+
+            // Destination directory card
+            item {
+                KmGlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        Text(
+                            text = "Save Destination",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = KmTextPrimary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = manager.downloadDirectory.absolutePath,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = KmOrange
+                        )
+                    }
+                }
             }
         }
 
@@ -152,8 +196,8 @@ fun ReceiveScreen(navController: NavController) {
                 }
             ) {
                 IncomingRequestSheet(
-                    device = sampleIncomingDevice,
-                    files = sampleFiles,
+                    device = UiDevice("remote", incomingSender.ifBlank { "Nearby Device" }, "remote", "", "online"),
+                    files = listOf("PIN: ${incomingPin.ifBlank { "123456" }}", "Incoming P2P Transfer"),
                     onAccept = { showIncomingRequest = false },
                     onDecline = { showIncomingRequest = false }
                 )

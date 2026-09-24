@@ -1,6 +1,7 @@
 package com.knowtomigrate.app.ui.screens
 
 import android.net.Uri
+import kotlinx.coroutines.launch
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -29,15 +30,20 @@ import com.knowtomigrate.app.ui.theme.*
 @Composable
 fun SendScreen(navController: NavController) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var selectedUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var selectedDevice by remember { mutableStateOf<UiDevice?>(null) }
     var isSending by remember { mutableStateOf(false) }
+    var manualIp by remember { mutableStateOf("") }
 
-    val nearbyDevices = remember {
-        listOf(
-            UiDevice("1", "iPhone 15 Pro", "ios", "192.168.1.10", "online"),
-            UiDevice("2", "MacBook Air M3", "macos", "192.168.1.11", "online"),
-            UiDevice("3", "Pixel 8 Pro", "android", "192.168.1.12", "online"),
+    val discoveredDevices by com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).discoveredDevices.collectAsState()
+    val nearbyDevices = discoveredDevices.map { dev ->
+        UiDevice(
+            id = dev.deviceId,
+            name = dev.deviceName,
+            platform = dev.platform.lowercase(),
+            ip = dev.ipAddress,
+            status = if (dev.isOnline) "online" else "offline"
         )
     }
 
@@ -174,17 +180,76 @@ fun SendScreen(navController: NavController) {
                 )
             }
 
+            // Direct IP Connect Card
+            item {
+                KmGlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        Text(
+                            text = "Direct Connect by IP",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = KmTextPrimary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "If device is not auto-discovered due to Wi-Fi isolation:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = KmTextMuted
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedTextField(
+                                value = manualIp,
+                                onValueChange = { manualIp = it },
+                                placeholder = { Text("e.g. 192.168.1.100", color = KmTextMuted) },
+                                modifier = Modifier.weight(1f),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = KmOrange,
+                                    unfocusedBorderColor = KmGlassBorder,
+                                    focusedTextColor = KmTextPrimary,
+                                    unfocusedTextColor = KmTextPrimary
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            KmSecondaryButton(
+                                text = "Use IP",
+                                onClick = {
+                                    if (manualIp.isNotBlank()) {
+                                        com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).discoveryService.addManualDevice(manualIp.trim())
+                                        selectedDevice = UiDevice("manual_${manualIp.trim()}", "PC / Phone (${manualIp.trim()})", "remote", manualIp.trim(), "online")
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
             // Send button
             item {
                 Spacer(modifier = Modifier.height(4.dp))
                 val canSend = selectedUris.isNotEmpty() && selectedDevice != null && !isSending
                 KmPrimaryButton(
-                    text = if (isSending) "Sending…" else "Send ${if (selectedUris.isEmpty()) "" else "${selectedUris.size} File(s)"}",
+                    text = if (isSending) "Encrypting & Streaming Chunks…" else "Send ${if (selectedUris.isEmpty()) "" else "${selectedUris.size} File(s)"}",
                     onClick = {
-                        if (canSend) {
+                        if (canSend && selectedDevice != null) {
                             isSending = true
-                            // Navigate to transfer screen with a mock session ID
-                            navController.navigate(Screen.Transfer.withSession("session_${System.currentTimeMillis()}"))
+                            val targetRaw = discoveredDevices.find { it.deviceId == selectedDevice!!.id } ?: com.knowtomigrate.app.network.DiscoveredDevice(
+                                deviceId = selectedDevice!!.id,
+                                deviceName = selectedDevice!!.name,
+                                ipAddress = selectedDevice!!.ip
+                            )
+                            scope.launch {
+                                val success = com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).sendUris(targetRaw, selectedUris)
+                                isSending = false
+                                if (success) {
+                                    android.widget.Toast.makeText(context, "✓ Transfer completed & verified!", android.widget.Toast.LENGTH_LONG).show()
+                                    navController.navigate(Screen.Home.route)
+                                } else {
+                                    android.widget.Toast.makeText(context, "Transfer failed or was rejected by recipient", android.widget.Toast.LENGTH_LONG).show()
+                                }
+                            }
                         }
                     },
                     enabled = canSend,

@@ -26,6 +26,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        com.knowtomigrate.app.network.KtmAndroidManager.getInstance(this).start()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        com.knowtomigrate.app.network.KtmAndroidManager.getInstance(this).stop()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleIntent(intent)

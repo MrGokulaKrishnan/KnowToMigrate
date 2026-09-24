@@ -63,6 +63,18 @@ fun HomeScreen(
 ) {
     var selectedNavItem by remember { mutableIntStateOf(0) }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val discoveredDevices by com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).discoveredDevices.collectAsState()
+    val uiDevices = discoveredDevices.map { dev ->
+        UiDevice(
+            id = dev.deviceId,
+            name = dev.deviceName,
+            platform = dev.platform.lowercase(),
+            ip = dev.ipAddress,
+            status = if (dev.isOnline) "online" else "offline"
+        )
+    }
+
     Scaffold(
         containerColor = KmBlack,
         bottomBar = {
@@ -137,14 +149,28 @@ fun HomeScreen(
             item {
                 KmSectionHeader(
                     title = "Nearby Devices",
-                    subtitle = "${sampleDevices.size} found"
+                    subtitle = if (uiDevices.isEmpty()) "Scanning on Wi-Fi (Port 54123)..." else "${uiDevices.size} discovered"
                 )
             }
-            items(sampleDevices) { device ->
-                KmDeviceCard(
-                    device = device,
-                    onClick = { navController.navigate(Screen.Send.route) }
-                )
+            if (uiDevices.isEmpty()) {
+                item {
+                    KmGlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "No other devices detected on this network yet.\nMake sure KnowToMigrate is open on your Windows PC or other phone.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = KmTextMuted,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(8.dp)
+                        )
+                    }
+                }
+            } else {
+                items(uiDevices) { device ->
+                    KmDeviceCard(
+                        device = device,
+                        onClick = { navController.navigate(Screen.Send.route) }
+                    )
+                }
             }
 
             // Recent transfers

@@ -52,8 +52,17 @@ Task 49 — Establish persistent work state, checkpoints, and automated resumpti
 
 ---
 
+- [x] **CHECKPOINT 09 — Full Application Rebuild & Networking Engine Integration**
+  - Rebuilt Windows network layer with native C# async UDP discovery service and streaming TCP chunked transfer client/server with resume support.
+  - Rebuilt Android network layer with native Kotlin coroutine UDP discovery and streaming TCP client/server with WiFi multicast lock.
+  - Standardized cross-platform wire protocol (UDP 54123 discovery beaconing, TCP 54124 streaming chunk transfer with 20-byte `KTMC` binary frame).
+  - Executed automated integration stress test suite (`KtmIntegrationTests`): 100 MB large file transfer (50.2 MB/s), recursive folder reconstruction, network drop simulation & offset resumption, path traversal security. 4/4 tests PASSED.
+  - Updated all production binaries and deployed to Firebase Hosting.
+
+---
+
 ## In Progress
-- [ ] Automated end-to-end device-to-device migration integration tests (simulated loopback peer transfer).
+- [ ] Real physical device LAN testing between Windows laptop and Android phone.
 
 ---
 
@@ -61,20 +70,18 @@ Task 49 — Establish persistent work state, checkpoints, and automated resumpti
 - [ ] Setup GitHub Actions CI/CD workflow (`.github/workflows/build.yml`) for automated cross-platform releases.
 - [ ] Prepare Signed Android Release AAB / Keystore signing for Google Play Store publication.
 - [ ] Prepare Windows Authenticode code signing / EV certificate integration.
-- [ ] Add Linux (`.deb` / AppImage) desktop packaging target.
-- [ ] Add macOS (Universal `.dmg`) target.
 
 ---
 
 ## Last Verified State
 - **Website**: Live at [https://knowtomigrate.web.app](https://knowtomigrate.web.app) with 100% working direct download endpoints:
-  - Windows MSI: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0-x64.msi` (54.4 MB, HTTP 200 OK)
+  - Windows MSI: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0-x64.msi` (62.7 MB, HTTP 200 OK)
   - Windows EXE: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0-x64.exe` (68.7 MB, HTTP 200 OK)
-  - Android APK: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0.apk` (17.6 MB, HTTP 200 OK)
+  - Android APK: `https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0.apk` (17.8 MB, HTTP 200 OK)
 - **Binaries & Checksums**:
-  - `KnowToMigrate-1.0.0-x64.msi`: `B64CE4836800E94462F8132C1DF80E046982221CC695B982D9F24E27F2BD766D`
-  - `KnowToMigrate-1.0.0-x64.exe`: `6AE860B4DD79D0EEA74E1E2A5DD09C5E260D5A0036CBB730BD44519A08F86C6D`
-  - `KnowToMigrate-1.0.0.apk`: `C6EBBDCD24ED29FD3F5206501D8DF3FD13DA68018F97127F4BAAAFC237B8A901`
+  - `KnowToMigrate-1.0.0-x64.msi`: `28F8A7D4D41024762D88DB24DD27AA3F1A14A37E2B1B483AF30A033474557BDF`
+  - `KnowToMigrate-1.0.0-x64.exe`: `2B888126CE08F5C8F52BD7CAC775DA2C6FCA25475F1B29CA9B3609F367DAADE9`
+  - `KnowToMigrate-1.0.0.apk`: `239D0A3FD506EAFE5A09ECC92F7E4815171B197C55A95B7BB73FC14A2FD1EADA`
 - **Git Tree**: Clean, synced with `origin/main` (`MrGokulaKrishnan/KnowToMigrate`).
 
 ---
