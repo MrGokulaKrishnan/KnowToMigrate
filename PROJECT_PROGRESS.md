@@ -67,6 +67,11 @@ Task 49 — Establish persistent work state, checkpoints, and automated resumpti
   - Fixed Android `DatagramSocket` and `ServerSocket` reuseAddress binding order.
   - Integrated official master logo across Android mipmap launcher icons and Compose `HomeHeader`.
   - Verified live running process on Windows (`KnowToMigrate-1.0.0-x64.exe`).
+- [x] **CHECKPOINT 11 — Android Dedicated Logo Integration & Architecture Hardening**
+  - Generated dedicated Android assets from uploaded master image `media_1790233139596.jpg` for `drawable/logo.png` and all mipmap launcher densities (`mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`).
+  - Preserved Windows logo and 15% corner radius presentation unaltered.
+  - Recompiled and verified `releases/android/KnowToMigrate-1.0.0.apk`.
+  - Deployed updated website to Firebase Hosting.
 
 ---
 
@@ -78,7 +83,7 @@ Task 49 — Establish persistent work state, checkpoints, and automated resumpti
 - **Binaries & Checksums**:
   - `KnowToMigrate-1.0.0-x64.msi`: `67A82933748157879F583CBCFA8A1A5D53C7CD860BD596564319AA2E401F4A68`
   - `KnowToMigrate-1.0.0-x64.exe`: `6D4A4EAD6A741E82C8725E29B04A9B85A1FE76AB01F2DC87D6F8386E94AA720B`
-  - `KnowToMigrate-1.0.0.apk`: `8E2E33BD15EEB08E4A61CEEFDCA2A3373CE2736F06BFF563F22796202BBB06E9`
+  - `KnowToMigrate-1.0.0.apk`: `349742BB848F4058E1CA3D50EFD435AFBB1BAE323126882B02B28CC2CE15B5F3`
 - **Git Tree**: Clean, synced with `origin/main` (`MrGokulaKrishnan/KnowToMigrate`).
 
 ---

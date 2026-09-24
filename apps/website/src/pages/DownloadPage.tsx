@@ -34,7 +34,7 @@ const ANDROID_DOWNLOADS: DownloadEntry[] = [
     filename: 'KnowToMigrate-1.0.0.apk',
     version: '1.0.0',
     size: '18.1 MB',
-    sha256: '8E2E33BD15EEB08E4A61CEEFDCA2A3373CE2736F06BFF563F22796202BBB06E9',
+    sha256: '349742BB848F4058E1CA3D50EFD435AFBB1BAE323126882B02B28CC2CE15B5F3',
     requirements: 'Android 8.0+ (API 26) - APK Package',
     downloadUrl: '/download/KnowToMigrate-1.0.0.apk',
   },
