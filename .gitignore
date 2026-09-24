@@ -3,10 +3,23 @@ dist
 .ktm-checkpoint.json
 *.log
 .DS_Store
+*.hprof
 
+# Rust
 core/target/
 target/
 
+# Android build outputs & local properties
 apps/android/.gradle/
-releases/android/
-core/target/
+apps/android/build/
+apps/android/app/build/
+apps/android/app/.cxx/
+apps/android/local.properties
+.cxx/
+
+# .NET / Windows build outputs
+apps/windows/bin/
+apps/windows/obj/
+apps/windows-wpf/bin/
+apps/windows-wpf/obj/
+test_wpf/

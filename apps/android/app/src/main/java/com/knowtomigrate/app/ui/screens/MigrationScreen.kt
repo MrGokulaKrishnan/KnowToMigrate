@@ -32,7 +32,7 @@ private data class MigrationCategory(
 
 private val migrationCategories = listOf(
     MigrationCategory("photos",    "Photos",    Icons.Default.PhotoLibrary,  "12.4 GB"),
-    MigrationCategory("videos",    "Videos",    Icons.Default.VideoLibraryOutlined, "28.1 GB"),
+    MigrationCategory("videos",    "Videos",    Icons.Default.VideoLibrary,  "28.1 GB"),
     MigrationCategory("documents", "Documents", Icons.Default.Description,   "340 MB"),
     MigrationCategory("music",     "Music",     Icons.Default.LibraryMusic,  "5.2 GB"),
     MigrationCategory("downloads", "Downloads", Icons.Default.Download,      "1.8 GB"),
@@ -317,6 +317,4 @@ private fun StoragePreflightCard(onCheck: () -> Unit) {
 
 // Required for mutableStateSetOf extension
 private fun <T> mutableStateSetOf(vararg elements: T): MutableSet<T> =
-    androidx.compose.runtime.snapshots.SnapshotStateList<T>().also { it.addAll(elements) }
-        .let { list -> object : MutableSet<T> by mutableSetOf<T>().also { s -> s.addAll(list) } {} }
-        .let { mutableSetOf<T>().also { it.addAll(elements) } }
+    mutableSetOf<T>().apply { addAll(elements) }

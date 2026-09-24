@@ -29,8 +29,9 @@ namespace KnowToMigrate.Views
         {
             base.OnNavigatedTo(e);
 
-            if (e.Parameter is (KtmService ktm, DeviceInfo? device, string[] paths))
+            if (e.Parameter is ValueTuple<KtmService, DeviceInfo?, string[]> tuple)
             {
+                var (ktm, device, paths) = tuple;
                 _ktm = ktm;
 
                 foreach (var d in _ktm.NearbyDevices) Devices.Add(d);

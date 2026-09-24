@@ -16,7 +16,7 @@ export function SecurityPage() {
             <li><strong>Key derivation:</strong> An ephemeral <strong>X25519 Elliptic-Curve Diffie-Hellman</strong> exchange is performed at session start. Neither device's long-term key is transmitted.</li>
             <li><strong>Session keys:</strong> Derived from the shared ECDH secret for that session only. Discarded after the session ends.</li>
             <li><strong>Nonce:</strong> 96-bit random nonce per AES-GCM encryption call.</li>
-            <li><strong>Library:</strong> Rust <code>aes-gcm 0.10</code> crate (RustCrypto) — no custom crypto.</li>
+            <li><strong>Library:</strong> Rust <code>aes-gcm 0.10</code> crate (RustCrypto)  -  no custom crypto.</li>
           </ul>
         </Section>
 
@@ -57,7 +57,7 @@ export function SecurityPage() {
 
         <Section title="What is NOT encrypted">
           <ul>
-            <li>UDP discovery broadcast packets (contains device name + public key fingerprint — no file data).</li>
+            <li>UDP discovery broadcast packets (contains device name + public key fingerprint  -  no file data).</li>
             <li>The initial TCP handshake manifest (transfer metadata). Encryption begins on the first chunk packet.</li>
           </ul>
           <p><em>Note: The transfer handshake encryption is on the roadmap for v1.1.</em></p>

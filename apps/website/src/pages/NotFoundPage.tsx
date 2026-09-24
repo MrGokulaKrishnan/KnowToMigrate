@@ -7,8 +7,8 @@ export function NotFoundPage() {
 
   // Update document title
   useEffect(() => {
-    document.title = '404 — Page Not Found | KnowToMigrate'
-    return () => { document.title = 'KnowToMigrate — Move Anything. Anywhere. Seamlessly.' }
+    document.title = '404  -  Page Not Found | KnowToMigrate'
+    return () => { document.title = 'KnowToMigrate  -  Move Anything. Anywhere. Seamlessly.' }
   }, [])
 
   return (
@@ -60,7 +60,7 @@ export function NotFoundPage() {
         }}
       >
         The page you're looking for doesn't exist or has been moved.
-        KnowToMigrate transfers files — not broken links.
+        KnowToMigrate transfers files  -  not broken links.
       </p>
 
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>

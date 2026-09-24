@@ -1,0 +1,22 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="KnowToMigrate"
+           Manufacturer="KnowToMigrate Team"
+           Version="1.0.0.0"
+           UpgradeCode="C8B72D32-1594-4F77-8E82-7AC4E7D01A4B"
+           Scope="perMachine">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="KnowToMigrate">
+        <Component Id="MainExecutable" Bitness="always64">
+          <File Id="KnowToMigrateEXE" Source="c:\KnowToMigrate\releases\windows_publish\KnowToMigrate.exe" KeyPath="yes" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+
+    <Feature Id="Main">
+      <ComponentRef Id="MainExecutable" />
+    </Feature>
+  </Package>
+</Wix>

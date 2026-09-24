@@ -56,8 +56,8 @@ function ParticleField() {
 
 /* ─── Features ─────────────────────────────────────────────── */
 const FEATURES = [
-  { icon: Wifi,        title: 'Offline Local Transfer',    desc: 'Transfers over the same Wi-Fi network — no internet, no cloud, no upload. Both devices must be on the same local network.' },
-  { icon: Zap,         title: 'Streaming 8 MB Chunks',     desc: 'Files never fully load into RAM. Each 8 MB chunk is streamed, hashed, and ACK\'d independently — enabling 100 GB+ transfers.' },
+  { icon: Wifi,        title: 'Offline Local Transfer',    desc: 'Transfers over the same Wi-Fi network  -  no internet, no cloud, no upload. Both devices must be on the same local network.' },
+  { icon: Zap,         title: 'Streaming 8 MB Chunks',     desc: 'Files never fully load into RAM. Each 8 MB chunk is streamed, hashed, and ACK\'d independently  -  enabling 100 GB+ transfers.' },
   { icon: RefreshCw,   title: 'Resumable Transfers',       desc: 'Checkpoint files track each verified chunk. If your connection drops, only unverified chunks are re-sent on reconnect.' },
   { icon: Shield,      title: 'AES-256-GCM Encryption',    desc: 'All data is encrypted with AES-256-GCM using ephemeral session keys derived via X25519 ECDH. Keys exist only for the session.' },
   { icon: CheckCircle, title: 'SHA-256 Integrity',         desc: 'Every chunk carries a SHA-256 digest. A Merkle root over all chunks is verified after transfer completes on both sides.' },
@@ -73,7 +73,7 @@ interface HomePageProps {
 export function HomePage({ onOpenAppPreview }: HomePageProps) {
   // Update document title
   useEffect(() => {
-    document.title = 'KnowToMigrate — Move Anything. Anywhere. Seamlessly.'
+    document.title = 'KnowToMigrate  -  Move Anything. Anywhere. Seamlessly.'
   }, [])
 
   return (
@@ -91,7 +91,7 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
         fontSize: '0.8125rem',
         color: '#FF8A00',
       }}>
-        🚧 <strong>Public Beta</strong> — Android and Windows builds are being finalized. Local encrypted transfers are the current focus.
+        🚧 <strong>Public Beta</strong>  -  Android and Windows builds are being finalized. Local encrypted transfers are the current focus.
         &nbsp;
         <a
           href="https://github.com/MrGokulaKrishnan/KnowToMigrate"
@@ -239,7 +239,7 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                   {items.map(i => (
                     <li key={i} style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.40)', padding: '0.2rem 0' }}>
-                      — {i}
+                       -  {i}
                     </li>
                   ))}
                 </ul>
@@ -255,14 +255,14 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
           How connections work
         </h2>
         <p style={{ color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginBottom: '2rem', fontSize: '0.875rem' }}>
-          These are materially different modes — choose based on your setup.
+          These are materially different modes  -  choose based on your setup.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           {[
             { mode: 'Same Wi-Fi',    icon: '📶', status: 'Implemented', desc: 'Both devices on the same router. UDP broadcast discovers peers automatically. No internet needed.', color: '#22C55E' },
             { mode: 'Wi-Fi Hotspot', icon: '📡', status: 'Implemented', desc: 'One device creates a hotspot; the other connects to it. Same protocol, direct link.', color: '#22C55E' },
             { mode: 'Wi-Fi Direct',  icon: '🔗', status: 'Planned',     desc: 'Android-to-Android peer-to-peer without a router. Requires Wi-Fi Direct API integration.', color: '#F59E0B' },
-            { mode: 'Internet Relay',icon: '🌐', status: 'Planned',     desc: 'Encrypted STUN/TURN relay for cross-network transfers. Optional — all local-mode transfers work without it.', color: '#F59E0B' },
+            { mode: 'Internet Relay',icon: '🌐', status: 'Planned',     desc: 'Encrypted STUN/TURN relay for cross-network transfers. Optional  -  all local-mode transfers work without it.', color: '#F59E0B' },
           ].map(({ mode, icon, status, desc, color }) => (
             <div key={mode} style={{
               borderRadius: 16,
@@ -288,7 +288,7 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
           Core capabilities
         </h2>
         <p style={{ color: 'rgba(255,255,255,0.38)', textAlign: 'center', marginBottom: '3rem', fontSize: '0.9375rem' }}>
-          Implemented in the Rust core library — UI wrappers for Android and Windows are in development.
+          Implemented in the Rust core library  -  UI wrappers for Android and Windows are in development.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
           {FEATURES.map(({ icon: Icon, title, desc }) => (

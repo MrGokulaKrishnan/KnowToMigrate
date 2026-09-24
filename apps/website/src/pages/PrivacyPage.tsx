@@ -14,8 +14,8 @@ export function PrivacyPage() {
 
         <PSection title="Data we do NOT collect">
           <ul>
-            <li>No account information — there is no account system.</li>
-            <li>No file content — your files never pass through our servers.</li>
+            <li>No account information  -  there is no account system.</li>
+            <li>No file content  -  your files never pass through our servers.</li>
             <li>No device identifiers, IP addresses, or location data.</li>
             <li>No analytics or telemetry from the installed app.</li>
             <li>No crash reports (planned: opt-in only, with redacted logs).</li>
@@ -24,9 +24,9 @@ export function PrivacyPage() {
 
         <PSection title="Data stored locally on your device">
           <ul>
-            <li>Your device keypair (X25519 public/private key) — used for pairing. Stays on-device.</li>
-            <li>Your trusted device list — public key fingerprints of devices you've approved. Stays on-device.</li>
-            <li>Transfer history and checkpoint files — stored in the app's local data directory. Never synced.</li>
+            <li>Your device keypair (X25519 public/private key)  -  used for pairing. Stays on-device.</li>
+            <li>Your trusted device list  -  public key fingerprints of devices you've approved. Stays on-device.</li>
+            <li>Transfer history and checkpoint files  -  stored in the app's local data directory. Never synced.</li>
             <li>Your settings (device name, receive folder, visibility preference).</li>
           </ul>
         </PSection>

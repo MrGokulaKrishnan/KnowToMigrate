@@ -1,4 +1,4 @@
-pluginsManagement {
+pluginManagement {
     repositories {
         google()
         mavenCentral()

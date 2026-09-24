@@ -5,19 +5,19 @@ const features = [
   {
     icon: Wifi,
     title: 'Offline Peer-to-Peer',
-    description: 'Transfer files directly between devices on the same Wi-Fi network — no internet required. No cloud. No upload. 100% local.',
+    description: 'Transfer files directly between devices on the same Wi-Fi network  -  no internet required. No cloud. No upload. 100% local.',
     badge: 'Core Feature',
   },
   {
     icon: Zap,
     title: 'Smart Device Migration',
-    description: 'Move everything from your Android phone to your Windows PC (or vice versa) with the guided 9-step migration wizard. Photos, Videos, Documents, Music, Downloads, WhatsApp — all organized automatically.',
+    description: 'Move everything from your Android phone to your Windows PC (or vice versa) with the guided 9-step migration wizard. Photos, Videos, Documents, Music, Downloads, WhatsApp  -  all organized automatically.',
     badge: 'Migration',
   },
   {
     icon: FolderOpen,
     title: 'Large File Support (100 GB+)',
-    description: 'KnowToMigrate uses streaming chunked transfer — files are never fully loaded into memory. Transfer a 100 GB video library as easily as a single document.',
+    description: 'KnowToMigrate uses streaming chunked transfer  -  files are never fully loaded into memory. Transfer a 100 GB video library as easily as a single document.',
     badge: 'Performance',
   },
   {
@@ -35,13 +35,13 @@ const features = [
   {
     icon: QrCode,
     title: 'QR Code Pairing',
-    description: 'Pair two devices instantly by scanning a QR code — no account, no email, no setup. The QR contains an ephemeral session token that expires after use.',
+    description: 'Pair two devices instantly by scanning a QR code  -  no account, no email, no setup. The QR contains an ephemeral session token that expires after use.',
     badge: 'Usability',
   },
   {
     icon: Users,
     title: 'Trusted Devices',
-    description: 'Mark frequently used devices as trusted for instant connection without manual accept — while keeping unknown devices blocked by default.',
+    description: 'Mark frequently used devices as trusted for instant connection without manual accept  -  while keeping unknown devices blocked by default.',
     badge: 'Privacy',
   },
   {
@@ -53,7 +53,7 @@ const features = [
   {
     icon: Globe,
     title: 'Consistent Cross-Platform Design',
-    description: 'The Android app, Windows app, and website all use the identical KnowToMigrate design system — AMOLED black, KM orange gradients, Liquid Glass, same terminology and interaction language.',
+    description: 'The Android app, Windows app, and website all use the identical KnowToMigrate design system  -  AMOLED black, KM orange gradients, Liquid Glass, same terminology and interaction language.',
     badge: 'Design',
   },
 ]

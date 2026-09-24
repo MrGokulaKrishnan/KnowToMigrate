@@ -28,18 +28,14 @@ namespace KnowToMigrate
             NavHistory.Click   += (_, _) => NavigateTo(typeof(HistoryView));
             NavMigration.Click += (_, _) => NavigateTo(typeof(MigrationView));
             NavSettings.Click  += (_, _) => NavigateTo(typeof(SettingsView));
+
+            this.Closed += (_, _) => _ktmService?.Dispose();
         }
 
         private void NavigateTo(Type pageType)
         {
             if (MainFrame.CurrentSourcePageType != pageType)
                 MainFrame.Navigate(pageType, _ktmService);
-        }
-
-        protected override void OnClosed(EventArgs args)
-        {
-            _ktmService?.Dispose();
-            base.OnClosed(args);
         }
     }
 }

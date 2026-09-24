@@ -28,8 +28,9 @@ namespace KnowToMigrate.Views
         {
             base.OnNavigatedTo(e);
 
-            if (e.Parameter is (KtmService ktm, DeviceInfo device, string[] paths))
+            if (e.Parameter is ValueTuple<KtmService, DeviceInfo, string[]> tuple)
             {
+                var (ktm, device, paths) = tuple;
                 _ktm    = ktm;
                 _device = device;
                 _paths  = paths;
@@ -86,7 +87,7 @@ namespace KnowToMigrate.Views
             StatusText.Text = "Transferring…";
 
             // Fake progress ticker for demo/preview mode
-            var timer = DispatcherQueue.GetForCurrentThread()?.CreateTimer();
+            var timer = this.DispatcherQueue.CreateTimer();
             if (timer == null) return;
 
             double pct = 0;
@@ -94,7 +95,7 @@ namespace KnowToMigrate.Views
             timer.Tick += (t, _) =>
             {
                 pct = Math.Min(pct + 0.5, 100);
-                UpdateProgressUI(pct, pct * 10_000_000, 1_000_000_000,
+                UpdateProgressUI(pct, (long)(pct * 10_000_000), 1_000_000_000,
                                  pct < 100 ? 45_000_000 : 0,
                                  pct < 100 ? (100 - pct) / 0.5 * 0.08 : 0);
 

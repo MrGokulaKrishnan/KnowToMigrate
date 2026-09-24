@@ -127,7 +127,7 @@ export function Navbar({ onOpenAppPreview }: NavbarProps) {
 
         {/* Right actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-          {/* App Preview button — desktop */}
+          {/* App Preview button  -  desktop */}
           {onOpenAppPreview && (
             <button
               onClick={onOpenAppPreview}
@@ -207,7 +207,7 @@ export function Navbar({ onOpenAppPreview }: NavbarProps) {
         </div>
       </div>
 
-      {/* Mobile menu — animated height */}
+      {/* Mobile menu  -  animated height */}
       <div
         id="mobile-nav"
         ref={menuRef}

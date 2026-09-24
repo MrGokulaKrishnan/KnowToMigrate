@@ -1,0 +1,111 @@
+<Window x:Class="KnowToMigrate.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="KnowToMigrate — Move Anything. Anywhere. Seamlessly."
+        Height="700" Width="1050"
+        MinHeight="600" MinWidth="850"
+        WindowStartupLocation="CenterScreen"
+        Background="#000000"
+        Icon="Assets/KnowToMigrate.ico">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="#080808" BorderBrush="#141414" BorderThickness="0,0,1,0">
+            <DockPanel Margin="16,24,16,20">
+                <!-- Top Brand -->
+                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,32">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border CornerRadius="8" Width="36" Height="36" Background="#141414" BorderBrush="#FF5A00" BorderThickness="1">
+                            <Image Source="Assets/logo.jpg" Stretch="UniformToFill" />
+                        </Border>
+                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="KnowToMigrate" Foreground="#FFFFFF" FontWeight="Bold" FontSize="15" />
+                            <TextBlock Text="Standalone v1.0.0" Foreground="#888888" FontSize="11" />
+                        </StackPanel>
+                    </StackPanel>
+                    
+                    <Border Margin="0,16,0,0" Background="#140A00" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="6" Padding="8,4">
+                        <TextBlock Text="● Core Engine Active (P2P)" Foreground="#FF8A00" FontSize="11" FontWeight="SemiBold" />
+                    </Border>
+                </StackPanel>
+
+                <!-- Footer status -->
+                <StackPanel DockPanel.Dock="Bottom">
+                    <TextBlock Text="AES-256-GCM · X25519" Foreground="#555555" FontSize="11" />
+                    <TextBlock Text="Local Offline P2P Transfer" Foreground="#555555" FontSize="11" />
+                </StackPanel>
+
+                <!-- Navigation Buttons -->
+                <StackPanel DockPanel.Dock="Top">
+                    <Button x:Name="BtnNavHome" Content="⚡ Quick Share" Click="Nav_Click" Tag="Home" Margin="0,0,0,6" Height="40" Background="#1A0D00" Foreground="#FF8A00" BorderBrush="#FF5A00" BorderThickness="1" FontWeight="SemiBold" HorizontalContentAlignment="Left" Padding="14,0" />
+                    <Button x:Name="BtnNavSend" Content="📤 Send Files" Click="Nav_Click" Tag="Send" Margin="0,0,0,6" Height="40" Background="Transparent" Foreground="#CCCCCC" BorderThickness="0" HorizontalContentAlignment="Left" Padding="14,0" />
+                    <Button x:Name="BtnNavReceive" Content="📥 Receive Files" Click="Nav_Click" Tag="Receive" Margin="0,0,0,6" Height="40" Background="Transparent" Foreground="#CCCCCC" BorderThickness="0" HorizontalContentAlignment="Left" Padding="14,0" />
+                    <Button x:Name="BtnNavMigration" Content="🔄 PC Migration Wizard" Click="Nav_Click" Tag="Migration" Margin="0,0,0,6" Height="40" Background="Transparent" Foreground="#CCCCCC" BorderThickness="0" HorizontalContentAlignment="Left" Padding="14,0" />
+                    <Button x:Name="BtnNavHistory" Content="📋 History &amp; Checkpoints" Click="Nav_Click" Tag="History" Margin="0,0,0,6" Height="40" Background="Transparent" Foreground="#CCCCCC" BorderThickness="0" HorizontalContentAlignment="Left" Padding="14,0" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Column="1" Margin="32">
+            <!-- Quick Share / Send View -->
+            <Grid x:Name="ViewHome" Visibility="Visible">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                    <TextBlock Text="Move Anything. Anywhere. Seamlessly." FontSize="22" FontWeight="Bold" Foreground="#FFFFFF" />
+                    <TextBlock Text="Fast encrypted device-to-device local transfer over Wi-Fi without internet or cloud." FontSize="13" Foreground="#888888" Margin="0,4,0,0" />
+                </StackPanel>
+
+                <!-- Drag & Drop Zone -->
+                <Border Grid.Row="1" AllowDrop="True" Drop="DropZone_Drop" DragOver="DropZone_DragOver"
+                        Background="#0A0A0A" BorderBrush="#262626" BorderThickness="2" CornerRadius="16" Padding="32">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Border Width="64" Height="64" CornerRadius="32" Background="#140D00" BorderBrush="#FF5A00" BorderThickness="1" HorizontalAlignment="Center" Margin="0,0,0,16">
+                            <TextBlock Text="⚡" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Drag and drop files or folders here" Foreground="#FFFFFF" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                        <TextBlock Text="Supports 100 GB+ files with streaming 8 MB chunks and pause/resume checkpoints" Foreground="#777777" FontSize="12" HorizontalAlignment="Center" Margin="0,6,0,20" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Content="Choose Files" Click="ChooseFiles_Click" Background="#FF5A00" Foreground="#FFFFFF" FontWeight="SemiBold" Padding="20,10" BorderThickness="0" Margin="0,0,10,0" Cursor="Hand" />
+                            <Button Content="Choose Folder" Click="ChooseFolder_Click" Background="#1C1C1C" Foreground="#CCCCCC" FontWeight="SemiBold" Padding="20,10" BorderThickness="1" BorderBrush="#333333" Cursor="Hand" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Status / Selected Files -->
+                <Border Grid.Row="2" Margin="0,20,0,0" Background="#0C0C0C" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="12" Padding="16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock x:Name="TxtStatus" Text="Ready to transfer · UDP Discovery Active (Port 54123)" Foreground="#FF8A00" FontWeight="SemiBold" FontSize="13" />
+                            <TextBlock x:Name="TxtFileInfo" Text="0 files selected (0 B) · Destination: Default Downloads" Foreground="#777777" FontSize="12" Margin="0,2,0,0" />
+                        </StackPanel>
+                        <Button x:Name="BtnTransfer" Grid.Column="1" Content="Transfer Now →" Click="TransferNow_Click" Background="#FF5A00" Foreground="#FFFFFF" FontWeight="Bold" Padding="18,8" BorderThickness="0" Cursor="Hand" />
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Other Views Container -->
+            <Grid x:Name="ViewOther" Visibility="Collapsed">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock x:Name="TxtOtherTitle" Text="Feature" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
+                    <TextBlock Text="Connected to Rust Transfer Engine (ktm_ffi.dll) · Ready" Foreground="#888888" FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                    <Button Content="← Back to Quick Share" Click="BackToHome_Click" Background="#1C1C1C" Foreground="#FF8A00" Padding="16,8" BorderBrush="#FF5A00" BorderThickness="1" Margin="0,24,0,0" HorizontalAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

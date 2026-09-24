@@ -21,7 +21,7 @@ export function DocsPage() {
           <DocStep num={2} title="Install the application">
             <ul className="list-disc pl-5 space-y-1 text-[#8A8A8A]">
               <li><strong className="text-white">Windows MSI</strong>: Run the installer and follow the setup wizard</li>
-              <li><strong className="text-white">Windows EXE</strong>: No installation needed — run directly</li>
+              <li><strong className="text-white">Windows EXE</strong>: No installation needed  -  run directly</li>
               <li><strong className="text-white">Android APK</strong>: Tap the file in Downloads and tap Install</li>
             </ul>
           </DocStep>
@@ -32,7 +32,7 @@ export function DocsPage() {
 
         <DocSection title="Your First Transfer">
           <DocStep num={1} title="Connect both devices to the same Wi-Fi network">
-            No internet required — just the same local network.
+            No internet required  -  just the same local network.
           </DocStep>
           <DocStep num={2} title="Open KnowToMigrate on both devices">
             Both devices will automatically appear in each other's Nearby Devices list within seconds.
@@ -64,9 +64,9 @@ export function DocsPage() {
             <p>KnowToMigrate uses a layered security model:</p>
             <ul className="list-disc pl-5 space-y-2">
               <li><strong className="text-white">Transport Encryption</strong>: AES-256-GCM with per-session keys derived via X25519 Ephemeral Diffie-Hellman</li>
-              <li><strong className="text-white">Integrity Verification</strong>: SHA-256 Merkle tree computed over all chunks — verified after transfer</li>
-              <li><strong className="text-white">Device Identity</strong>: Persistent device keypair stored locally — no central authority</li>
-              <li><strong className="text-white">Path Traversal Protection</strong>: All received file paths are sanitized — no <code>../</code> escapes possible</li>
+              <li><strong className="text-white">Integrity Verification</strong>: SHA-256 Merkle tree computed over all chunks  -  verified after transfer</li>
+              <li><strong className="text-white">Device Identity</strong>: Persistent device keypair stored locally  -  no central authority</li>
+              <li><strong className="text-white">Path Traversal Protection</strong>: All received file paths are sanitized  -  no <code>../</code> escapes possible</li>
               <li><strong className="text-white">No Cloud</strong>: Data never leaves your local network (for local transfers)</li>
             </ul>
           </div>
@@ -77,7 +77,7 @@ export function DocsPage() {
             No. KnowToMigrate has zero accounts, zero sign-ups, and zero cloud dependency for local transfers.
           </FaqItem>
           <FaqItem q="Does it work without internet?">
-            Yes — local transfers work completely offline as long as both devices are on the same Wi-Fi network.
+            Yes  -  local transfers work completely offline as long as both devices are on the same Wi-Fi network.
           </FaqItem>
           <FaqItem q="What is the maximum file size?">
             There is no limit. KnowToMigrate streams files in 8 MB chunks and never loads the entire file into memory.
