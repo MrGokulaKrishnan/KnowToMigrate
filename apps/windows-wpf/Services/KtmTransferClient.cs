@@ -30,12 +30,16 @@ namespace KnowToMigrate.Services
             client.SendBufferSize = 256 * 1024;
             client.NoDelay = true;
 
+            long startMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var progress = new TransferProgressInfo
             {
                 PeerName = targetIp,
                 TotalFiles = 0,
                 TotalBytes = 0,
-                TransportType = KtmTransportCodes.GetDisplayName(selectedTransport)
+                TransportType = KtmTransportCodes.GetDisplayName(selectedTransport),
+                Direction = TransferDirection.Sending,
+                Status = TransferStatus.Connecting,
+                StartTimeMs = startMs
             };
 
             try
@@ -97,6 +101,8 @@ namespace KnowToMigrate.Services
                 progress.SessionId = manifest.SessionId;
                 progress.TotalFiles = manifest.TotalFiles;
                 progress.TotalBytes = totalBytes;
+                progress.Status = TransferStatus.Connecting;
+                OnProgress?.Invoke(progress);
 
                 // 2. Handshake with 6-digit confirmation PIN
                 string pin = KtmSecurityUtils.Generate6DigitPin();
@@ -114,8 +120,15 @@ namespace KnowToMigrate.Services
                 var handshakeAck = JsonSerializer.Deserialize<KtmHandshakeAck>(ackJson);
                 if (handshakeAck == null || !handshakeAck.Accepted)
                 {
-                    throw new InvalidOperationException($"Transfer rejected by recipient: {handshakeAck?.Reason ?? "Unknown"}");
+                    string reason = handshakeAck?.Reason ?? "Unknown";
+                    progress.Status = TransferStatus.Failed;
+                    progress.ErrorMessage = reason;
+                    OnProgress?.Invoke(progress);
+                    throw new InvalidOperationException($"Transfer rejected by recipient: {reason}");
                 }
+
+                progress.Status = TransferStatus.Transferring;
+                OnProgress?.Invoke(progress);
 
                 // 3. Send Manifest
                 await SendLengthPrefixedJsonAsync(stream, manifest, token);
@@ -123,7 +136,11 @@ namespace KnowToMigrate.Services
                 var manifestAck = JsonSerializer.Deserialize<KtmManifestAck>(manifestAckJson);
                 if (manifestAck == null || !manifestAck.Accepted)
                 {
-                    throw new InvalidOperationException($"Manifest rejected by recipient: {manifestAck?.Reason ?? "Unknown"}");
+                    string reason = manifestAck?.Reason ?? "Unknown";
+                    progress.Status = TransferStatus.Failed;
+                    progress.ErrorMessage = reason;
+                    OnProgress?.Invoke(progress);
+                    throw new InvalidOperationException($"Manifest rejected by recipient: {reason}");
                 }
 
                 // 4. Stream Chunks with Resume Support
@@ -159,6 +176,7 @@ namespace KnowToMigrate.Services
 
                     progress.CurrentFileName = fileItem.RelativePath;
                     progress.CurrentFileIndex = fileItem.FileIndex + 1;
+                    progress.Status = TransferStatus.Transferring;
                     OnProgress?.Invoke(progress);
 
                     using (var fs = new FileStream(localSource, FileMode.Open, FileAccess.Read, FileShare.Read, 131072, useAsync: true))
@@ -192,8 +210,9 @@ namespace KnowToMigrate.Services
                             fileBytesSent += read;
                             progress.BytesTransferred += read;
                             bytesSinceTimer += read;
+                            progress.ElapsedTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - startMs;
 
-                            if (speedTimer.ElapsedMilliseconds >= 100 || bytesSinceTimer >= 1024 * 1024)
+                            if (speedTimer.ElapsedMilliseconds >= 300 || bytesSinceTimer >= 512 * 1024)
                             {
                                 double secs = Math.Max(0.05, speedTimer.ElapsedMilliseconds / 1000.0);
                                 progress.SpeedMBps = (bytesSinceTimer / (1024.0 * 1024.0)) / secs;
@@ -205,10 +224,16 @@ namespace KnowToMigrate.Services
                     }
 
                     // Read FILE_COMPLETE ack
+                    progress.Status = TransferStatus.Verifying;
+                    OnProgress?.Invoke(progress);
+
                     string fileCompleteJson = await ReadLengthPrefixedJsonAsync(stream, token);
                     var fileComp = JsonSerializer.Deserialize<KtmFileComplete>(fileCompleteJson);
                     if (fileComp == null || fileComp.Status != "OK")
                     {
+                        progress.Status = TransferStatus.Failed;
+                        progress.ErrorMessage = $"Checksum mismatch on recipient for {fileItem.RelativePath}";
+                        OnProgress?.Invoke(progress);
                         throw new CryptographicException($"Checksum mismatch on recipient for {fileItem.RelativePath}");
                     }
                 }
@@ -218,11 +243,14 @@ namespace KnowToMigrate.Services
                 var transferComp = JsonSerializer.Deserialize<KtmTransferComplete>(transferCompleteJson);
 
                 progress.IsCompleted = transferComp != null && transferComp.Success;
+                progress.Status = progress.IsCompleted ? TransferStatus.Completed : TransferStatus.Failed;
+                progress.ElapsedTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - startMs;
                 OnProgress?.Invoke(progress);
                 return progress.IsCompleted;
             }
             catch (Exception ex)
             {
+                progress.Status = TransferStatus.Failed;
                 progress.ErrorMessage = ex.Message;
                 OnProgress?.Invoke(progress);
                 return false;

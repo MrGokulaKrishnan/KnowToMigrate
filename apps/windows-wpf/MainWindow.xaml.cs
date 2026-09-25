@@ -94,29 +94,58 @@ namespace KnowToMigrate
         {
             Dispatcher.Invoke(() =>
             {
-                PanelProgress.Visibility = Visibility.Visible;
-                ProgressBarTransfer.Value = info.Percentage;
-                TxtProgressTitle.Text = $"Transferring: {info.CurrentFileName} ({info.CurrentFileIndex}/{info.TotalFiles})";
-                TxtActiveTransport.Text = $"Active Transport: {info.TransportType} [Best Verified]";
-                TxtProgressDetail.Text = $"{FormatBytes(info.BytesTransferred)} / {FormatBytes(info.TotalBytes)} ({info.Percentage:0.0}%) · {info.SpeedMBps:0.0} MB/s";
-
                 if (info.IsCompleted)
                 {
-                    TxtProgressTitle.Text = "Transfer Complete and Verified";
-                    TxtProgressDetail.Text = "All files cryptographically verified with SHA-256.";
-                    BtnCancelTransfer.Visibility = Visibility.Collapsed;
+                    PanelProgress.Visibility = Visibility.Collapsed;
+                    ShowNotificationBanner(
+                        title: "✓ Transfer Complete",
+                        body: $"{info.CurrentFileName} ({KtmFormatting.FormatBytes(info.TotalBytes)}) · Verified",
+                        isSuccess: true
+                    );
                 }
                 else if (!string.IsNullOrEmpty(info.ErrorMessage))
                 {
-                    TxtProgressTitle.Text = "Transfer Failed";
-                    TxtProgressDetail.Text = info.ErrorMessage;
-                    BtnCancelTransfer.Visibility = Visibility.Collapsed;
+                    PanelProgress.Visibility = Visibility.Collapsed;
+                    ShowNotificationBanner(
+                        title: "Transfer Failed",
+                        body: info.ErrorMessage,
+                        isSuccess: false
+                    );
                 }
                 else
                 {
+                    PanelProgress.Visibility = Visibility.Visible;
+                    ProgressBarTransfer.Value = info.Percentage;
+                    TxtProgressTitle.Text = string.IsNullOrEmpty(info.CurrentFileName)
+                        ? "Preparing Transfer..."
+                        : $"{info.CurrentFileName} ({info.CurrentFileIndex}/{info.TotalFiles})";
+
+                    TxtActiveTransport.Text = info.TransportType;
+                    TxtDirection.Text = info.Direction == TransferDirection.Sending ? "Sending" : "Receiving";
+
+                    TxtTransferredSize.Text = info.FormattedTransferredSize;
+                    TxtPercentage.Text = $"{info.Percentage:0}%";
+                    TxtSpeed.Text = KtmFormatting.FormatSpeed(info.SpeedMBps);
+                    TxtEta.Text = info.FormattedEta;
+                    TxtElapsed.Text = info.FormattedElapsedTime;
                     BtnCancelTransfer.Visibility = Visibility.Visible;
                 }
             });
+        }
+
+        private void ShowNotificationBanner(string title, string body, bool isSuccess)
+        {
+            TxtNotificationTitle.Text = title;
+            TxtNotificationBody.Text = body;
+            PanelNotificationBanner.Background = new System.Windows.Media.SolidColorBrush(isSuccess ? System.Windows.Media.Color.FromRgb(7, 28, 15) : System.Windows.Media.Color.FromRgb(35, 9, 9));
+            PanelNotificationBanner.BorderBrush = new System.Windows.Media.SolidColorBrush(isSuccess ? System.Windows.Media.Color.FromRgb(34, 197, 94) : System.Windows.Media.Color.FromRgb(239, 68, 68));
+            TxtNotificationTitle.Foreground = isSuccess ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(34, 197, 94)) : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(239, 68, 68));
+            PanelNotificationBanner.Visibility = Visibility.Visible;
+        }
+
+        private void DismissNotification_Click(object sender, RoutedEventArgs e)
+        {
+            PanelNotificationBanner.Visibility = Visibility.Collapsed;
         }
 
         private void OnTransferCompleted(string sessionId, bool success, string message)
@@ -318,8 +347,9 @@ namespace KnowToMigrate
             ProgressBarTransfer.Value = 0;
             string transportLabel = _forcedTransport == null ? "Auto (Best)" : KtmTransportCodes.GetDisplayName(_forcedTransport);
             TxtProgressTitle.Text = $"Connecting to {targetDevice.DeviceName} ({targetDevice.IpAddress})...";
-            TxtActiveTransport.Text = $"Selected Transport: {transportLabel}";
-            TxtProgressDetail.Text = "Performing mutual cryptographic handshake...";
+            TxtActiveTransport.Text = transportLabel;
+            TxtDirection.Text = "Connecting";
+            TxtTransferredSize.Text = "Performing mutual cryptographic handshake...";
 
             try
             {

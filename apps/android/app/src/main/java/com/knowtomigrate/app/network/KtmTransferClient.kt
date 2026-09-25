@@ -31,12 +31,16 @@ class KtmTransferClient(private val context: Context) {
     ): Boolean = withContext(Dispatchers.IO) {
         if (uris.isEmpty()) return@withContext true
 
+        val startMs = System.currentTimeMillis()
         val friendlyTransport = KtmTransportType.fromCode(selectedTransport).displayName
         val historyRepo = com.knowtomigrate.app.data.TransferHistoryRepository.getInstance(context)
         val prog = TransferProgressInfo(
             peerName = targetDeviceName,
             totalFiles = uris.size,
-            transportType = friendlyTransport
+            transportType = friendlyTransport,
+            direction = TransferDirection.SENDING,
+            status = TransferStatus.CONNECTING,
+            startTimeMs = startMs
         )
 
         try {
@@ -78,6 +82,7 @@ class KtmTransferClient(private val context: Context) {
 
                 prog.sessionId = manifest.sessionId
                 prog.totalBytes = totalBytes
+                prog.status = TransferStatus.CONNECTING
                 _progress.value = prog.copy()
 
                 val mainFileName = manifestItems.firstOrNull()?.relativePath ?: "Files"
@@ -114,10 +119,15 @@ class KtmTransferClient(private val context: Context) {
                 if (!ackObj.optBoolean("accepted", false)) {
                     val reason = ackObj.optString("reason", "Rejected by recipient")
                     Log.w("KtmTransferClient", "[HANDSHAKE_REJECTED] Reason: $reason")
+                    prog.status = TransferStatus.FAILED
+                    prog.errorMessage = reason
+                    _progress.value = prog.copy()
                     historyRepo.updateProgress(manifest.sessionId, com.knowtomigrate.app.data.TransferRecordStatus.CANCELLED, 0L, totalBytes, reason)
                     throw IOException("Transfer rejected by recipient: $reason")
                 }
                 Log.i("KtmTransferClient", "[HANDSHAKE_ACCEPTED] Recipient confirmed PIN")
+                prog.status = TransferStatus.TRANSFERRING
+                _progress.value = prog.copy()
                 historyRepo.updateProgress(manifest.sessionId, com.knowtomigrate.app.data.TransferRecordStatus.TRANSFERRING, 0L, totalBytes)
 
                 // 3. Send Manifest
@@ -128,6 +138,9 @@ class KtmTransferClient(private val context: Context) {
                 if (!manifestAckObj.optBoolean("accepted", false)) {
                     val reason = manifestAckObj.optString("reason", "Manifest rejected")
                     Log.w("KtmTransferClient", "[MANIFEST_REJECTED] Reason: $reason")
+                    prog.status = TransferStatus.FAILED
+                    prog.errorMessage = reason
+                    _progress.value = prog.copy()
                     throw IOException("Manifest rejected by recipient: $reason")
                 }
 
@@ -146,6 +159,7 @@ class KtmTransferClient(private val context: Context) {
 
                     prog.currentFileName = item.relativePath
                     prog.currentFileIndex = index + 1
+                    prog.status = TransferStatus.TRANSFERRING
                     _progress.value = prog.copy()
 
                     if (item.size > 0L) {
@@ -180,9 +194,10 @@ class KtmTransferClient(private val context: Context) {
                                 fileBytesSent += read
                                 prog.bytesTransferred += read
                                 bytesSinceTimer += read
+                                prog.elapsedTimeMs = System.currentTimeMillis() - startMs
 
                                 val now = System.currentTimeMillis()
-                                if (now - lastTimerTime >= 500) {
+                                if (now - lastTimerTime >= 300) {
                                     val secs = (now - lastTimerTime) / 1000.0
                                     prog.speedMBps = (bytesSinceTimer / (1024.0 * 1024.0)) / secs
                                     lastTimerTime = now
@@ -197,12 +212,17 @@ class KtmTransferClient(private val context: Context) {
                     }
 
                     // Read FILE_COMPLETE ack from receiver
+                    prog.status = TransferStatus.VERIFYING
+                    _progress.value = prog.copy()
                     val compJson = readLengthPrefixedString(inputStream)
                     val compObj = JSONObject(compJson)
                     val status = compObj.optString("status", "")
                     if (status != "OK") {
                         val err = "Recipient failed verification for ${item.relativePath} (status: $status)"
                         Log.e("KtmTransferClient", "[FILE_VERIFY_FAILED] $err")
+                        prog.status = TransferStatus.FAILED
+                        prog.errorMessage = err
+                        _progress.value = prog.copy()
                         throw IOException(err)
                     }
                     Log.i("KtmTransferClient", "[FILE_VERIFIED] '${item.relativePath}' confirmed OK by recipient")
@@ -213,6 +233,8 @@ class KtmTransferClient(private val context: Context) {
                 val doneObj = JSONObject(doneJson)
 
                 prog.isCompleted = doneObj.optBoolean("success", false)
+                prog.status = if (prog.isCompleted) TransferStatus.COMPLETED else TransferStatus.FAILED
+                prog.elapsedTimeMs = System.currentTimeMillis() - startMs
                 _progress.value = prog.copy()
                 Log.i("KtmTransferClient", "[TRANSFER_COMPLETED] Success=${prog.isCompleted}")
                 if (prog.isCompleted) {
@@ -224,6 +246,7 @@ class KtmTransferClient(private val context: Context) {
             }
         } catch (e: Exception) {
             Log.e("KtmTransferClient", "[TRANSFER_ERROR] ${e.message}", e)
+            prog.status = TransferStatus.FAILED
             prog.errorMessage = e.message ?: "Transfer error"
             _progress.value = prog.copy()
             if (prog.sessionId.isNotBlank()) {

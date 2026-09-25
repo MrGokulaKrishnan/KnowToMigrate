@@ -214,12 +214,69 @@ namespace TransferTest
             }
             Console.WriteLine($"[TEST 5.3 PASS] Peer without Wi-Fi successfully failed over to Priority 3: {best3} (Speed: {KtmTransportCodes.GetSpeedRating(best3)})");
 
+            // Test 6: MP4 File Transfer & Atomic Rename Verification (.part file deletion)
+            Console.WriteLine("\n--- TEST 6: MP4 File Transfer & .part File Cleanup Verification (5 MB) ---");
+            string mp4File = Path.Combine(srcDir, "sample_video.mp4");
+            byte[] mp4Data = new byte[5 * 1024 * 1024];
+            new Random(12345).NextBytes(mp4Data);
+            // Add FTYP box header for realistic MP4 file header
+            byte[] ftypBox = new byte[] { 0x00, 0x00, 0x00, 0x18, (byte)'f', (byte)'t', (byte)'y', (byte)'p', (byte)'m', (byte)'m', (byte)'p', (byte)'4', (byte)'2' };
+            Array.Copy(ftypBox, 0, mp4Data, 0, ftypBox.Length);
+            File.WriteAllBytes(mp4File, mp4Data);
+            string mp4ShaExpected = KtmSecurityUtils.ComputeFileSha256(mp4File);
+
+            bool progReceived = false;
+            long lastTransferredBytes = 0;
+            client.OnProgress += (prog) =>
+            {
+                if (prog.CurrentFileName.EndsWith("sample_video.mp4"))
+                {
+                    progReceived = true;
+                    lastTransferredBytes = prog.BytesTransferred;
+                }
+            };
+
+            bool ok6 = await client.SendFilesAsync("127.0.0.1", testPort, "client-id", "TestClient", new[] { mp4File });
+            Console.WriteLine($"[TEST 6 RESULT] SendFilesAsync returned: {ok6}");
+
+            string receivedMp4 = Path.Combine(dstDir, "sample_video.mp4");
+            string orphanPartMp4 = receivedMp4 + ".part";
+
+            if (!File.Exists(receivedMp4))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[TEST 6 FAIL] MP4 file not found at {receivedMp4}!");
+                Console.ResetColor();
+                return 6;
+            }
+
+            if (File.Exists(orphanPartMp4))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[TEST 6 FAIL] Orphan .part file found at {orphanPartMp4}! Atomic rename failed to clean up .part file.");
+                Console.ResetColor();
+                return 6;
+            }
+
+            string mp4ShaActual = KtmSecurityUtils.ComputeFileSha256(receivedMp4);
+            if (mp4ShaActual != mp4ShaExpected)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[TEST 6 FAIL] SHA mismatch for MP4! Expected {mp4ShaExpected}, got {mp4ShaActual}");
+                Console.ResetColor();
+                return 6;
+            }
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"[TEST 6 PASS] MP4 file received and verified (Size={new FileInfo(receivedMp4).Length}, SHA={mp4ShaActual}, Zero .part left on disk)");
+            Console.ResetColor();
+
             // Cleanup test directory
             server.Stop();
             try { Directory.Delete(testRoot, true); } catch { }
 
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("\n>>> ALL 5 TESTS (TRANSFERS + MULTI-TRANSPORT CAPABILITY PIPELINE) PASSED SUCCESSFULLY! <<<");
+            Console.WriteLine("\n>>> ALL 6 TESTS (TRANSFERS + MULTI-TRANSPORT + MP4 ATOMIC PIPELINE) PASSED SUCCESSFULLY! <<<");
             Console.ResetColor();
             return 0;
         }

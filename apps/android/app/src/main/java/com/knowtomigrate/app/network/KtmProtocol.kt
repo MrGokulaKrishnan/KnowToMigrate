@@ -265,6 +265,40 @@ data class KtmHandshakeAck(
     }
 }
 
+enum class TransferDirection(val code: String, val displayName: String) {
+    SENDING("SENDING", "Sending"),
+    RECEIVING("RECEIVING", "Receiving")
+}
+
+enum class TransferStatus(val code: String, val displayName: String) {
+    IDLE("IDLE", "Idle"),
+    CONNECTING("CONNECTING", "Connecting"),
+    TRANSFERRING("TRANSFERRING", "Transferring"),
+    VERIFYING("VERIFYING", "Verifying SHA-256"),
+    COMPLETED("COMPLETED", "Transfer Complete"),
+    FAILED("FAILED", "Transfer Failed"),
+    PAUSED("PAUSED", "Paused"),
+    RECONNECTING("RECONNECTING", "Reconnecting")
+}
+
+object KtmFormatting {
+    fun formatBytes(bytes: Long): String {
+        if (bytes <= 0) return "0 B"
+        val units = arrayOf("B", "KB", "MB", "GB", "TB")
+        val digitGroups = (Math.log10(bytes.toDouble()) / Math.log10(1024.0)).toInt().coerceIn(0, units.size - 1)
+        val value = bytes / Math.pow(1024.0, digitGroups.toDouble())
+        return if (digitGroups == 0) "$bytes B" else "%.2f %s".format(java.util.Locale.US, value, units[digitGroups])
+    }
+
+    fun formatSpeed(speedMBps: Double): String {
+        return if (speedMBps < 0.1) {
+            "%.1f KB/s".format(java.util.Locale.US, speedMBps * 1024.0)
+        } else {
+            "%.1f MB/s".format(java.util.Locale.US, speedMBps)
+        }
+    }
+}
+
 data class TransferProgressInfo(
     var sessionId: String = "",
     var currentFileName: String = "",
@@ -273,7 +307,11 @@ data class TransferProgressInfo(
     var bytesTransferred: Long = 0,
     var totalBytes: Long = 0,
     var speedMBps: Double = 0.0,
+    var startTimeMs: Long = System.currentTimeMillis(),
+    var elapsedTimeMs: Long = 0L,
     var peerName: String = "",
+    var status: TransferStatus = TransferStatus.IDLE,
+    var direction: TransferDirection = TransferDirection.SENDING,
     var isCompleted: Boolean = false,
     var isCancelled: Boolean = false,
     var errorMessage: String = "",
@@ -281,6 +319,44 @@ data class TransferProgressInfo(
 ) {
     val percentage: Double
         get() = if (totalBytes > 0) Math.min(100.0, (bytesTransferred.toDouble() / totalBytes) * 100.0) else 0.0
+
+    val remainingBytes: Long
+        get() = Math.max(0L, totalBytes - bytesTransferred)
+
+    val etaSeconds: Long
+        get() {
+            if (speedMBps <= 0.001 || remainingBytes <= 0) return 0L
+            val bytesPerSec = speedMBps * 1024.0 * 1024.0
+            return (remainingBytes / bytesPerSec).toLong()
+        }
+
+    fun getFormattedEta(): String {
+        return when {
+            status == TransferStatus.PAUSED -> "Paused"
+            status == TransferStatus.RECONNECTING -> "Reconnecting..."
+            status == TransferStatus.VERIFYING -> "Verifying..."
+            status == TransferStatus.COMPLETED -> "00:00"
+            status == TransferStatus.FAILED -> "Failed"
+            speedMBps <= 0.01 || bytesTransferred < 32 * 1024 -> "Calculating time remaining..."
+            else -> {
+                val secs = etaSeconds
+                val m = secs / 60
+                val s = secs % 60
+                "ETA %02d:%02d".format(java.util.Locale.US, m, s)
+            }
+        }
+    }
+
+    fun getFormattedElapsedTime(): String {
+        val secs = (elapsedTimeMs / 1000L).coerceAtLeast(0L)
+        val m = secs / 60
+        val s = secs % 60
+        return "%02d:%02d".format(java.util.Locale.US, m, s)
+    }
+
+    fun getFormattedTransferredSize(): String {
+        return "${KtmFormatting.formatBytes(bytesTransferred)} / ${KtmFormatting.formatBytes(totalBytes)}"
+    }
 }
 
 object KtmSecurityUtils {

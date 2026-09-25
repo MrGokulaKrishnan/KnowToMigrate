@@ -255,18 +255,44 @@
                                     <TextBlock Text="Pipeline: Nearby Device ➔ Capability Check ➔ Select Best (Wi-Fi / Direct / BT) ➔ Authenticate (PIN) ➔ Transfer" Foreground="#777777" FontSize="11" Margin="0,3,0,0" />
                                 </StackPanel>
 
-                                <!-- Transport Selector Buttons (Auto Best, Wi-Fi LAN, Wi-Fi Direct, Bluetooth) -->
+                                <!-- Compact Transport Cards / Selector Buttons -->
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Button x:Name="BtnTransportAuto" Content="Auto (Best)" Click="TransportSelect_Click" Tag="AUTO" Style="{StaticResource KmPrimaryButton}" Height="30" Padding="12,0" FontSize="11" Margin="0,0,6,0" />
-                                    <Button x:Name="BtnTransportWifi" Content="Wi-Fi LAN" Click="TransportSelect_Click" Tag="WIFI_LAN" Style="{StaticResource KmGlassButton}" Height="30" Padding="10,0" FontSize="11" Margin="0,0,6,0" />
-                                    <Button x:Name="BtnTransportDirect" Content="Direct" Click="TransportSelect_Click" Tag="WIFI_DIRECT" Style="{StaticResource KmGlassButton}" Height="30" Padding="10,0" FontSize="11" Margin="0,0,6,0" />
-                                    <Button x:Name="BtnTransportBt" Content="Bluetooth" Click="TransportSelect_Click" Tag="BLUETOOTH" Style="{StaticResource KmGlassButton}" Height="30" Padding="10,0" FontSize="11" />
+                                    <Button x:Name="BtnTransportAuto" Content="Auto (Best)" Click="TransportSelect_Click" Tag="AUTO" Style="{StaticResource KmPrimaryButton}" Height="32" Padding="14,0" FontSize="11" Margin="0,0,6,0" />
+                                    <Button x:Name="BtnTransportWifi" Content="Wi-Fi" Click="TransportSelect_Click" Tag="WIFI_LAN" Style="{StaticResource KmGlassButton}" Height="32" Padding="12,0" FontSize="11" Margin="0,0,6,0" />
+                                    <Button x:Name="BtnTransportDirect" Content="Direct" Click="TransportSelect_Click" Tag="WIFI_DIRECT" Style="{StaticResource KmGlassButton}" Height="32" Padding="12,0" FontSize="11" Margin="0,0,6,0" />
+                                    <Button x:Name="BtnTransportBt" Click="TransportSelect_Click" Tag="BLUETOOTH" Style="{StaticResource KmGlassButton}" Height="32" Padding="10,0" FontSize="11">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Border Width="16" Height="16" CornerRadius="4" Background="#0F172A" BorderBrush="#60A5FA" BorderThickness="1" Margin="0,0,6,0">
+                                                <Path Data="M17.71,7.71L12,2h-1v7.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L11,14.41V22h1l5.71-5.71L13.41,12L17.71,7.71z M13,5.83l1.88,1.88L13,9.59V5.83z M13,18.17v-3.76l1.88,1.88L13,18.17z" Fill="#60A5FA" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <TextBlock Text="Bluetooth" Foreground="#60A5FA"/>
+                                        </StackPanel>
+                                    </Button>
                                 </StackPanel>
                             </Grid>
                         </Border>
 
-                        <!-- Active Progress Panel (16px Radius, Orange Glow) -->
-                        <Border x:Name="PanelProgress" Grid.Row="3" Margin="0,16,0,0" Background="#0C0C0C" BorderBrush="#FF5A00" BorderThickness="1.5" CornerRadius="16" Padding="16" Visibility="Collapsed">
+                        <!-- Non-Blocking Completion Notification Banner -->
+                        <Border x:Name="PanelNotificationBanner" Grid.Row="3" Margin="0,14,0,0" Background="#071C0F" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="14" Padding="16,12" Visibility="Collapsed">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18" Background="#14381F" BorderBrush="#22C55E" BorderThickness="1" Margin="0,0,12,0" VerticalAlignment="Center">
+                                    <Path x:Name="IconNotificationType" Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Fill="#22C55E" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock x:Name="TxtNotificationTitle" Text="Transfer Complete" Foreground="#FFFFFF" FontWeight="Bold" FontSize="14" />
+                                    <TextBlock x:Name="TxtNotificationBody" Text="Project.mp4 · 2.80 GB · Sent to Windows PC" Foreground="#BBBBBB" FontSize="12" Margin="0,2,0,0" />
+                                </StackPanel>
+                                <Button Grid.Column="2" Content="Close" Click="DismissNotification_Click" Style="{StaticResource KmGlassButton}" Height="30" Padding="12,0" FontSize="11" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Active Progress Panel (16px Radius, Orange Glow) (Part 1, Section 7 format) -->
+                        <Border x:Name="PanelProgress" Grid.Row="3" Margin="0,16,0,0" Background="#0C0C0C" BorderBrush="#FF5A00" BorderThickness="1.5" CornerRadius="16" Padding="18" Visibility="Collapsed">
                             <Border.Effect>
                                 <DropShadowEffect Color="#FF5A00" BlurRadius="20" ShadowDepth="0" Opacity="0.3"/>
                             </Border.Effect>
@@ -274,20 +300,63 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <Grid Grid.Row="0">
+
+                                <!-- Header: Title + Cancel Button -->
+                                <Grid Grid.Row="0" Margin="0,0,0,12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0">
-                                        <TextBlock x:Name="TxtProgressTitle" Text="Transferring..." Foreground="#FFFFFF" FontWeight="Bold" FontSize="14" />
-                                        <TextBlock x:Name="TxtActiveTransport" Text="Active Transport: Wi-Fi LAN [Best Verified]" Foreground="#FF8A00" FontSize="11" FontWeight="SemiBold" Margin="0,2,0,2" />
-                                        <TextBlock x:Name="TxtProgressDetail" Text="0 MB / 0 MB (0%) · 0.0 MB/s" Foreground="#AAAAAA" FontSize="12" Margin="0,2,0,8" />
+                                        <TextBlock x:Name="TxtProgressTitle" Text="Project.mp4" Foreground="#FFFFFF" FontWeight="Bold" FontSize="15" />
+                                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                            <Border Background="#1C1000" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="5" Padding="6,1" Margin="0,0,6,0">
+                                                <TextBlock x:Name="TxtActiveTransport" Text="Wi-Fi (LAN)" Foreground="#FF8A00" FontSize="10" FontWeight="Bold" />
+                                            </Border>
+                                            <Border Background="#141414" BorderBrush="#333333" BorderThickness="1" CornerRadius="5" Padding="6,1">
+                                                <TextBlock x:Name="TxtDirection" Text="Sending" Foreground="#CCCCCC" FontSize="10" FontWeight="SemiBold" />
+                                            </Border>
+                                        </StackPanel>
                                     </StackPanel>
                                     <Button x:Name="BtnCancelTransfer" Grid.Column="1" Content="Cancel" Click="CancelTransfer_Click" Style="{StaticResource KmGlassButton}" Height="34" Padding="14,0" Foreground="#FF5555" BorderBrush="#552222" />
                                 </Grid>
-                                <ProgressBar x:Name="ProgressBarTransfer" Grid.Row="1" Height="10" Minimum="0" Maximum="100" Value="0" Background="#1A1A1A" Foreground="#FF5A00" BorderThickness="0" />
+
+                                <!-- Transferred Size Row -->
+                                <Grid Grid.Row="1" Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="TxtTransferredSize" Grid.Column="0" Text="1.24 GB / 2.80 GB" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13" />
+                                    <TextBlock x:Name="TxtPercentage" Grid.Column="1" Text="44%" Foreground="#FF8A00" FontWeight="ExtraBold" FontSize="16" />
+                                </Grid>
+
+                                <!-- Orange Gradient Progress Bar -->
+                                <ProgressBar x:Name="ProgressBarTransfer" Grid.Row="2" Height="10" Minimum="0" Maximum="100" Value="0" Background="#1A1A1A" Foreground="#FF5A00" BorderThickness="0" Margin="0,0,0,12" />
+
+                                <!-- Stats Footer: Speed, ETA, Elapsed -->
+                                <Grid Grid.Row="3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Speed" Foreground="#777777" FontSize="10" />
+                                        <TextBlock x:Name="TxtSpeed" Text="48.6 MB/s" Foreground="#FFFFFF" FontWeight="Bold" FontSize="12" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                        <TextBlock Text="ETA" Foreground="#777777" FontSize="10" />
+                                        <TextBlock x:Name="TxtEta" Text="ETA 00:32" Foreground="#FF8A00" FontWeight="Bold" FontSize="12" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                                        <TextBlock Text="Elapsed" Foreground="#777777" FontSize="10" />
+                                        <TextBlock x:Name="TxtElapsed" Text="00:38" Foreground="#CCCCCC" FontWeight="Bold" FontSize="12" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </Grid>
                             </Grid>
                         </Border>
 

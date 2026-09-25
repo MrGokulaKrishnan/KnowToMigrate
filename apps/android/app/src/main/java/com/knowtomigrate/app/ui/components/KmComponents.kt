@@ -191,6 +191,171 @@ fun KmTransportPill(
 }
 
 @Composable
+fun KmTransportCard(
+    type: String, // "WIFI_LAN", "WIFI_DIRECT", "BLUETOOTH"
+    title: String,
+    description: String,
+    statusText: String,
+    isSelected: Boolean = false,
+    onClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    val isBt = type.equals("BLUETOOTH", ignoreCase = true)
+    val accentColor = if (isBt) Color(0xFF60A5FA) else KmOrange
+    val iconBgColor = if (isBt) Color(0xFF0F172A) else KmOrangeGlow
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(KmBlackElevated)
+            .border(
+                width = if (isSelected) 1.5.dp else 1.dp,
+                color = if (isSelected) accentColor else KmGlassBorder,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Compact 1:1 proportioned icon box (36x36 dp)
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(iconBgColor)
+                .border(1.dp, accentColor.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = when {
+                    isBt -> Icons.Default.Bluetooth
+                    type.contains("DIRECT", ignoreCase = true) -> Icons.Default.WifiTethering
+                    else -> Icons.Default.Wifi
+                },
+                contentDescription = title,
+                tint = accentColor,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = KmTextPrimary,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = KmTextMuted,
+                fontSize = 11.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Status pill
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(6.dp))
+                .background(accentColor.copy(alpha = 0.15f))
+                .border(1.dp, accentColor.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = statusText,
+                style = MaterialTheme.typography.labelSmall,
+                color = accentColor,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 10.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun KmCompletionNotificationBanner(
+    title: String,
+    fileName: String,
+    sizeText: String,
+    peerInfo: String,
+    isSuccess: Boolean = true,
+    onDismiss: () -> Unit,
+    onViewDetails: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    val bannerColor = if (isSuccess) KmSuccess else KmError
+    val bannerBg = if (isSuccess) Color(0xFF071C0F) else Color(0xFF230909)
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(bannerBg)
+            .border(1.dp, bannerColor.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
+            .padding(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(bannerColor.copy(alpha = 0.2f))
+                    .border(1.dp, bannerColor, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if (isSuccess) Icons.Default.CheckCircle else Icons.Default.ErrorOutline,
+                    contentDescription = null,
+                    tint = bannerColor,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = KmTextPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = fileName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = KmTextPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1
+                )
+                Text(
+                    text = "$sizeText · $peerInfo",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = KmTextSecondary,
+                    fontSize = 12.sp
+                )
+            }
+
+            if (onViewDetails != null) {
+                TextButton(onClick = onViewDetails) {
+                    Text("Details", color = bannerColor, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Close, contentDescription = "Close", tint = KmTextMuted, modifier = Modifier.size(18.dp))
+            }
+        }
+    }
+}
+
+@Composable
 fun KmDeviceCard(
     device: UiDevice,
     onClick: () -> Unit,

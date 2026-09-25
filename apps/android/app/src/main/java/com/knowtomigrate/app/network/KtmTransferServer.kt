@@ -109,10 +109,14 @@ class KtmTransferServer(
                 val manifestJson = readLengthPrefixedString(inputStream)
                 val manifest = KtmManifest.fromJson(manifestJson) ?: throw IOException("Invalid manifest")
 
+                val startMs = System.currentTimeMillis()
                 prog.sessionId = manifest.sessionId
                 prog.peerName = senderName
                 prog.totalFiles = manifest.totalFiles
                 prog.totalBytes = manifest.totalBytes
+                prog.direction = TransferDirection.RECEIVING
+                prog.status = TransferStatus.CONNECTING
+                prog.startTimeMs = startMs
                 _progress.value = prog.copy()
                 Log.i("KtmTransferServer", "[MANIFEST_RECEIVED] Session=${manifest.sessionId}, Files=${manifest.totalFiles}, Bytes=${manifest.totalBytes}")
 
@@ -121,10 +125,13 @@ class KtmTransferServer(
                     val rejectObj = JSONObject().apply {
                         put("type", "MANIFEST_ACK")
                         put("accepted", false)
-                        put("reason", "Insufficient storage space on Android device")
+                        put("reason", "Not Enough Storage (Required: ${KtmFormatting.formatBytes(manifest.totalBytes)}, Free: ${KtmFormatting.formatBytes(downloadDir.usableSpace)})")
                     }
                     writeLengthPrefixedString(outputStream, rejectObj.toString())
                     Log.w("KtmTransferServer", "[MANIFEST_REJECTED] Insufficient storage space")
+                    prog.status = TransferStatus.FAILED
+                    prog.errorMessage = "Not Enough Storage"
+                    _progress.value = prog.copy()
                     return
                 }
 
@@ -134,7 +141,6 @@ class KtmTransferServer(
 
                 for (item in manifest.files) {
                     val safeRel = KtmSecurityUtils.sanitizeRelativePath(item.relativePath)
-                    val targetFile = File(downloadDir, safeRel)
                     val partFile = File(downloadDir, "$safeRel.part")
 
                     if (partFile.exists() && partFile.length() < item.size) {
@@ -148,6 +154,8 @@ class KtmTransferServer(
                 }
 
                 prog.bytesTransferred = totalAlready
+                prog.status = TransferStatus.TRANSFERRING
+                _progress.value = prog.copy()
 
                 val historyRepo = context?.let { com.knowtomigrate.app.data.TransferHistoryRepository.getInstance(it) }
                 val mainFileName = manifest.files.firstOrNull()?.relativePath ?: "Files"
@@ -193,6 +201,7 @@ class KtmTransferServer(
 
                     prog.currentFileName = safeRel
                     prog.currentFileIndex = item.fileIndex + 1
+                    prog.status = TransferStatus.TRANSFERRING
                     _progress.value = prog.copy()
                     Log.i("KtmTransferServer", "[RECEIVING_FILE] #$prog.currentFileIndex: '$safeRel', targetSize=${item.size}, resumeOffset=$resumeOffset")
 
@@ -222,9 +231,10 @@ class KtmTransferServer(
                             currentOffset += payloadLen
                             prog.bytesTransferred += payloadLen
                             bytesSinceTimer += payloadLen
+                            prog.elapsedTimeMs = System.currentTimeMillis() - startMs
 
                             val now = System.currentTimeMillis()
-                            if (now - lastTimerTime >= 500) {
+                            if (now - lastTimerTime >= 300) {
                                 val secs = (now - lastTimerTime) / 1000.0
                                 prog.speedMBps = (bytesSinceTimer / (1024.0 * 1024.0)) / secs
                                 lastTimerTime = now
@@ -232,9 +242,12 @@ class KtmTransferServer(
                                 _progress.value = prog.copy()
                             }
                         }
+                        raf.fd.sync()
                     }
 
                     Log.i("KtmTransferServer", "[CHUNKS_COMPLETE] '$safeRel' written to disk ($currentOffset bytes), verifying SHA-256")
+                    prog.status = TransferStatus.VERIFYING
+                    _progress.value = prog.copy()
 
                     // 4. Verify SHA-256
                     val computedSha = KtmSecurityUtils.computeFileSha256(partFile)
@@ -251,7 +264,7 @@ class KtmTransferServer(
                         throw IOException("SHA-256 mismatch for ${item.relativePath}")
                     }
 
-                    // 5. Finalize file: atomic rename with copy fallback
+                    // 5. Finalize file: atomic rename with copy fallback & retried part deletion
                     if (targetFile.exists()) targetFile.delete()
                     val renamed = partFile.renameTo(targetFile)
                     if (!renamed) {
@@ -259,8 +272,19 @@ class KtmTransferServer(
                         partFile.inputStream().use { input ->
                             targetFile.outputStream().use { output ->
                                 input.copyTo(output)
+                                output.flush()
                             }
                         }
+                        var attempts = 0
+                        while (partFile.exists() && attempts < 5) {
+                            System.gc()
+                            if (partFile.delete()) break
+                            Thread.sleep(50)
+                            attempts++
+                        }
+                    }
+
+                    if (partFile.exists()) {
                         partFile.delete()
                     }
 
@@ -290,12 +314,13 @@ class KtmTransferServer(
                 }
                 writeLengthPrefixedString(outputStream, doneObj.toString())
 
+                prog.status = TransferStatus.COMPLETED
                 prog.isCompleted = true
-                _progress.value = prog.copy()
-                Log.i("KtmTransferServer", "[TRANSFER_ALL_DONE] Session=${manifest.sessionId}, TotalBytes=${prog.bytesTransferred}")
+                prog.elapsedTimeMs = System.currentTimeMillis() - startMs
                 historyRepo?.updateProgress(manifest.sessionId, com.knowtomigrate.app.data.TransferRecordStatus.COMPLETED, prog.totalBytes, prog.totalBytes)
             } catch (e: Exception) {
                 Log.e("KtmTransferServer", "[TRANSFER_SERVER_ERROR] ${e.message}", e)
+                prog.status = TransferStatus.FAILED
                 prog.errorMessage = e.message ?: "Transfer error"
                 _progress.value = prog.copy()
                 if (prog.sessionId.isNotBlank()) {

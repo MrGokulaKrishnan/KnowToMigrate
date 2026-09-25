@@ -47,13 +47,8 @@ fun TransferScreen(navController: NavController, sessionId: String) {
     val totalBytes = activeProg.totalBytes
     val currentFile = activeProg.currentFileName.ifBlank { "Encrypting & preparing..." }
     val isComplete = activeProg.isCompleted
-    val hasError = activeProg.errorMessage != null
+    val hasError = activeProg.errorMessage.isNotBlank()
     val peerName = activeProg.peerName.ifBlank { "Nearby Device" }
-
-    val etaSecs = if (speedMBps > 0 && progressFraction < 1f && totalBytes > bytesTransferred) {
-        val remainingBytes = totalBytes - bytesTransferred
-        (remainingBytes / (speedMBps * 1024 * 1024)).toInt()
-    } else 0
 
     Scaffold(
         containerColor = KmBlack,
@@ -87,7 +82,7 @@ fun TransferScreen(navController: NavController, sessionId: String) {
                 .padding(paddingValues)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Session info & active transport badge
             Row(
@@ -99,8 +94,12 @@ fun TransferScreen(navController: NavController, sessionId: String) {
                     color = KmInfo
                 )
                 KmTransportPill(
-                    label = activeProg.transportType.ifBlank { "Wi-Fi Direct" },
+                    label = activeProg.transportType.ifBlank { "Wi-Fi (LAN)" },
                     isBest = true,
+                    color = KmOrange
+                )
+                KmBadge(
+                    text = if (isSender) "Sending" else "Receiving",
                     color = KmOrange
                 )
             }
@@ -123,24 +122,51 @@ fun TransferScreen(navController: NavController, sessionId: String) {
             // Animated Transfer / Verification indicator
             KmTransferAnimation(modifier = Modifier.fillMaxWidth())
 
-            // Current file & progress card
+            // Current file & progress card (Part 1, Section 7 format)
             KmGlassCard(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "Current Item (${activeProg.currentFileIndex}/${activeProg.totalFiles.coerceAtLeast(1)})",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = KmTextMuted
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = currentFile,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = KmTextPrimary,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(KmOrangeGlow),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = when {
+                                currentFile.endsWith(".mp4", ignoreCase = true) || currentFile.endsWith(".mov", ignoreCase = true) || currentFile.endsWith(".mkv", ignoreCase = true) -> Icons.Default.Movie
+                                currentFile.endsWith(".jpg", ignoreCase = true) || currentFile.endsWith(".png", ignoreCase = true) -> Icons.Default.Image
+                                currentFile.endsWith(".mp3", ignoreCase = true) -> Icons.Default.MusicNote
+                                currentFile.endsWith(".zip", ignoreCase = true) || currentFile.endsWith(".apk", ignoreCase = true) -> Icons.Default.FolderZip
+                                else -> Icons.Default.Description
+                            },
+                            contentDescription = null,
+                            tint = KmOrange,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = currentFile,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = KmTextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = activeProg.getFormattedTransferredSize(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = KmTextSecondary
+                        )
+                    }
+                }
 
-                // Progress percentage
+                Spacer(modifier = Modifier.height(14.dp))
+                KmProgressBar(progress = progressFraction, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Stats row: Percentage, Speed, ETA, Elapsed
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -148,34 +174,38 @@ fun TransferScreen(navController: NavController, sessionId: String) {
                 ) {
                     Text(
                         text = "${(progressFraction * 100).toInt()}%",
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         color = KmOrange,
                         fontWeight = FontWeight.ExtraBold
                     )
                     Text(
-                        text = "${TransferRecord.formatBytes(bytesTransferred)} / ${TransferRecord.formatBytes(totalBytes)}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = KmTextSecondary
+                        text = com.knowtomigrate.app.network.KtmFormatting.formatSpeed(speedMBps),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = KmTextPrimary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = activeProg.getFormattedEta(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = KmTextSecondary,
+                        fontWeight = FontWeight.Medium
                     )
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-                KmProgressBar(progress = progressFraction, modifier = Modifier.fillMaxWidth())
             }
 
-            // Speed + ETA + Files stats
+            // Stats cards row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 StatCard(
-                    label = "Speed",
-                    value = if (speedMBps > 0) "%.1f MB/s".format(Locale.US, speedMBps) else "Active",
+                    label = "Elapsed",
+                    value = activeProg.getFormattedElapsedTime(),
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
-                    label = "ETA",
-                    value = formatEta(etaSecs),
+                    label = "Status",
+                    value = activeProg.status.displayName,
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
@@ -191,7 +221,7 @@ fun TransferScreen(navController: NavController, sessionId: String) {
                         Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = KmError, modifier = Modifier.size(24.dp))
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = activeProg.errorMessage ?: "Transfer encountered an error",
+                            text = activeProg.errorMessage,
                             style = MaterialTheme.typography.bodySmall,
                             color = KmError
                         )

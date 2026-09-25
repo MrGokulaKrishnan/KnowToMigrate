@@ -125,16 +125,24 @@ namespace KnowToMigrate.Services
                     progress.TransportType = KtmTransportCodes.GetDisplayName(handshake.SelectedTransport);
                     progress.TotalFiles = manifest.Files.Count;
                     progress.TotalBytes = manifest.TotalBytes;
+                    progress.Direction = TransferDirection.Receiving;
+                    progress.Status = TransferStatus.Connecting;
+                    progress.StartTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-                    // Check storage capacity
+                    // Check storage capacity preflight
                     var driveInfo = new DriveInfo(Path.GetPathRoot(Path.GetFullPath(_downloadDirectory)) ?? "C:\\");
                     if (driveInfo.AvailableFreeSpace < manifest.TotalBytes)
                     {
+                        string reason = $"Not Enough Storage (Required: {KtmFormatting.FormatBytes(manifest.TotalBytes)}, Available: {KtmFormatting.FormatBytes(driveInfo.AvailableFreeSpace)})";
                         await SendLengthPrefixedJsonAsync(stream, new KtmManifestAck
                         {
                             Accepted = false,
-                            Reason = $"Insufficient storage space (Required: {manifest.TotalBytes / 1048576} MB, Free: {driveInfo.AvailableFreeSpace / 1048576} MB)"
+                            Reason = reason
                         }, token);
+                        progress.Status = TransferStatus.Failed;
+                        progress.ErrorMessage = reason;
+                        OnProgress?.Invoke(progress);
+                        OnTransferCompleted?.Invoke(sessionId, false, reason);
                         return;
                     }
 
@@ -170,6 +178,8 @@ namespace KnowToMigrate.Services
                     }
 
                     progress.BytesTransferred = totalAlreadyReceived;
+                    progress.Status = TransferStatus.Transferring;
+                    OnProgress?.Invoke(progress);
 
                     // Send MANIFEST_ACK with resume offsets
                     await SendLengthPrefixedJsonAsync(stream, new KtmManifestAck
@@ -198,6 +208,7 @@ namespace KnowToMigrate.Services
 
                         progress.CurrentFileName = safeRelPath;
                         progress.CurrentFileIndex = fileItem.FileIndex + 1;
+                        progress.Status = TransferStatus.Transferring;
                         OnProgress?.Invoke(progress);
 
                         using (var fileStream = new FileStream(partPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite, 131072, useAsync: true))
@@ -233,8 +244,9 @@ namespace KnowToMigrate.Services
                                 currentOffset += payloadLen;
                                 progress.BytesTransferred += payloadLen;
                                 bytesSinceLastTimer += payloadLen;
+                                progress.ElapsedTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - progress.StartTimeMs;
 
-                                if (speedTimer.ElapsedMilliseconds >= 500)
+                                if (speedTimer.ElapsedMilliseconds >= 300)
                                 {
                                     double secs = speedTimer.ElapsedMilliseconds / 1000.0;
                                     progress.SpeedMBps = (bytesSinceLastTimer / (1024.0 * 1024.0)) / secs;
@@ -244,9 +256,13 @@ namespace KnowToMigrate.Services
                                 }
                             }
                             await fileStream.FlushAsync(token);
+                            fileStream.Flush(true);
                         }
 
                         // 4. Verify file SHA-256
+                        progress.Status = TransferStatus.Verifying;
+                        OnProgress?.Invoke(progress);
+
                         string computedSha = KtmSecurityUtils.ComputeFileSha256(partPath);
                         if (!string.IsNullOrEmpty(fileItem.Sha256) && !string.Equals(computedSha, fileItem.Sha256, StringComparison.OrdinalIgnoreCase))
                         {
@@ -261,17 +277,35 @@ namespace KnowToMigrate.Services
                             throw new CryptographicException($"Checksum verification failed for {safeRelPath}");
                         }
 
-                        // Atomically move .part to final destination with fallback copy
+                        // Atomically move .part to final destination with fallback copy & retried cleanup
+                        if (File.Exists(fullTargetPath))
+                            File.Delete(fullTargetPath);
+
                         try
                         {
-                            if (File.Exists(fullTargetPath))
-                                File.Delete(fullTargetPath);
                             File.Move(partPath, fullTargetPath);
                         }
                         catch
                         {
                             File.Copy(partPath, fullTargetPath, overwrite: true);
-                            try { File.Delete(partPath); } catch { }
+                        }
+
+                        if (File.Exists(partPath))
+                        {
+                            for (int attempts = 0; attempts < 5; attempts++)
+                            {
+                                try
+                                {
+                                    GC.Collect();
+                                    GC.WaitForPendingFinalizers();
+                                    File.Delete(partPath);
+                                    break;
+                                }
+                                catch
+                                {
+                                    await Task.Delay(50, token);
+                                }
+                            }
                         }
 
                         // Post-move validation
@@ -297,12 +331,15 @@ namespace KnowToMigrate.Services
                         TotalBytesTransferred = progress.BytesTransferred
                     }, token);
 
+                    progress.Status = TransferStatus.Completed;
                     progress.IsCompleted = true;
+                    progress.ElapsedTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - progress.StartTimeMs;
                     OnProgress?.Invoke(progress);
                     OnTransferCompleted?.Invoke(sessionId, true, "Transfer completed and verified successfully");
                 }
                 catch (Exception ex)
                 {
+                    progress.Status = TransferStatus.Failed;
                     progress.ErrorMessage = ex.Message;
                     OnProgress?.Invoke(progress);
                     OnTransferCompleted?.Invoke(sessionId, false, ex.Message);

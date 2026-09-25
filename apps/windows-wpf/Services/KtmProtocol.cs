@@ -250,6 +250,44 @@ namespace KnowToMigrate.Services
         public long TotalBytesTransferred { get; set; }
     }
 
+    public enum TransferDirection
+    {
+        Sending,
+        Receiving
+    }
+
+    public enum TransferStatus
+    {
+        Idle,
+        Connecting,
+        Transferring,
+        Verifying,
+        Completed,
+        Failed,
+        Paused,
+        Reconnecting
+    }
+
+    public static class KtmFormatting
+    {
+        public static string FormatBytes(long bytes)
+        {
+            if (bytes <= 0) return "0 B";
+            string[] units = { "B", "KB", "MB", "GB", "TB" };
+            int digitGroups = (int)(Math.Log10(bytes) / Math.Log10(1024));
+            digitGroups = Math.Clamp(digitGroups, 0, units.Length - 1);
+            double value = bytes / Math.Pow(1024, digitGroups);
+            return digitGroups == 0 ? $"{bytes} B" : $"{value:F2} {units[digitGroups]}";
+        }
+
+        public static string FormatSpeed(double speedMBps)
+        {
+            if (speedMBps < 0.1)
+                return $"{speedMBps * 1024:F1} KB/s";
+            return $"{speedMBps:F1} MB/s";
+        }
+    }
+
     public class TransferProgressInfo
     {
         public string SessionId { get; set; } = string.Empty;
@@ -259,12 +297,59 @@ namespace KnowToMigrate.Services
         public long BytesTransferred { get; set; }
         public long TotalBytes { get; set; }
         public double SpeedMBps { get; set; }
-        public double Percentage => TotalBytes > 0 ? Math.Min(100.0, (double)BytesTransferred / TotalBytes * 100.0) : 0.0;
+        public long StartTimeMs { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        public long ElapsedTimeMs { get; set; }
         public string PeerName { get; set; } = string.Empty;
+        public TransferStatus Status { get; set; } = TransferStatus.Idle;
+        public TransferDirection Direction { get; set; } = TransferDirection.Sending;
         public bool IsCompleted { get; set; }
         public bool IsCancelled { get; set; }
         public string ErrorMessage { get; set; } = string.Empty;
         public string TransportType { get; set; } = "Wi-Fi (LAN)";
+
+        public double Percentage => TotalBytes > 0 ? Math.Min(100.0, (double)BytesTransferred / TotalBytes * 100.0) : 0.0;
+        public long RemainingBytes => Math.Max(0L, TotalBytes - BytesTransferred);
+
+        public long EtaSeconds
+        {
+            get
+            {
+                if (SpeedMBps <= 0.001 || RemainingBytes <= 0) return 0;
+                double bytesPerSec = SpeedMBps * 1024.0 * 1024.0;
+                return (long)(RemainingBytes / bytesPerSec);
+            }
+        }
+
+        public string FormattedEta
+        {
+            get
+            {
+                if (Status == TransferStatus.Paused) return "Paused";
+                if (Status == TransferStatus.Reconnecting) return "Reconnecting...";
+                if (Status == TransferStatus.Verifying) return "Verifying...";
+                if (Status == TransferStatus.Completed) return "00:00";
+                if (Status == TransferStatus.Failed) return "Failed";
+                if (SpeedMBps <= 0.01 || BytesTransferred < 32 * 1024) return "Calculating time remaining...";
+
+                long secs = EtaSeconds;
+                long m = secs / 60;
+                long s = secs % 60;
+                return $"ETA {m:D2}:{s:D2}";
+            }
+        }
+
+        public string FormattedElapsedTime
+        {
+            get
+            {
+                long secs = Math.Max(0, ElapsedTimeMs / 1000);
+                long m = secs / 60;
+                long s = secs % 60;
+                return $"{m:D2}:{s:D2}";
+            }
+        }
+
+        public string FormattedTransferredSize => $"{KtmFormatting.FormatBytes(BytesTransferred)} / {KtmFormatting.FormatBytes(TotalBytes)}";
     }
 
     public static class KtmSecurityUtils
