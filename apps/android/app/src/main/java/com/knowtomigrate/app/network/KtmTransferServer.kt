@@ -1,5 +1,11 @@
 package com.knowtomigrate.app.network
 
+import android.content.Context
+import android.content.Intent
+import android.media.MediaScannerConnection
+import android.net.Uri
+import android.os.Environment
+import android.util.Log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -8,11 +14,11 @@ import org.json.JSONObject
 import java.io.*
 import java.net.ServerSocket
 import java.net.Socket
-import java.security.MessageDigest
 
 class KtmTransferServer(
     private val downloadDir: File,
-    private val port: Int = KtmConstants.TRANSFER_PORT
+    private val port: Int = KtmConstants.TRANSFER_PORT,
+    private val context: Context? = null
 ) {
     private var scope: CoroutineScope? = null
     private var serverSocket: ServerSocket? = null
@@ -31,7 +37,7 @@ class KtmTransferServer(
     fun start() {
         if (scope != null) return
         val handler = CoroutineExceptionHandler { _, t ->
-            android.util.Log.w("KtmTransferServer", "Handled server exception", t)
+            Log.w("KtmTransferServer", "Handled server exception", t)
         }
         scope = CoroutineScope(Dispatchers.IO + SupervisorJob() + handler)
 
@@ -41,16 +47,20 @@ class KtmTransferServer(
                     reuseAddress = true
                     bind(java.net.InetSocketAddress(port))
                 }
+                Log.i("KtmTransferServer", "[SERVER_STARTED] Listening on TCP port $port, dir=${downloadDir.absolutePath}")
                 while (isActive) {
                     val client = serverSocket?.accept() ?: break
+                    Log.i("KtmTransferServer", "[CLIENT_CONNECTED] Remote=${client.remoteSocketAddress}")
                     launch {
                         try {
                             handleClient(client)
-                        } catch (_: Throwable) {}
+                        } catch (t: Throwable) {
+                            Log.e("KtmTransferServer", "[CLIENT_ERROR] ${t.message}", t)
+                        }
                     }
                 }
-            } catch (_: Throwable) {
-                // Server closed or port bound
+            } catch (t: Throwable) {
+                Log.w("KtmTransferServer", "[SERVER_STOPPED] ${t.message}")
             }
         }
     }
@@ -60,6 +70,7 @@ class KtmTransferServer(
         scope = null
         try { serverSocket?.close() } catch (_: Exception) {}
         serverSocket = null
+        Log.i("KtmTransferServer", "[SERVER_STOPPED]")
     }
 
     private fun handleClient(socket: Socket) {
@@ -76,14 +87,17 @@ class KtmTransferServer(
                 val handshakeObj = JSONObject(handshakeJson)
                 val senderName = handshakeObj.optString("deviceName", "Remote Device")
                 val pin = handshakeObj.optString("pin", "000000")
+                Log.i("KtmTransferServer", "[HANDSHAKE_RECEIVED] Sender='$senderName', PIN=$pin")
 
                 val accepted = onHandshakeReceived?.invoke(senderName, pin) ?: true
-                val ackObj = JSONObject()
-                ackObj.put("type", "HANDSHAKE_ACK")
-                ackObj.put("accepted", accepted)
-                ackObj.put("pin", pin)
-                ackObj.put("reason", if (accepted) "" else "Rejected by user")
+                val ackObj = JSONObject().apply {
+                    put("type", "HANDSHAKE_ACK")
+                    put("accepted", accepted)
+                    put("pin", pin)
+                    put("reason", if (accepted) "" else "Rejected by user")
+                }
                 writeLengthPrefixedString(outputStream, ackObj.toString())
+                Log.i("KtmTransferServer", "[HANDSHAKE_ACK] Accepted=$accepted")
 
                 if (!accepted) return
 
@@ -96,14 +110,17 @@ class KtmTransferServer(
                 prog.totalFiles = manifest.totalFiles
                 prog.totalBytes = manifest.totalBytes
                 _progress.value = prog.copy()
+                Log.i("KtmTransferServer", "[MANIFEST_RECEIVED] Session=${manifest.sessionId}, Files=${manifest.totalFiles}, Bytes=${manifest.totalBytes}")
 
-                // Check free space
+                // Storage preflight
                 if (downloadDir.usableSpace < manifest.totalBytes) {
-                    val rejectObj = JSONObject()
-                    rejectObj.put("type", "MANIFEST_ACK")
-                    rejectObj.put("accepted", false)
-                    rejectObj.put("reason", "Insufficient storage space on Android device")
+                    val rejectObj = JSONObject().apply {
+                        put("type", "MANIFEST_ACK")
+                        put("accepted", false)
+                        put("reason", "Insufficient storage space on Android device")
+                    }
                     writeLengthPrefixedString(outputStream, rejectObj.toString())
+                    Log.w("KtmTransferServer", "[MANIFEST_REJECTED] Insufficient storage space")
                     return
                 }
 
@@ -128,12 +145,14 @@ class KtmTransferServer(
 
                 prog.bytesTransferred = totalAlready
 
-                val manifestAck = JSONObject()
-                manifestAck.put("type", "MANIFEST_ACK")
-                manifestAck.put("sessionId", manifest.sessionId)
-                manifestAck.put("accepted", true)
-                manifestAck.put("existingOffsets", existingOffsets)
+                val manifestAck = JSONObject().apply {
+                    put("type", "MANIFEST_ACK")
+                    put("sessionId", manifest.sessionId)
+                    put("accepted", true)
+                    put("existingOffsets", existingOffsets)
+                }
                 writeLengthPrefixedString(outputStream, manifestAck.toString())
+                Log.i("KtmTransferServer", "[MANIFEST_ACK_SENT] Ready for chunk streaming")
 
                 // 3. Receive Chunks
                 val speedTimer = System.currentTimeMillis()
@@ -146,21 +165,23 @@ class KtmTransferServer(
                     targetFile.parentFile?.mkdirs()
 
                     val partFile = File(downloadDir, "$safeRel.part")
+                    partFile.parentFile?.mkdirs()
+
                     val resumeOffset = existingOffsets.optLong(item.fileIndex.toString(), 0L)
                     var currentOffset = resumeOffset
 
                     prog.currentFileName = safeRel
                     prog.currentFileIndex = item.fileIndex + 1
                     _progress.value = prog.copy()
+                    Log.i("KtmTransferServer", "[RECEIVING_FILE] #$prog.currentFileIndex: '$safeRel', targetSize=${item.size}, resumeOffset=$resumeOffset")
 
                     RandomAccessFile(partFile, "rw").use { raf ->
                         raf.seek(currentOffset)
 
                         while (currentOffset < item.size) {
-                            // Read 20-byte frame header
                             val magic = inputStream.readInt()
                             if (magic != KtmConstants.CHUNK_MAGIC) {
-                                throw IOException("Invalid frame magic: $magic")
+                                throw IOException("Invalid frame magic: 0x${Integer.toHexString(magic)}")
                             }
 
                             val chunkFileIdx = inputStream.readInt()
@@ -192,41 +213,116 @@ class KtmTransferServer(
                         }
                     }
 
+                    Log.i("KtmTransferServer", "[CHUNKS_COMPLETE] '$safeRel' written to disk ($currentOffset bytes), verifying SHA-256")
+
                     // 4. Verify SHA-256
                     val computedSha = KtmSecurityUtils.computeFileSha256(partFile)
                     if (item.sha256.isNotBlank() && !computedSha.equals(item.sha256, ignoreCase = true)) {
                         partFile.delete()
-                        val compObj = JSONObject()
-                        compObj.put("type", "FILE_COMPLETE")
-                        compObj.put("fileIndex", item.fileIndex)
-                        compObj.put("status", "HASH_MISMATCH")
+                        val compObj = JSONObject().apply {
+                            put("type", "FILE_COMPLETE")
+                            put("fileIndex", item.fileIndex)
+                            put("status", "HASH_MISMATCH")
+                            put("sha256", computedSha)
+                        }
                         writeLengthPrefixedString(outputStream, compObj.toString())
+                        Log.e("KtmTransferServer", "[HASH_MISMATCH] '$safeRel' Expected=${item.sha256}, Got=$computedSha")
                         throw IOException("SHA-256 mismatch for ${item.relativePath}")
                     }
 
+                    // 5. Finalize file: atomic rename with copy fallback
                     if (targetFile.exists()) targetFile.delete()
-                    partFile.renameTo(targetFile)
+                    val renamed = partFile.renameTo(targetFile)
+                    if (!renamed) {
+                        Log.w("KtmTransferServer", "[RENAME_FALLBACK] Atomic rename returned false, copying bytes to target")
+                        partFile.inputStream().use { input ->
+                            targetFile.outputStream().use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                        partFile.delete()
+                    }
 
-                    val compObj = JSONObject()
-                    compObj.put("type", "FILE_COMPLETE")
-                    compObj.put("fileIndex", item.fileIndex)
-                    compObj.put("status", "OK")
+                    if (!targetFile.exists() || targetFile.length() != item.size) {
+                        throw IOException("Failed to save complete file: ${targetFile.absolutePath}")
+                    }
+
+                    Log.i("KtmTransferServer", "[FILE_SAVED_SUCCESS] '${targetFile.absolutePath}', size=${targetFile.length()} bytes, SHA=$computedSha")
+
+                    // 6. Export to Public Downloads and notify MediaScanner
+                    exportToPublicDownloadsAndScan(targetFile, safeRel)
+
+                    val compObj = JSONObject().apply {
+                        put("type", "FILE_COMPLETE")
+                        put("fileIndex", item.fileIndex)
+                        put("status", "OK")
+                        put("sha256", computedSha)
+                    }
                     writeLengthPrefixedString(outputStream, compObj.toString())
                 }
 
-                // 5. Transfer Complete
-                val doneObj = JSONObject()
-                doneObj.put("type", "TRANSFER_COMPLETE")
-                doneObj.put("sessionId", manifest.sessionId)
-                doneObj.put("success", true)
+                // 7. Transfer Complete
+                val doneObj = JSONObject().apply {
+                    put("type", "TRANSFER_COMPLETE")
+                    put("sessionId", manifest.sessionId)
+                    put("success", true)
+                }
                 writeLengthPrefixedString(outputStream, doneObj.toString())
 
                 prog.isCompleted = true
                 _progress.value = prog.copy()
+                Log.i("KtmTransferServer", "[TRANSFER_ALL_DONE] Session=${manifest.sessionId}, TotalBytes=${prog.bytesTransferred}")
             } catch (e: Exception) {
+                Log.e("KtmTransferServer", "[TRANSFER_SERVER_ERROR] ${e.message}", e)
                 prog.errorMessage = e.message ?: "Transfer error"
                 _progress.value = prog.copy()
             }
+        }
+    }
+
+    private fun exportToPublicDownloadsAndScan(savedFile: File, relativePath: String) {
+        try {
+            // Also save a copy to public Downloads/KnowToMigrate folder
+            val publicDownloads = File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                "KnowToMigrate"
+            )
+            if (!publicDownloads.exists()) publicDownloads.mkdirs()
+
+            val publicFile = File(publicDownloads, relativePath)
+            publicFile.parentFile?.mkdirs()
+
+            if (publicFile.canonicalPath != savedFile.canonicalPath) {
+                try {
+                    savedFile.copyTo(publicFile, overwrite = true)
+                    Log.i("KtmTransferServer", "[PUBLIC_EXPORT_SUCCESS] '${publicFile.absolutePath}'")
+                } catch (e: Exception) {
+                    Log.w("KtmTransferServer", "Could not copy to public Downloads directory", e)
+                }
+            }
+
+            // Notify Android MediaScanner so file appears in Gallery / Files app immediately
+            if (context != null) {
+                val pathsToScan = mutableListOf(savedFile.absolutePath)
+                if (publicFile.exists()) pathsToScan.add(publicFile.absolutePath)
+
+                MediaScannerConnection.scanFile(
+                    context,
+                    pathsToScan.toTypedArray(),
+                    null
+                ) { path, uri ->
+                    Log.i("KtmTransferServer", "[MEDIA_SCAN_DONE] Path=$path, Uri=$uri")
+                }
+
+                try {
+                    val scanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE).apply {
+                        data = Uri.fromFile(if (publicFile.exists()) publicFile else savedFile)
+                    }
+                    context.sendBroadcast(scanIntent)
+                } catch (_: Exception) {}
+            }
+        } catch (e: Exception) {
+            Log.w("KtmTransferServer", "Error in exportToPublicDownloadsAndScan", e)
         }
     }
 

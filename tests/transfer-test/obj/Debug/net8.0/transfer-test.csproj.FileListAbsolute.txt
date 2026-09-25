@@ -1,0 +1,15 @@
+c:\KnowToMigrate\tests\transfer-test\bin\Debug\net8.0\transfer-test.exe
+c:\KnowToMigrate\tests\transfer-test\bin\Debug\net8.0\transfer-test.deps.json
+c:\KnowToMigrate\tests\transfer-test\bin\Debug\net8.0\transfer-test.runtimeconfig.json
+c:\KnowToMigrate\tests\transfer-test\bin\Debug\net8.0\transfer-test.dll
+c:\KnowToMigrate\tests\transfer-test\bin\Debug\net8.0\transfer-test.pdb
+c:\KnowToMigrate\tests\transfer-test\obj\Debug\net8.0\transfer-test.GeneratedMSBuildEditorConfig.editorconfig
+c:\KnowToMigrate\tests\transfer-test\obj\Debug\net8.0\transfer-test.AssemblyInfoInputs.cache
+c:\KnowToMigrate\tests\transfer-test\obj\Debug\net8.0\transfer-test.AssemblyInfo.cs
+c:\KnowToMigrate\tests\transfer-test\obj\Debug\net8.0\transfer-test.csproj.CoreCompileInputs.cache
+c:\KnowToMigrate\tests\transfer-test\obj\Debug\net8.0\transfer-test.sourcelink.json
+c:\KnowToMigrate\tests\transfer-test\obj\Debug\net8.0\transfer-test.dll
+c:\KnowToMigrate\tests\transfer-test\obj\Debug\net8.0\refint\transfer-test.dll
+c:\KnowToMigrate\tests\transfer-test\obj\Debug\net8.0\transfer-test.pdb
+c:\KnowToMigrate\tests\transfer-test\obj\Debug\net8.0\transfer-test.genruntimeconfig.cache
+c:\KnowToMigrate\tests\transfer-test\obj\Debug\net8.0\ref\transfer-test.dll

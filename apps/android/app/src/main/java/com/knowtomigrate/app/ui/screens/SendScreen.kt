@@ -51,6 +51,14 @@ fun SendScreen(navController: NavController) {
         contract = ActivityResultContracts.OpenMultipleDocuments()
     ) { uris ->
         selectedUris = uris
+        uris.forEach { uri ->
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (_: Exception) {}
+        }
     }
 
     Scaffold(
@@ -264,7 +272,39 @@ fun SendScreen(navController: NavController) {
 
 @Composable
 private fun SelectedFileRow(uri: Uri, onRemove: () -> Unit) {
-    val displayName = uri.lastPathSegment ?: uri.toString().takeLast(40)
+    val context = LocalContext.current
+    var fileName by remember(uri) { mutableStateOf(uri.lastPathSegment ?: "file") }
+    var fileSize by remember(uri) { mutableStateOf(-1L) }
+
+    LaunchedEffect(uri) {
+        try {
+            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                val nameIdx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                val sizeIdx = cursor.getColumnIndex(android.provider.OpenableColumns.SIZE)
+                if (cursor.moveToFirst()) {
+                    if (nameIdx != -1 && !cursor.isNull(nameIdx)) fileName = cursor.getString(nameIdx)
+                    if (sizeIdx != -1 && !cursor.isNull(sizeIdx)) fileSize = cursor.getLong(sizeIdx)
+                }
+            }
+        } catch (_: Exception) {}
+        if (fileSize <= 0) {
+            try {
+                context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { afd ->
+                    if (afd.length > 0) fileSize = afd.length
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    val sizeStr = if (fileSize > 0) {
+        when {
+            fileSize >= 1024 * 1024 * 1024 -> "%.1f GB".format(fileSize / (1024.0 * 1024 * 1024))
+            fileSize >= 1024 * 1024 -> "%.1f MB".format(fileSize / (1024.0 * 1024))
+            fileSize >= 1024 -> "%.1f KB".format(fileSize / 1024.0)
+            else -> "$fileSize B"
+        }
+    } else ""
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -280,14 +320,22 @@ private fun SelectedFileRow(uri: Uri, onRemove: () -> Unit) {
             modifier = Modifier.size(20.dp)
         )
         Spacer(modifier = Modifier.width(10.dp))
-        Text(
-            text = displayName,
-            style = MaterialTheme.typography.bodyMedium,
-            color = KmTextPrimary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = fileName,
+                style = MaterialTheme.typography.bodyMedium,
+                color = KmTextPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (sizeStr.isNotBlank()) {
+                Text(
+                    text = sizeStr,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = KmTextMuted
+                )
+            }
+        }
         IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
             Icon(Icons.Default.Close, contentDescription = "Remove", tint = KmTextMuted, modifier = Modifier.size(16.dp))
         }

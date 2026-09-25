@@ -202,18 +202,17 @@ namespace KnowToMigrate.Services
                             {
                                 if (token.IsCancellationRequested) break;
 
-                                // Read frame header
+                                // Read frame header (20 bytes Big-Endian)
                                 byte[] frameHeader = new byte[20];
                                 await ReadExactBytesAsync(stream, frameHeader, 0, 20, token);
 
-                                uint magic = (uint)((frameHeader[0] << 24) | (frameHeader[1] << 16) | (frameHeader[2] << 8) | frameHeader[3]);
+                                uint magic = System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(frameHeader.AsSpan(0, 4));
                                 if (magic != KtmConstants.ChunkMagic)
-                                    throw new InvalidDataException("Invalid frame magic received in stream");
+                                    throw new InvalidDataException($"Invalid frame magic received in stream: 0x{magic:X8}");
 
-                                int chunkFileIdx = (frameHeader[4] << 24) | (frameHeader[5] << 16) | (frameHeader[6] << 8) | frameHeader[7];
-                                long chunkOffset = ((long)frameHeader[8] << 56) | ((long)frameHeader[9] << 48) | ((long)frameHeader[10] << 40) | ((long)frameHeader[11] << 32)
-                                                 | ((long)frameHeader[12] << 24) | ((long)frameHeader[13] << 16) | ((long)frameHeader[14] << 8) | (long)frameHeader[15];
-                                int payloadLen = (frameHeader[16] << 24) | (frameHeader[17] << 16) | (frameHeader[18] << 8) | frameHeader[19];
+                                int chunkFileIdx = System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(frameHeader.AsSpan(4, 4));
+                                long chunkOffset = System.Buffers.Binary.BinaryPrimitives.ReadInt64BigEndian(frameHeader.AsSpan(8, 8));
+                                int payloadLen = System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(frameHeader.AsSpan(16, 4));
 
                                 if (payloadLen <= 0 || payloadLen > KtmConstants.MaxChunkSize)
                                     throw new InvalidDataException($"Invalid payload length: {payloadLen}");
@@ -246,7 +245,7 @@ namespace KnowToMigrate.Services
                         if (!string.IsNullOrEmpty(fileItem.Sha256) && !string.Equals(computedSha, fileItem.Sha256, StringComparison.OrdinalIgnoreCase))
                         {
                             // Hash mismatch
-                            File.Delete(partPath);
+                            try { File.Delete(partPath); } catch { }
                             await SendLengthPrefixedJsonAsync(stream, new KtmFileComplete
                             {
                                 FileIndex = fileItem.FileIndex,
@@ -256,10 +255,25 @@ namespace KnowToMigrate.Services
                             throw new CryptographicException($"Checksum verification failed for {safeRelPath}");
                         }
 
-                        // Atomically rename .part to destination
-                        if (File.Exists(fullTargetPath))
-                            File.Delete(fullTargetPath);
-                        File.Move(partPath, fullTargetPath);
+                        // Atomically move .part to final destination with fallback copy
+                        try
+                        {
+                            if (File.Exists(fullTargetPath))
+                                File.Delete(fullTargetPath);
+                            File.Move(partPath, fullTargetPath);
+                        }
+                        catch
+                        {
+                            File.Copy(partPath, fullTargetPath, overwrite: true);
+                            try { File.Delete(partPath); } catch { }
+                        }
+
+                        // Post-move validation
+                        var finalInfo = new FileInfo(fullTargetPath);
+                        if (!finalInfo.Exists || finalInfo.Length != fileItem.Size)
+                        {
+                            throw new IOException($"Target file verification failed on disk: {fullTargetPath}");
+                        }
 
                         await SendLengthPrefixedJsonAsync(stream, new KtmFileComplete
                         {

@@ -3,6 +3,7 @@ package com.knowtomigrate.app.network
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,9 +35,10 @@ class KtmTransferClient(private val context: Context) {
         )
 
         try {
+            Log.i("KtmTransferClient", "[TRANSFER_CREATED] Target=$targetIp:$targetPort, Files=${uris.size}")
             Socket().use { socket ->
                 socket.tcpNoDelay = true
-                socket.connect(InetSocketAddress(targetIp, targetPort), 8000)
+                socket.connect(InetSocketAddress(targetIp, targetPort), 10000)
 
                 val inputStream = DataInputStream(BufferedInputStream(socket.getInputStream(), 64 * 1024))
                 val outputStream = DataOutputStream(BufferedOutputStream(socket.getOutputStream(), 256 * 1024))
@@ -58,6 +60,7 @@ class KtmTransferClient(private val context: Context) {
                         )
                     )
                     totalBytes += size
+                    Log.i("KtmTransferClient", "[MANIFEST_ITEM] #$index: '$name', size=$size bytes, SHA=$sha")
                 }
 
                 val manifest = KtmManifest(
@@ -81,13 +84,17 @@ class KtmTransferClient(private val context: Context) {
                     put("platform", "Android")
                     put("pin", pin)
                 }
+                Log.i("KtmTransferClient", "[HANDSHAKE_SEND] PIN=$pin, Sender=$localDeviceName")
                 writeLengthPrefixedString(outputStream, handshakeObj.toString())
 
                 val ackJson = readLengthPrefixedString(inputStream)
                 val ackObj = JSONObject(ackJson)
                 if (!ackObj.optBoolean("accepted", false)) {
-                    throw IOException("Transfer rejected by recipient: " + ackObj.optString("reason"))
+                    val reason = ackObj.optString("reason", "Rejected by recipient")
+                    Log.w("KtmTransferClient", "[HANDSHAKE_REJECTED] Reason: $reason")
+                    throw IOException("Transfer rejected by recipient: $reason")
                 }
+                Log.i("KtmTransferClient", "[HANDSHAKE_ACCEPTED] Recipient confirmed PIN")
 
                 // 3. Send Manifest
                 writeLengthPrefixedString(outputStream, manifest.toJson())
@@ -95,10 +102,13 @@ class KtmTransferClient(private val context: Context) {
                 val manifestAckJson = readLengthPrefixedString(inputStream)
                 val manifestAckObj = JSONObject(manifestAckJson)
                 if (!manifestAckObj.optBoolean("accepted", false)) {
-                    throw IOException("Manifest rejected by recipient: " + manifestAckObj.optString("reason"))
+                    val reason = manifestAckObj.optString("reason", "Manifest rejected")
+                    Log.w("KtmTransferClient", "[MANIFEST_REJECTED] Reason: $reason")
+                    throw IOException("Manifest rejected by recipient: $reason")
                 }
 
                 val existingOffsets = manifestAckObj.optJSONObject("existingOffsets") ?: JSONObject()
+                Log.i("KtmTransferClient", "[MANIFEST_ACCEPTED] SessionId=${manifest.sessionId}, Offsets=$existingOffsets")
 
                 // 4. Stream Chunks with Resume Support
                 val chunkBuffer = ByteArray(KtmConstants.DEFAULT_CHUNK_SIZE)
@@ -114,51 +124,64 @@ class KtmTransferClient(private val context: Context) {
                     prog.currentFileIndex = index + 1
                     _progress.value = prog.copy()
 
-                    context.contentResolver.openInputStream(uri)?.use { stream ->
-                        if (resumeOffset > 0) {
-                            var skipped = 0L
-                            while (skipped < resumeOffset) {
-                                val s = stream.skip(resumeOffset - skipped)
-                                if (s <= 0) break
-                                skipped += s
+                    if (item.size > 0L) {
+                        val stream = context.contentResolver.openInputStream(uri)
+                            ?: throw IOException("Cannot open input stream for ${item.relativePath} (URI: $uri)")
+
+                        stream.use { inStream ->
+                            Log.i("KtmTransferClient", "[FILE_OPEN_SUCCESS] '${item.relativePath}', resumeOffset=$resumeOffset, targetSize=${item.size}")
+                            if (resumeOffset > 0L) {
+                                var skipped = 0L
+                                while (skipped < resumeOffset) {
+                                    val s = inStream.skip(resumeOffset - skipped)
+                                    if (s <= 0L) break
+                                    skipped += s
+                                }
+                                prog.bytesTransferred += resumeOffset
                             }
-                            prog.bytesTransferred += resumeOffset
-                        }
 
-                        while (fileBytesSent < item.size) {
-                            val toRead = Math.min(chunkBuffer.size.toLong(), item.size - fileBytesSent).toInt()
-                            val read = stream.read(chunkBuffer, 0, toRead)
-                            if (read <= 0) break
+                            while (fileBytesSent < item.size) {
+                                val toRead = Math.min(chunkBuffer.size.toLong(), item.size - fileBytesSent).toInt()
+                                val read = inStream.read(chunkBuffer, 0, toRead)
+                                if (read <= 0) break
 
-                            // Write 20-byte frame header
-                            outputStream.writeInt(KtmConstants.CHUNK_MAGIC)
-                            outputStream.writeInt(item.fileIndex)
-                            outputStream.writeLong(fileBytesSent)
-                            outputStream.writeInt(read)
-                            outputStream.write(chunkBuffer, 0, read)
-                            outputStream.flush()
+                                // Write 20-byte frame header (Big-Endian)
+                                outputStream.writeInt(KtmConstants.CHUNK_MAGIC)
+                                outputStream.writeInt(item.fileIndex)
+                                outputStream.writeLong(fileBytesSent)
+                                outputStream.writeInt(read)
+                                outputStream.write(chunkBuffer, 0, read)
+                                outputStream.flush()
 
-                            fileBytesSent += read
-                            prog.bytesTransferred += read
-                            bytesSinceTimer += read
+                                fileBytesSent += read
+                                prog.bytesTransferred += read
+                                bytesSinceTimer += read
 
-                            val now = System.currentTimeMillis()
-                            if (now - lastTimerTime >= 500) {
-                                val secs = (now - lastTimerTime) / 1000.0
-                                prog.speedMBps = (bytesSinceTimer / (1024.0 * 1024.0)) / secs
-                                lastTimerTime = now
-                                bytesSinceTimer = 0L
-                                _progress.value = prog.copy()
+                                val now = System.currentTimeMillis()
+                                if (now - lastTimerTime >= 500) {
+                                    val secs = (now - lastTimerTime) / 1000.0
+                                    prog.speedMBps = (bytesSinceTimer / (1024.0 * 1024.0)) / secs
+                                    lastTimerTime = now
+                                    bytesSinceTimer = 0L
+                                    _progress.value = prog.copy()
+                                }
                             }
                         }
+                        Log.i("KtmTransferClient", "[BYTES_SENT] '${item.relativePath}': $fileBytesSent/${item.size} bytes sent")
+                    } else {
+                        Log.i("KtmTransferClient", "[ZERO_BYTE_FILE] '${item.relativePath}' is 0 bytes, skipping chunk streaming")
                     }
 
-                    // Read FILE_COMPLETE ack
+                    // Read FILE_COMPLETE ack from receiver
                     val compJson = readLengthPrefixedString(inputStream)
                     val compObj = JSONObject(compJson)
-                    if (compObj.optString("status") != "OK") {
-                        throw IOException("Checksum verification failed on recipient for ${item.relativePath}")
+                    val status = compObj.optString("status", "")
+                    if (status != "OK") {
+                        val err = "Recipient failed verification for ${item.relativePath} (status: $status)"
+                        Log.e("KtmTransferClient", "[FILE_VERIFY_FAILED] $err")
+                        throw IOException(err)
                     }
+                    Log.i("KtmTransferClient", "[FILE_VERIFIED] '${item.relativePath}' confirmed OK by recipient")
                 }
 
                 // 5. Transfer Complete
@@ -167,9 +190,11 @@ class KtmTransferClient(private val context: Context) {
 
                 prog.isCompleted = doneObj.optBoolean("success", false)
                 _progress.value = prog.copy()
+                Log.i("KtmTransferClient", "[TRANSFER_COMPLETED] Success=${prog.isCompleted}")
                 return@withContext prog.isCompleted
             }
         } catch (e: Exception) {
+            Log.e("KtmTransferClient", "[TRANSFER_ERROR] ${e.message}", e)
             prog.errorMessage = e.message ?: "Transfer error"
             _progress.value = prog.copy()
             return@withContext false
@@ -178,19 +203,75 @@ class KtmTransferClient(private val context: Context) {
 
     private fun queryFileInfo(uri: Uri): Pair<String, Long> {
         var name = "file_${System.currentTimeMillis()}"
-        var size = 0L
+        var size = -1L
 
+        // Primary: Query Android ContentResolver OpenableColumns
         try {
             context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
                 val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
                 val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
                 if (cursor.moveToFirst()) {
-                    if (nameIndex != -1) name = cursor.getString(nameIndex)
-                    if (sizeIndex != -1) size = cursor.getLong(sizeIndex)
+                    if (nameIndex != -1 && !cursor.isNull(nameIndex)) {
+                        val n = cursor.getString(nameIndex)
+                        if (!n.isNullOrBlank()) name = n
+                    }
+                    if (sizeIndex != -1 && !cursor.isNull(sizeIndex)) {
+                        val s = cursor.getLong(sizeIndex)
+                        if (s >= 0) size = s
+                    }
                 }
             }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            Log.w("KtmTransferClient", "Cursor query failed for $uri", e)
+        }
 
+        // Fallback 1: AssetFileDescriptor length
+        if (size <= 0) {
+            try {
+                context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { afd ->
+                    val afdLen = afd.length
+                    if (afdLen > 0) size = afdLen
+                }
+            } catch (_: Exception) {}
+        }
+
+        // Fallback 2: ParcelFileDescriptor statSize
+        if (size <= 0) {
+            try {
+                context.contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
+                    val pfdSize = pfd.statSize
+                    if (pfdSize > 0) size = pfdSize
+                }
+            } catch (_: Exception) {}
+        }
+
+        // Fallback 3: Measure stream length directly
+        if (size <= 0) {
+            try {
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    var count = 0L
+                    val buf = ByteArray(65536)
+                    var r: Int
+                    while (stream.read(buf).also { r = it } != -1) {
+                        count += r
+                    }
+                    size = count
+                }
+            } catch (e: Exception) {
+                Log.w("KtmTransferClient", "Stream byte measurement failed for $uri", e)
+            }
+        }
+
+        // Name fallback from URI path if generic
+        if (name.startsWith("file_")) {
+            val lastSegment = uri.lastPathSegment
+            if (!lastSegment.isNullOrBlank()) {
+                val clean = lastSegment.substringAfterLast('/').substringAfterLast(':')
+                if (clean.isNotBlank()) name = clean
+            }
+        }
+
+        if (size < 0) size = 0L
         return Pair(name, size)
     }
 
@@ -206,6 +287,7 @@ class KtmTransferClient(private val context: Context) {
             }
             digest.digest().joinToString("") { "%02X".format(it) }
         } catch (e: Exception) {
+            Log.w("KtmTransferClient", "Failed to compute SHA-256 for $uri", e)
             ""
         }
     }

@@ -175,32 +175,12 @@ namespace KnowToMigrate.Services
                             int read = await fs.ReadAsync(chunkBuffer, 0, toRead, token);
                             if (read <= 0) break;
 
-                            // Build frame header (20 bytes)
+                            // Build frame header (20 bytes Big-Endian)
                             byte[] frameHeader = new byte[20];
-                            // Magic
-                            frameHeader[0] = (byte)((KtmConstants.ChunkMagic >> 24) & 0xFF);
-                            frameHeader[1] = (byte)((KtmConstants.ChunkMagic >> 16) & 0xFF);
-                            frameHeader[2] = (byte)((KtmConstants.ChunkMagic >> 8) & 0xFF);
-                            frameHeader[3] = (byte)(KtmConstants.ChunkMagic & 0xFF);
-                            // FileIndex
-                            frameHeader[4] = (byte)((fileItem.FileIndex >> 24) & 0xFF);
-                            frameHeader[5] = (byte)((fileItem.FileIndex >> 16) & 0xFF);
-                            frameHeader[6] = (byte)((fileItem.FileIndex >> 8) & 0xFF);
-                            frameHeader[7] = (byte)(fileItem.FileIndex & 0xFF);
-                            // Offset
-                            frameHeader[8] = (byte)((fileBytesSent >> 56) & 0xFF);
-                            frameHeader[9] = (byte)((fileBytesSent >> 48) & 0xFF);
-                            frameHeader[10] = (byte)((fileBytesSent >> 40) & 0xFF);
-                            frameHeader[11] = (byte)((fileBytesSent >> 32) & 0xFF);
-                            frameHeader[12] = (byte)((fileBytesSent >> 24) & 0xFF);
-                            frameHeader[13] = (byte)((fileBytesSent >> 16) & 0xFF);
-                            frameHeader[14] = (byte)((fileBytesSent >> 8) & 0xFF);
-                            frameHeader[15] = (byte)(fileBytesSent & 0xFF);
-                            // Payload length
-                            frameHeader[16] = (byte)((read >> 24) & 0xFF);
-                            frameHeader[17] = (byte)((read >> 16) & 0xFF);
-                            frameHeader[18] = (byte)((read >> 8) & 0xFF);
-                            frameHeader[19] = (byte)(read & 0xFF);
+                            System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(frameHeader.AsSpan(0, 4), KtmConstants.ChunkMagic);
+                            System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(frameHeader.AsSpan(4, 4), fileItem.FileIndex);
+                            System.Buffers.Binary.BinaryPrimitives.WriteInt64BigEndian(frameHeader.AsSpan(8, 8), fileBytesSent);
+                            System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(frameHeader.AsSpan(16, 4), read);
 
                             await stream.WriteAsync(frameHeader, 0, 20, token);
                             await stream.WriteAsync(chunkBuffer, 0, read, token);

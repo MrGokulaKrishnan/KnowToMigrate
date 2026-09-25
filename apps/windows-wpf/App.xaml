@@ -39,13 +39,13 @@
             <GradientStop Color="#00FFFFFF" Offset="0.6"/>
         </LinearGradientBrush>
 
-        <!-- Primary Glossy Gradient Button Style -->
+        <!-- Primary Glossy Gradient Button Style (12px Radius) -->
         <Style x:Key="KmPrimaryButton" TargetType="Button">
             <Setter Property="Foreground" Value="#FFFFFF" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Height" Value="42" />
-            <Setter Property="Padding" Value="18,0" />
+            <Setter Property="Padding" Value="20,0" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -55,13 +55,13 @@
                                     Background="{StaticResource KmBrandGradient}"
                                     BorderBrush="#FFA366"
                                     BorderThickness="1"
-                                    CornerRadius="10">
+                                    CornerRadius="12">
                                 <Border.Effect>
-                                    <DropShadowEffect Color="#FF5A00" BlurRadius="12" ShadowDepth="0" Opacity="0.3"/>
+                                    <DropShadowEffect Color="#FF5A00" BlurRadius="14" ShadowDepth="0" Opacity="0.35"/>
                                 </Border.Effect>
                                 <Grid>
                                     <!-- Glossy Sheen -->
-                                    <Border CornerRadius="9,9,0,0"
+                                    <Border CornerRadius="11,11,0,0"
                                             VerticalAlignment="Top"
                                             Height="20"
                                             Background="{StaticResource GlossySheenBrush}" />
@@ -90,13 +90,13 @@
             </Setter>
         </Style>
 
-        <!-- Glass Outlined Button Style -->
+        <!-- Glass Outlined Button Style (12px Radius) -->
         <Style x:Key="KmGlassButton" TargetType="Button">
             <Setter Property="Foreground" Value="#CCCCCC" />
             <Setter Property="FontWeight" Value="Medium" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Height" Value="42" />
-            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="Padding" Value="18,0" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -105,9 +105,9 @@
                                 Background="#121212"
                                 BorderBrush="#262626"
                                 BorderThickness="1"
-                                CornerRadius="10">
+                                CornerRadius="12">
                             <Grid>
-                                <Border CornerRadius="9,9,0,0"
+                                <Border CornerRadius="11,11,0,0"
                                         VerticalAlignment="Top"
                                         Height="18"
                                         Background="{StaticResource GlossySheenBrush}"
@@ -135,7 +135,7 @@
             </Setter>
         </Style>
 
-        <!-- Sidebar Navigation Button Style -->
+        <!-- Sidebar Navigation Button Style (10px Radius) -->
         <Style x:Key="KmNavButton" TargetType="Button">
             <Setter Property="Foreground" Value="#AAAAAA" />
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -152,7 +152,7 @@
                                 Background="Transparent"
                                 BorderThickness="1"
                                 BorderBrush="Transparent"
-                                CornerRadius="8">
+                                CornerRadius="10">
                             <ContentPresenter HorizontalAlignment="Left"
                                               VerticalAlignment="Center"
                                               Margin="{TemplateBinding Padding}"/>
@@ -162,6 +162,55 @@
                                 <Setter TargetName="NavBorder" Property="Background" Value="#121212" />
                                 <Setter TargetName="NavBorder" Property="BorderBrush" Value="#222222" />
                                 <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Windows 11 TitleBar Window Control Buttons (Minimize, Maximize, Close) -->
+        <Style x:Key="KmTitleBarButton" TargetType="Button">
+            <Setter Property="Width" Value="46" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="#AAAAAA" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="BtnBg" Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="BtnBg" Property="Background" Value="#1F1F1F" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="BtnBg" Property="Background" Value="#2B2B2B" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="KmTitleBarCloseButton" TargetType="Button" BasedOn="{StaticResource KmTitleBarButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="BtnBg" Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="BtnBg" Property="Background" Value="#E81123" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="BtnBg" Property="Background" Value="#C40F1D" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

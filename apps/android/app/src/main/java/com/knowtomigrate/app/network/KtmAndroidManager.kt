@@ -33,7 +33,7 @@ class KtmAndroidManager private constructor(private val context: Context) {
     }
 
     val discoveryService = KtmDiscoveryService(context, localDeviceId, localDeviceName)
-    val transferServer by lazy { KtmTransferServer(downloadDirectory) }
+    val transferServer by lazy { KtmTransferServer(downloadDirectory, KtmConstants.TRANSFER_PORT, context) }
     val transferClient = KtmTransferClient(context)
 
     val discoveredDevices: StateFlow<List<DiscoveredDevice>> = discoveryService.devices
