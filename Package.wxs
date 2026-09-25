@@ -13,7 +13,7 @@
                   Schedule="afterInstallInitialize" />
     <MediaTemplate EmbedCab="yes" />
 
-    <!-- Application Icon definition for Add/Remove Programs and Shortcuts -->
+    <!-- Application Icon definition for Add/Remove Programs (Installed Apps in Settings) -->
     <Icon Id="AppIcon" SourceFile="apps\windows-wpf\Assets\KnowToMigrate.ico" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon" />
     <Property Id="ARPHELPLINK" Value="https://knowtomigrate.web.app/docs" />
@@ -46,28 +46,24 @@
       </Directory>
     </StandardDirectory>
 
-    <!-- Start Menu: Programs -> KnowToMigrate -> KnowToMigrate.lnk -->
+    <!-- Start Menu: Programs -> KnowToMigrate.lnk -->
+    <!-- Direct shortcut under ProgramMenuFolder ensures it appears under 'K' in Windows 11 All Apps list with its embedded icon -->
     <StandardDirectory Id="ProgramMenuFolder">
-      <Directory Id="ApplicationProgramsFolder" Name="KnowToMigrate">
-        <Component Id="StartMenuShortcutComponent" Bitness="always64" Guid="B3C2D1E0-6F5A-4B3C-2D1E-0F9A8B7C6D5E">
-          <Shortcut Id="AppStartMenuShortcut"
-                    Name="KnowToMigrate"
-                    Description="KnowToMigrate - Fast, Secure Cross-Platform Migration &amp; File Sharing"
-                    Target="[#KnowToMigrateEXE]"
-                    WorkingDirectory="INSTALLFOLDER"
-                    Icon="AppIcon"
-                    IconIndex="0">
-            <ShortcutProperty Key="System.AppUserModel.ID" Value="KnowToMigrate.App" />
-          </Shortcut>
-          <RemoveFolder Id="CleanUpStartMenuFolder" On="uninstall" />
-          <RegistryValue Root="HKLM"
-                         Key="Software\KnowToMigrate"
-                         Name="StartMenuShortcut"
-                         Type="integer"
-                         Value="1"
-                         KeyPath="yes" />
-        </Component>
-      </Directory>
+      <Component Id="StartMenuShortcutComponent" Bitness="always64" Guid="B3C2D1E0-6F5A-4B3C-2D1E-0F9A8B7C6D5E">
+        <Shortcut Id="AppStartMenuShortcut"
+                  Name="KnowToMigrate"
+                  Description="KnowToMigrate - Move Anything. Anywhere. Seamlessly."
+                  Target="[#KnowToMigrateEXE]"
+                  WorkingDirectory="INSTALLFOLDER">
+          <ShortcutProperty Key="System.AppUserModel.ID" Value="KnowToMigrate.App" />
+        </Shortcut>
+        <RegistryValue Root="HKLM"
+                       Key="Software\KnowToMigrate"
+                       Name="StartMenuShortcut"
+                       Type="integer"
+                       Value="1"
+                       KeyPath="yes" />
+      </Component>
     </StandardDirectory>
 
     <!-- Desktop Shortcut: Desktop -> KnowToMigrate.lnk -->
@@ -75,11 +71,9 @@
       <Component Id="DesktopShortcutComponent" Bitness="always64" Guid="C4D3E2F1-7A6B-5C4D-3E2F-1A0B9C8D7E6F">
         <Shortcut Id="AppDesktopShortcut"
                   Name="KnowToMigrate"
-                  Description="KnowToMigrate - Fast, Secure Cross-Platform Migration &amp; File Sharing"
+                  Description="KnowToMigrate - Move Anything. Anywhere. Seamlessly."
                   Target="[#KnowToMigrateEXE]"
-                  WorkingDirectory="INSTALLFOLDER"
-                  Icon="AppIcon"
-                  IconIndex="0">
+                  WorkingDirectory="INSTALLFOLDER">
           <ShortcutProperty Key="System.AppUserModel.ID" Value="KnowToMigrate.App" />
         </Shortcut>
         <RegistryValue Root="HKLM"

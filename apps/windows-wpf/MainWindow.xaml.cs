@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Microsoft.Win32;
 using KnowToMigrate.Services;
 
@@ -464,11 +465,46 @@ namespace KnowToMigrate
             return $"{d:0.##} {suffixes[i]}";
         }
 
+        private void MainWindow_StateChanged(object? sender, EventArgs e)
+        {
+            if (this.WindowState == WindowState.Maximized)
+            {
+                RootBorder.Margin = new Thickness(7);
+                BtnMaximize.ToolTip = "Restore Down";
+                try
+                {
+                    MaximizePath.Data = Geometry.Parse("M2,0 H10 V8 H2 Z M0,2 H8 V10 H0 Z");
+                }
+                catch { }
+            }
+            else
+            {
+                RootBorder.Margin = new Thickness(0);
+                BtnMaximize.ToolTip = "Maximize";
+                try
+                {
+                    MaximizePath.Data = Geometry.Parse("M0,0 H10 V10 H0 Z");
+                }
+                catch { }
+            }
+        }
+
         private void TitleBar_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
             {
-                this.DragMove();
+                if (e.ClickCount == 2)
+                {
+                    BtnMaximize_Click(sender, e);
+                }
+                else
+                {
+                    try
+                    {
+                        this.DragMove();
+                    }
+                    catch { }
+                }
             }
         }
 

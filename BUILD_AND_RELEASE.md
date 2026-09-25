@@ -4,7 +4,7 @@ This document contains the exact reproducible build commands, prerequisites, and
 
 ---
 
-## 1. Windows Installer & Application Registration Verification Matrix
+## 1. Windows Installer & Application Window Verification Matrix
 
 | Verification Item | Status | Details / Implementation |
 | :--- | :---: | :--- |
@@ -12,16 +12,20 @@ This document contains the exact reproducible build commands, prerequisites, and
 | **Install Directory** | **PASS** | `C:\Program Files\KnowToMigrate\` (stable, standard 64-bit Program Files) |
 | **EXE Executable** | **PASS** | `KnowToMigrate.exe` (72.2 MB, single-file bundle compressed, embedded icon, DPI-aware manifest) |
 | **MSI Package** | **PASS** | `KnowToMigrate-1.0.0-x64.msi` (65.9 MB, perMachine, embedded CAB) |
-| **Start Menu Shortcut** | **PASS** | `C:\ProgramData\Microsoft\Windows\Start Menu\Programs\KnowToMigrate\KnowToMigrate.lnk` pointing to `C:\Program Files\KnowToMigrate\KnowToMigrate.exe` with `AppUserModel.ID = KnowToMigrate.App` |
+| **Start Menu Shortcut** | **PASS** | `C:\ProgramData\Microsoft\Windows\Start Menu\Programs\KnowToMigrate.lnk` pointing to `C:\Program Files\KnowToMigrate\KnowToMigrate.exe` with `AppUserModel.ID = KnowToMigrate.App` |
 | **Desktop Shortcut** | **PASS** | `C:\Users\Public\Desktop\KnowToMigrate.lnk` pointing to `C:\Program Files\KnowToMigrate\KnowToMigrate.exe` with `AppUserModel.ID = KnowToMigrate.App` |
-| **Windows Search** | **PASS** | Non-advertised `.lnk` shortcut allows Windows Search Indexer to read the target executable and display "KnowToMigrate App" with master icon |
+| **Windows Search** | **PASS** | Non-advertised `.lnk` shortcut pointing directly to `[#KnowToMigrateEXE]` allows Windows Search Indexer to read the embedded icon from `KnowToMigrate.exe`, displaying "KnowToMigrate App" with master icon |
 | **Application Icon** | **PASS** | Multi-resolution `.ico` (16, 24, 32, 48, 64, 128, 256) embedded in `KnowToMigrate.exe`, referencing approved master logo with 15% rounded corners |
 | **Taskbar Icon** | **PASS** | Process registers `SetCurrentProcessExplicitAppUserModelID("KnowToMigrate.App")` on startup, linking taskbar instance to Start Menu shortcut |
+| **Title Bar & Controls** | **PASS** | AMOLED black (`#070707`) 42px header with master brand badge, draggable zone, and native Minimize, Maximize/Restore toggle, and Close with red hover |
+| **Resize & Move** | **PASS** | Native `WindowChrome` with 6px resize border on all 4 edges and corners; native double-click maximize/restore |
+| **Taskbar WorkArea** | **PASS** | Maximizing respects Windows Taskbar completely, never extending underneath or obscuring taskbar |
+| **Responsive Content** | **PASS** | Dynamic `ScrollViewer` container prevents clipping on 1280x720, 1366x768, and High-DPI (125%-200%) displays |
 | **Installed Apps** | **PASS** | Registered in `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` as "KnowToMigrate" by "KnowToMigrate Team" with `ARPPRODUCTICON` |
-| **Uninstall** | **PASS** | Standard MSI uninstallation cleanly removes binaries, Start Menu directory & shortcut, Desktop shortcut, and registry entries |
+| **Uninstall** | **PASS** | Standard MSI uninstallation cleanly removes binaries, Start Menu shortcut, Desktop shortcut, and registry entries |
 | **Upgrade** | **PASS** | `MajorUpgrade` configured with `AllowSameVersionUpgrades="yes"` and `Schedule="afterInstallInitialize"`, preventing duplicate shortcuts |
 | **Reboot Test** | **PASS** | Hardened `.lnk` targets and `App Paths` registry entries remain permanent across reboots |
-| **Known Issues** | **None** | All previous Darwin advertised shortcut issues resolved |
+| **Known Issues** | **None** | All previous Darwin advertised shortcut and window chrome issues resolved |
 
 ---
 
@@ -51,7 +55,7 @@ Get-FileHash "releases\windows\KnowToMigrate-1.0.0-x64.exe" -Algorithm SHA256
 ```
 
 - **Output Artifact**: `releases\windows\KnowToMigrate-1.0.0-x64.exe` (72.2 MB)
-- **SHA-256**: `F9971350E5B905E0E9D30976432C4C6B4F0AB576FB316EC385E7FCAD73FA79DA`
+- **SHA-256**: `CBA232E9796551A3977B9CEEA4B9AA37D55D921527A97A7DD055590867AEB993`
 
 ---
 
@@ -74,7 +78,7 @@ Get-FileHash "releases\windows\KnowToMigrate-1.0.0-x64.msi" -Algorithm SHA256
 ```
 
 - **Output Artifact**: `releases\windows\KnowToMigrate-1.0.0-x64.msi` (65.9 MB)
-- **SHA-256**: `90B58D5C79A348B606815591288117F099B8D021B1093D35BD2AE47ADB3A8C51`
+- **SHA-256**: `35C92C4EE8570415F5CE20805A66E3947F35950E8A3B450192785ED8ECD3A37A`
 
 ---
 
