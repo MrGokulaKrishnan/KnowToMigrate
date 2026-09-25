@@ -1,15 +1,17 @@
 package com.knowtomigrate.app.ui.screens
 
 import android.net.Uri
-import kotlinx.coroutines.launch
+import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -18,15 +20,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.knowtomigrate.app.ui.components.*
 import com.knowtomigrate.app.ui.navigation.Screen
 import com.knowtomigrate.app.ui.theme.*
+import kotlinx.coroutines.launch
+import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SendScreen(navController: NavController) {
     val context = LocalContext.current
@@ -36,9 +44,10 @@ fun SendScreen(navController: NavController) {
     var isSending by remember { mutableStateOf(false) }
     var manualIp by remember { mutableStateOf("") }
     var userTransportOverride by remember { mutableStateOf<String?>(null) }
-    var isCheckingCapabilities by remember { mutableStateOf(false) }
+    var showAdvancedIp by remember { mutableStateOf(false) }
 
-    val discoveredDevices by com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).discoveredDevices.collectAsState()
+    val manager = remember { com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context) }
+    val discoveredDevices by manager.discoveredDevices.collectAsState()
     val nearbyDevices = discoveredDevices.map { dev ->
         UiDevice(
             id = dev.deviceId,
@@ -52,29 +61,30 @@ fun SendScreen(navController: NavController) {
         )
     }
 
-    LaunchedEffect(selectedDevice?.id) {
-        val dev = selectedDevice
-        if (dev != null) {
-            isCheckingCapabilities = true
-            val targetRaw = discoveredDevices.find { it.deviceId == dev.id }
-            if (targetRaw != null) {
-                com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).evaluateTargetTransport(targetRaw)
-            }
-            isCheckingCapabilities = false
-        }
-    }
-
     val filePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenMultipleDocuments()
     ) { uris ->
-        selectedUris = uris
-        uris.forEach { uri ->
-            try {
-                context.contentResolver.takePersistableUriPermission(
-                    uri,
-                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-            } catch (_: Exception) {}
+        if (uris.isNotEmpty()) {
+            val combined = (selectedUris + uris).distinct()
+            selectedUris = combined
+            uris.forEach { uri ->
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri,
+                        android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (_: Exception) {}
+            }
+        }
+    }
+
+    LaunchedEffect(selectedDevice?.id) {
+        val dev = selectedDevice
+        if (dev != null) {
+            val targetRaw = discoveredDevices.find { it.deviceId == dev.id }
+            if (targetRaw != null) {
+                manager.evaluateTargetTransport(targetRaw)
+            }
         }
     }
 
@@ -109,100 +119,164 @@ fun SendScreen(navController: NavController) {
         ) {
             // File picker section
             item {
-                KmSectionHeader(title = "Select Files", subtitle = "Tap to browse your device")
+                KmSectionHeader(title = "Select Files", subtitle = "Choose photos, videos, archives, or documents")
             }
 
             item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(120.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .background(KmGlassBackground)
                         .border(
                             width = 1.dp,
-                            color = if (selectedUris.isEmpty()) KmGlassBorder else KmOrange.copy(alpha = 0.4f),
+                            color = if (selectedUris.isEmpty()) KmGlassBorder else KmOrange.copy(alpha = 0.5f),
                             shape = RoundedCornerShape(16.dp)
                         )
-                        .clickable { filePicker.launch(arrayOf("*/*")) },
+                        .clickable { filePicker.launch(arrayOf("*/*")) }
+                        .padding(20.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     if (selectedUris.isEmpty()) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = Icons.Default.AddCircle,
-                                contentDescription = "Pick files",
-                                tint = KmOrange,
-                                modifier = Modifier.size(36.dp)
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(54.dp)
+                                    .clip(CircleShape)
+                                    .background(KmOrangeGlow)
+                                    .border(1.dp, KmOrange, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CloudUpload,
+                                    contentDescription = "Upload Files",
+                                    tint = KmOrange,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Tap to select files",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = KmTextMuted
+                                text = "Tap to Select Files",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = KmTextPrimary,
+                                fontWeight = FontWeight.Bold
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Any file type supported",
+                                text = "Photos, Videos, ZIP, Audio, APK, Documents",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = KmTextDisabled
+                                color = KmTextMuted
                             )
                         }
                     } else {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = null,
-                                tint = KmSuccess,
-                                modifier = Modifier.size(32.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .clip(CircleShape)
+                                        .background(KmSuccess.copy(alpha = 0.2f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        tint = KmSuccess,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = "${selectedUris.size} file(s) selected",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = KmTextPrimary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Tap to add more files",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = KmOrange
+                                    )
+                                }
+                            }
+                            TextButton(onClick = { selectedUris = emptyList() }) {
+                                Text("Clear", color = KmTextMuted, style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Dynamic selected files list
+            if (selectedUris.isNotEmpty()) {
+                item {
+                    KmSectionHeader(
+                        title = "Selected Files (${selectedUris.size})",
+                        subtitle = "Review and remove individual files before sending"
+                    )
+                }
+                items(selectedUris) { uri ->
+                    SelectedFileCard(
+                        uri = uri,
+                        onRemove = {
+                            selectedUris = selectedUris.filter { it != uri }
+                        }
+                    )
+                }
+            }
+
+            // Destination device selector
+            item {
+                KmSectionHeader(
+                    title = "Choose Destination Device",
+                    subtitle = if (nearbyDevices.isEmpty()) "Searching for nearby devices..." else "${nearbyDevices.size} nearby device(s) online"
+                )
+            }
+
+            if (nearbyDevices.isEmpty()) {
+                item {
+                    KmGlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = KmOrange,
+                                strokeWidth = 2.dp
                             )
-                            Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "${selectedUris.size} file(s) selected",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = KmTextPrimary,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = "Tap to change selection",
+                                text = "Looking for devices on your network...",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = KmTextMuted
                             )
                         }
                     }
                 }
-            }
-
-            // Selected files list
-            if (selectedUris.isNotEmpty()) {
-                item {
-                    KmSectionHeader(title = "Selected Files")
-                }
-                items(selectedUris) { uri ->
-                    SelectedFileRow(uri = uri, onRemove = {
-                        selectedUris = selectedUris.filter { it != uri }
-                    })
-                }
-            }
-
-            // Device selector
-            item {
-                KmSectionHeader(
-                    title = "Choose Destination",
-                    subtitle = "${nearbyDevices.size} devices nearby"
-                )
-            }
-
-            items(nearbyDevices) { device ->
-                val isSelected = selectedDevice?.id == device.id
-                KmDeviceCard(
-                    device = device,
-                    onClick = { selectedDevice = if (isSelected) null else device },
-                    modifier = Modifier.border(
-                        width = if (isSelected) 1.dp else 0.dp,
-                        color = if (isSelected) KmOrange else KmGlassBorder,
-                        shape = RoundedCornerShape(12.dp)
+            } else {
+                items(nearbyDevices) { device ->
+                    val isSelected = selectedDevice?.id == device.id
+                    KmDeviceCard(
+                        device = device,
+                        onClick = { selectedDevice = if (isSelected) null else device },
+                        modifier = Modifier.border(
+                            width = if (isSelected) 1.5.dp else 1.dp,
+                            color = if (isSelected) KmOrange else KmGlassBorder,
+                            shape = RoundedCornerShape(12.dp)
+                        )
                     )
-                )
+                }
             }
 
             // Capability Check & Transport Selection Card
@@ -220,20 +294,20 @@ fun SendScreen(navController: NavController) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Transport Capability Check",
+                                    text = "Transport Pipeline",
                                     style = MaterialTheme.typography.titleSmall,
                                     color = KmTextPrimary,
                                     fontWeight = FontWeight.Bold
                                 )
                                 KmTransportPill(
-                                    label = if (isAuto) "${bestType.displayName}" else "${bestType.displayName} (Manual)",
+                                    label = if (isAuto) bestType.displayName else "${bestType.displayName} (Manual)",
                                     isBest = true,
                                     color = KmOrange
                                 )
                             }
 
                             Text(
-                                text = "Pipeline: Nearby Device ➔ Capability Check ➔ Select Best ➔ Authenticate ➔ Transfer",
+                                text = "Capability Check ➔ Negotiate Best Transport ➔ AES-256-GCM + PIN Handshake",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = KmTextMuted
                             )
@@ -266,7 +340,7 @@ fun SendScreen(navController: NavController) {
                                 FilterChip(
                                     selected = userTransportOverride == "WIFI_DIRECT",
                                     onClick = { userTransportOverride = "WIFI_DIRECT" },
-                                    label = { Text("Direct") },
+                                    label = { Text("Wi-Fi Direct") },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = KmInfo.copy(alpha = 0.25f),
                                         selectedLabelColor = KmInfo,
@@ -276,10 +350,10 @@ fun SendScreen(navController: NavController) {
                                 FilterChip(
                                     selected = userTransportOverride == "BLUETOOTH",
                                     onClick = { userTransportOverride = "BLUETOOTH" },
-                                    label = { Text("BT") },
+                                    label = { Text("Bluetooth") },
                                     colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = androidx.compose.ui.graphics.Color(0xFF60A5FA).copy(alpha = 0.25f),
-                                        selectedLabelColor = androidx.compose.ui.graphics.Color(0xFF60A5FA),
+                                        selectedContainerColor = Color(0xFF60A5FA).copy(alpha = 0.25f),
+                                        selectedLabelColor = Color(0xFF60A5FA),
                                         labelColor = KmTextSecondary
                                     )
                                 )
@@ -291,7 +365,7 @@ fun SendScreen(navController: NavController) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Speed: ${bestType.speedRating}",
+                                    text = "Estimated Speed: ${bestType.speedRating}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = KmTextSecondary
                                 )
@@ -306,86 +380,168 @@ fun SendScreen(navController: NavController) {
                 }
             }
 
-            // Direct IP Connect Card
+            // Secondary: Expandable Advanced Direct IP Connect Card
             item {
                 KmGlassCard(modifier = Modifier.fillMaxWidth()) {
                     Column {
-                        Text(
-                            text = "Direct Connect by IP",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = KmTextPrimary,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "If device is not auto-discovered due to Wi-Fi isolation:",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = KmTextMuted
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            OutlinedTextField(
-                                value = manualIp,
-                                onValueChange = { manualIp = it },
-                                placeholder = { Text("e.g. 192.168.1.100", color = KmTextMuted) },
-                                modifier = Modifier.weight(1f),
-                                singleLine = true,
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = KmOrange,
-                                    unfocusedBorderColor = KmGlassBorder,
-                                    focusedTextColor = KmTextPrimary,
-                                    unfocusedTextColor = KmTextPrimary
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showAdvancedIp = !showAdvancedIp },
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.SettingsEthernet,
+                                    contentDescription = null,
+                                    tint = KmTextMuted,
+                                    modifier = Modifier.size(20.dp)
                                 )
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            KmSecondaryButton(
-                                text = "Use IP",
-                                onClick = {
-                                    if (manualIp.isNotBlank()) {
-                                        com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).discoveryService.addManualDevice(manualIp.trim())
-                                        selectedDevice = UiDevice("manual_${manualIp.trim()}", "PC / Phone (${manualIp.trim()})", "remote", manualIp.trim(), "online")
-                                    }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "Advanced: Direct IP Connection",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = KmTextPrimary,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = "Connect directly if UDP discovery is blocked by router",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = KmTextMuted
+                                    )
                                 }
+                            }
+                            Icon(
+                                imageVector = if (showAdvancedIp) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = "Toggle",
+                                tint = KmTextMuted
                             )
+                        }
+
+                        AnimatedVisibility(visible = showAdvancedIp) {
+                            Column(modifier = Modifier.padding(top = 12.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    OutlinedTextField(
+                                        value = manualIp,
+                                        onValueChange = { manualIp = it },
+                                        placeholder = { Text("e.g. 192.168.1.100", color = KmTextMuted) },
+                                        modifier = Modifier.weight(1f),
+                                        singleLine = true,
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = KmOrange,
+                                            unfocusedBorderColor = KmGlassBorder,
+                                            focusedTextColor = KmTextPrimary,
+                                            unfocusedTextColor = KmTextPrimary
+                                        ),
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    KmSecondaryButton(
+                                        text = "Connect",
+                                        onClick = {
+                                            if (manualIp.isNotBlank()) {
+                                                val clean = manualIp.trim()
+                                                manager.discoveryService.addManualDevice(clean)
+                                                selectedDevice = UiDevice("manual_$clean", "Device ($clean)", "remote", clean, "online")
+                                            }
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            // Send button
+            // State-aware Send button
             item {
                 Spacer(modifier = Modifier.height(4.dp))
-                val canSend = selectedUris.isNotEmpty() && selectedDevice != null && !isSending
-                KmPrimaryButton(
-                    text = if (isSending) "Streaming over ${userTransportOverride ?: selectedDevice?.bestTransport ?: "Wi-Fi"}…" else "Send ${if (selectedUris.isEmpty()) "" else "${selectedUris.size} File(s)"}",
-                    onClick = {
-                        if (canSend && selectedDevice != null) {
-                            isSending = true
-                            val targetRaw = discoveredDevices.find { it.deviceId == selectedDevice!!.id } ?: com.knowtomigrate.app.network.DiscoveredDevice(
-                                deviceId = selectedDevice!!.id,
-                                deviceName = selectedDevice!!.name,
-                                ipAddress = selectedDevice!!.ip
+                when {
+                    selectedUris.isEmpty() -> {
+                        KmPrimaryButton(
+                            text = "Choose Files to Send",
+                            onClick = { filePicker.launch(arrayOf("*/*")) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    selectedDevice == null -> {
+                        Button(
+                            onClick = {},
+                            enabled = false,
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                disabledContainerColor = KmBlackElevated,
+                                disabledContentColor = KmTextMuted
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                        ) {
+                            Text(
+                                text = "Select Destination Device Above",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold
                             )
-                            val chosen = userTransportOverride ?: selectedDevice!!.bestTransport
-                            scope.launch {
-                                val success = com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).sendUris(
-                                    target = targetRaw,
-                                    uris = selectedUris,
-                                    forcedTransport = chosen
-                                )
-                                isSending = false
-                                if (success) {
-                                    android.widget.Toast.makeText(context, "Transfer completed and verified", android.widget.Toast.LENGTH_LONG).show()
-                                    navController.navigate(Screen.Home.route)
-                                } else {
-                                    android.widget.Toast.makeText(context, "Transfer failed or was rejected by recipient", android.widget.Toast.LENGTH_LONG).show()
-                                }
-                            }
                         }
-                    },
-                    enabled = canSend,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    }
+                    isSending -> {
+                        Button(
+                            onClick = {},
+                            enabled = false,
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                disabledContainerColor = KmBlackElevated,
+                                disabledContentColor = KmOrange
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = KmOrange,
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = "Streaming to ${selectedDevice?.name}...",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    else -> {
+                        val transportCode = userTransportOverride ?: selectedDevice?.bestTransport ?: "WIFI_LAN"
+                        KmPrimaryButton(
+                            text = "Send Now • ${selectedUris.size} File(s)",
+                            onClick = {
+                                isSending = true
+                                val targetRaw = discoveredDevices.find { it.deviceId == selectedDevice!!.id } ?: com.knowtomigrate.app.network.DiscoveredDevice(
+                                    deviceId = selectedDevice!!.id,
+                                    deviceName = selectedDevice!!.name,
+                                    ipAddress = selectedDevice!!.ip
+                                )
+                                scope.launch {
+                                    val success = manager.sendUris(
+                                        target = targetRaw,
+                                        uris = selectedUris,
+                                        forcedTransport = transportCode
+                                    )
+                                    isSending = false
+                                    if (success) {
+                                        android.widget.Toast.makeText(context, "Transfer completed and verified", android.widget.Toast.LENGTH_LONG).show()
+                                        navController.navigate(Screen.Home.route)
+                                    } else {
+                                        android.widget.Toast.makeText(context, "Transfer failed or was rejected by recipient", android.widget.Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
             }
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -394,16 +550,16 @@ fun SendScreen(navController: NavController) {
 }
 
 @Composable
-private fun SelectedFileRow(uri: Uri, onRemove: () -> Unit) {
+private fun SelectedFileCard(uri: Uri, onRemove: () -> Unit) {
     val context = LocalContext.current
-    var fileName by remember(uri) { mutableStateOf(uri.lastPathSegment ?: "file") }
+    var fileName by remember(uri) { mutableStateOf(uri.lastPathSegment ?: "File") }
     var fileSize by remember(uri) { mutableStateOf(-1L) }
 
     LaunchedEffect(uri) {
         try {
             context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                val nameIdx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
-                val sizeIdx = cursor.getColumnIndex(android.provider.OpenableColumns.SIZE)
+                val nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                val sizeIdx = cursor.getColumnIndex(OpenableColumns.SIZE)
                 if (cursor.moveToFirst()) {
                     if (nameIdx != -1 && !cursor.isNull(nameIdx)) fileName = cursor.getString(nameIdx)
                     if (sizeIdx != -1 && !cursor.isNull(sizeIdx)) fileSize = cursor.getLong(sizeIdx)
@@ -419,6 +575,9 @@ private fun SelectedFileRow(uri: Uri, onRemove: () -> Unit) {
         }
     }
 
+    val extension = fileName.substringAfterLast('.', "").uppercase(Locale.getDefault()).take(4)
+    val extBadge = if (extension.isNotBlank()) extension else "FILE"
+
     val sizeStr = if (fileSize > 0) {
         when {
             fileSize >= 1024 * 1024 * 1024 -> "%.1f GB".format(fileSize / (1024.0 * 1024 * 1024))
@@ -431,25 +590,35 @@ private fun SelectedFileRow(uri: Uri, onRemove: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(KmBlackCard)
+            .border(1.dp, KmGlassBorder, RoundedCornerShape(12.dp))
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = Icons.Default.InsertDriveFile,
-            contentDescription = null,
-            tint = KmOrange,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(10.dp))
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(KmOrangeGlow),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = extBadge,
+                color = KmOrange,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = fileName,
                 style = MaterialTheme.typography.bodyMedium,
                 color = KmTextPrimary,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                fontWeight = FontWeight.Medium
             )
             if (sizeStr.isNotBlank()) {
                 Text(

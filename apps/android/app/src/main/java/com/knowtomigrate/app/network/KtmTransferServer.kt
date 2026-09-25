@@ -149,6 +149,23 @@ class KtmTransferServer(
 
                 prog.bytesTransferred = totalAlready
 
+                val historyRepo = context?.let { com.knowtomigrate.app.data.TransferHistoryRepository.getInstance(it) }
+                val mainFileName = manifest.files.firstOrNull()?.relativePath ?: "Files"
+                val displayTitle = if (manifest.totalFiles > 1) "$mainFileName (+${manifest.totalFiles - 1} more)" else mainFileName
+                historyRepo?.insert(
+                    com.knowtomigrate.app.data.TransferRecord(
+                        sessionId = manifest.sessionId,
+                        fileName = displayTitle,
+                        fileCount = manifest.totalFiles,
+                        totalBytes = manifest.totalBytes,
+                        bytesTransferred = totalAlready,
+                        peerDeviceName = senderName,
+                        direction = com.knowtomigrate.app.data.TransferDirection.RECEIVED,
+                        status = com.knowtomigrate.app.data.TransferRecordStatus.TRANSFERRING,
+                        transport = senderTransport
+                    )
+                )
+
                 val manifestAck = JSONObject().apply {
                     put("type", "MANIFEST_ACK")
                     put("sessionId", manifest.sessionId)
@@ -276,10 +293,15 @@ class KtmTransferServer(
                 prog.isCompleted = true
                 _progress.value = prog.copy()
                 Log.i("KtmTransferServer", "[TRANSFER_ALL_DONE] Session=${manifest.sessionId}, TotalBytes=${prog.bytesTransferred}")
+                historyRepo?.updateProgress(manifest.sessionId, com.knowtomigrate.app.data.TransferRecordStatus.COMPLETED, prog.totalBytes, prog.totalBytes)
             } catch (e: Exception) {
                 Log.e("KtmTransferServer", "[TRANSFER_SERVER_ERROR] ${e.message}", e)
                 prog.errorMessage = e.message ?: "Transfer error"
                 _progress.value = prog.copy()
+                if (prog.sessionId.isNotBlank()) {
+                    val historyRepo = context?.let { com.knowtomigrate.app.data.TransferHistoryRepository.getInstance(it) }
+                    historyRepo?.updateProgress(prog.sessionId, com.knowtomigrate.app.data.TransferRecordStatus.FAILED, prog.bytesTransferred, prog.totalBytes, e.message)
+                }
             }
         }
     }

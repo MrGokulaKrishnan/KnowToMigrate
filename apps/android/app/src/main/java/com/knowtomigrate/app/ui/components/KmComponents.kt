@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Smartphone
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -338,48 +338,82 @@ fun KmBadge(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 7. KmDiscoveryRadar — animated expanding rings radar
+// 7. KmDiscoveryRadar — premium animated discovery radar with dynamic device nodes
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-fun KmDiscoveryRadar(modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition(label = "radar")
+fun KmDiscoveryRadar(
+    modifier: Modifier = Modifier,
+    devices: List<UiDevice> = emptyList(),
+    onDeviceClick: ((UiDevice) -> Unit)? = null
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "radar_core")
 
     val ring1 = infiniteTransition.animateFloat(
         initialValue = 0f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(2000, easing = LinearEasing)),
+        animationSpec = infiniteRepeatable(tween(2400, easing = LinearEasing)),
         label = "ring1"
     )
     val ring2 = infiniteTransition.animateFloat(
         initialValue = 0f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(2000, 666, easing = LinearEasing)),
+        animationSpec = infiniteRepeatable(tween(2400, 800, easing = LinearEasing)),
         label = "ring2"
     )
     val ring3 = infiniteTransition.animateFloat(
         initialValue = 0f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(2000, 1333, easing = LinearEasing)),
+        animationSpec = infiniteRepeatable(tween(2400, 1600, easing = LinearEasing)),
         label = "ring3"
+    )
+    val sweepAngle = infiniteTransition.animateFloat(
+        initialValue = 0f, targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(4000, easing = LinearEasing)),
+        label = "sweep"
+    )
+    val corePulse = infiniteTransition.animateFloat(
+        initialValue = 0.85f, targetValue = 1.15f,
+        animationSpec = infiniteRepeatable(tween(1200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "corePulse"
     )
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
             val cx = size.width / 2f
             val cy = size.height / 2f
-            val maxRadius = minOf(cx, cy)
+            val maxRadius = minOf(cx, cy) * 0.92f
 
-            fun drawRing(progress: Float) {
+            // Static concentric grid rings
+            drawCircle(color = KmGlassBorder, radius = maxRadius * 0.35f, center = Offset(cx, cy), style = Stroke(width = 1.dp.toPx()))
+            drawCircle(color = KmGlassBorder.copy(alpha = 0.5f), radius = maxRadius * 0.65f, center = Offset(cx, cy), style = Stroke(width = 1.dp.toPx()))
+            drawCircle(color = KmGlassBorder.copy(alpha = 0.3f), radius = maxRadius, center = Offset(cx, cy), style = Stroke(width = 1.dp.toPx()))
+
+            // Cross-hair grid lines (subtle)
+            drawLine(
+                color = KmGlassBorder.copy(alpha = 0.25f),
+                start = Offset(cx - maxRadius, cy),
+                end = Offset(cx + maxRadius, cy),
+                strokeWidth = 1.dp.toPx()
+            )
+            drawLine(
+                color = KmGlassBorder.copy(alpha = 0.25f),
+                start = Offset(cx, cy - maxRadius),
+                end = Offset(cx, cy + maxRadius),
+                strokeWidth = 1.dp.toPx()
+            )
+
+            // Animated expanding rings
+            fun drawPulseRing(progress: Float) {
                 val radius = maxRadius * progress
-                if (radius <= 1f) return
+                if (radius <= 2f) return
                 val alpha = (1f - progress).coerceIn(0f, 1f)
                 drawCircle(
-                    color = KmOrange.copy(alpha = alpha * 0.5f),
+                    color = KmOrange.copy(alpha = alpha * 0.45f),
                     radius = radius,
                     center = Offset(cx, cy),
                     style = Stroke(width = 1.5.dp.toPx())
                 )
                 drawCircle(
                     brush = Brush.radialGradient(
-                        colors = listOf(KmOrange.copy(alpha = alpha * 0.1f), Color.Transparent),
+                        colors = listOf(KmOrange.copy(alpha = alpha * 0.12f), Color.Transparent),
                         center = Offset(cx, cy),
                         radius = radius
                     ),
@@ -388,26 +422,91 @@ fun KmDiscoveryRadar(modifier: Modifier = Modifier) {
                 )
             }
 
-            drawRing(ring1.value)
-            drawRing(ring2.value)
-            drawRing(ring3.value)
+            drawPulseRing(ring1.value)
+            drawPulseRing(ring2.value)
+            drawPulseRing(ring3.value)
 
-            // Center dot
-            val dotRadius = 8.dp.toPx()
-            val glowRadius = 24.dp.toPx()
-            if (dotRadius > 0f) {
-                drawCircle(color = KmOrange, radius = dotRadius, center = Offset(cx, cy))
-            }
-            if (glowRadius > 0f) {
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(KmOrange.copy(alpha = 0.4f), Color.Transparent),
-                        center = Offset(cx, cy),
-                        radius = glowRadius
-                    ),
-                    radius = glowRadius,
-                    center = Offset(cx, cy)
-                )
+            // Radar sweep line & trail
+            val rad = Math.toRadians(sweepAngle.value.toDouble())
+            val sweepX = cx + (maxRadius * kotlin.math.cos(rad)).toFloat()
+            val sweepY = cy + (maxRadius * kotlin.math.sin(rad)).toFloat()
+            drawLine(
+                brush = Brush.linearGradient(
+                    colors = listOf(KmOrange, KmOrange.copy(alpha = 0.1f)),
+                    start = Offset(cx, cy),
+                    end = Offset(sweepX, sweepY)
+                ),
+                start = Offset(cx, cy),
+                end = Offset(sweepX, sweepY),
+                strokeWidth = 2.dp.toPx()
+            )
+
+            // Central Energy Node Core
+            val coreGlowRadius = 28.dp.toPx() * corePulse.value
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(KmOrange.copy(alpha = 0.5f), Color.Transparent),
+                    center = Offset(cx, cy),
+                    radius = coreGlowRadius
+                ),
+                radius = coreGlowRadius,
+                center = Offset(cx, cy)
+            )
+            drawCircle(
+                brush = Brush.linearGradient(
+                    colors = listOf(KmOrangeLight, KmOrange, KmOrangeDark),
+                    start = Offset(cx - 14.dp.toPx(), cy - 14.dp.toPx()),
+                    end = Offset(cx + 14.dp.toPx(), cy + 14.dp.toPx())
+                ),
+                radius = 12.dp.toPx(),
+                center = Offset(cx, cy)
+            )
+            drawCircle(
+                color = Color.White,
+                radius = 4.dp.toPx(),
+                center = Offset(cx, cy)
+            )
+        }
+
+        // Overlay dynamic satellite device nodes
+        if (devices.isNotEmpty()) {
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val cx = maxWidth / 2
+                val cy = maxHeight / 2
+                val orbitRadius = minOf(maxWidth, maxHeight) * 0.32f
+
+                devices.take(6).forEachIndexed { idx, dev ->
+                    val angleDeg = (360f / devices.size.coerceAtMost(6)) * idx - 90f
+                    val angleRad = Math.toRadians(angleDeg.toDouble())
+                    val offsetX = cx + (orbitRadius.value * kotlin.math.cos(angleRad)).dp - 24.dp
+                    val offsetY = cy + (orbitRadius.value * kotlin.math.sin(angleRad)).dp - 24.dp
+
+                    val isWindows = dev.platform.contains("win", ignoreCase = true)
+                    val icon = if (isWindows) Icons.Default.Devices else Icons.Default.Smartphone
+
+                    Box(
+                        modifier = Modifier
+                            .offset(x = offsetX, y = offsetY)
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(KmBlackElevated)
+                            .border(1.5.dp, KmOrange, CircleShape)
+                            .clickable { onDeviceClick?.invoke(dev) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = dev.name,
+                                tint = KmOrangeLight,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
     }

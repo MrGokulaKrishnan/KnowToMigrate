@@ -1,149 +1,238 @@
 package com.knowtomigrate.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.knowtomigrate.app.data.TransferDirection
+import com.knowtomigrate.app.data.TransferRecord
+import com.knowtomigrate.app.data.TransferRecordStatus
+import com.knowtomigrate.app.ui.components.KmBadge
 import com.knowtomigrate.app.ui.theme.*
 
-data class TransferRecord(
-    val id: String,
-    val fileName: String,
-    val sizeFormatted: String,
-    val deviceName: String,
-    val direction: TransferDirection,
-    val status: TransferStatus,
-    val dateFormatted: String,
-)
-
-enum class TransferDirection { SENT, RECEIVED }
-enum class TransferStatus { COMPLETE, FAILED, IN_PROGRESS }
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(navController: NavController) {
-    // Sample data — in production this comes from Room DB
-    val records = remember {
-        listOf(
-            TransferRecord("1", "Project_Assets.zip", "4.2 GB", "Krish's Laptop", TransferDirection.SENT, TransferStatus.COMPLETE, "Today, 14:32"),
-            TransferRecord("2", "DCIM Photos", "1.8 GB", "Krish's Phone", TransferDirection.RECEIVED, TransferStatus.COMPLETE, "Today, 11:15"),
-            TransferRecord("3", "Work Documents", "340 MB", "Home PC", TransferDirection.SENT, TransferStatus.COMPLETE, "Yesterday, 20:44"),
-            TransferRecord("4", "Video_4K.mp4", "12.4 GB", "Krish's Laptop", TransferDirection.SENT, TransferStatus.FAILED, "Yesterday, 09:12"),
-            TransferRecord("5", "Music Library", "6.1 GB", "Krish's Phone", TransferDirection.RECEIVED, TransferStatus.COMPLETE, "2 days ago"),
-        )
+    val context = LocalContext.current
+    val manager = remember { com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context) }
+    val allRecords by manager.historyRepository.transfers.collectAsState()
+
+    var selectedFilter by remember { mutableStateOf("ALL") }
+    var showClearDialog by remember { mutableStateOf(false) }
+
+    val filteredRecords = remember(allRecords, selectedFilter) {
+        when (selectedFilter) {
+            "SENT" -> allRecords.filter { it.direction == TransferDirection.SENT }
+            "RECEIVED" -> allRecords.filter { it.direction == TransferDirection.RECEIVED }
+            else -> allRecords
+        }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(KmBlack)
-    ) {
+    Scaffold(
+        containerColor = KmBlack,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Transfer History",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = KmTextPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = KmTextPrimary)
+                    }
+                },
+                actions = {
+                    if (allRecords.isNotEmpty()) {
+                        IconButton(onClick = { showClearDialog = true }) {
+                            Icon(Icons.Default.DeleteOutline, contentDescription = "Clear History", tint = KmTextMuted)
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = KmBlack)
+            )
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
+                .background(KmBlack)
+                .padding(paddingValues)
         ) {
-            // Header
-            Box(
+            // Filter chips
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "Transfer History",
-                    color = KmTextPrimary,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.CenterStart)
+                FilterChip(
+                    selected = selectedFilter == "ALL",
+                    onClick = { selectedFilter = "ALL" },
+                    label = { Text("All (${allRecords.size})") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = KmOrange.copy(alpha = 0.25f),
+                        selectedLabelColor = KmOrange,
+                        labelColor = KmTextSecondary
+                    )
                 )
-                Text(
-                    text = "${records.size} transfers",
-                    color = KmTextMuted,
-                    fontSize = 13.sp,
-                    modifier = Modifier.align(Alignment.CenterEnd)
+                FilterChip(
+                    selected = selectedFilter == "SENT",
+                    onClick = { selectedFilter = "SENT" },
+                    label = { Text("Sent (${allRecords.count { it.direction == TransferDirection.SENT }})") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = KmOrange.copy(alpha = 0.25f),
+                        selectedLabelColor = KmOrange,
+                        labelColor = KmTextSecondary
+                    )
+                )
+                FilterChip(
+                    selected = selectedFilter == "RECEIVED",
+                    onClick = { selectedFilter = "RECEIVED" },
+                    label = { Text("Received (${allRecords.count { it.direction == TransferDirection.RECEIVED }})") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = KmOrange.copy(alpha = 0.25f),
+                        selectedLabelColor = KmOrange,
+                        labelColor = KmTextSecondary
+                    )
                 )
             }
 
-            if (records.isEmpty()) {
-                // Empty state
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+            if (filteredRecords.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("No transfers yet", color = KmTextMuted, fontSize = 16.sp)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Your transfer history will appear here", color = KmTextDisabled, fontSize = 13.sp)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = null,
+                            tint = KmTextDisabled,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = if (allRecords.isEmpty()) "No Transfers Yet" else "No matching transfers",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = KmTextPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = if (allRecords.isEmpty()) "All incoming and outgoing file transfers will appear here with cryptographic integrity verification records." else "Try changing your filter to view all transfer history.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = KmTextMuted,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    items(records) { record ->
-                        TransferHistoryItem(record)
+                    items(filteredRecords, key = { it.id }) { record ->
+                        TransferHistoryCard(
+                            record = record,
+                            onDelete = {
+                                manager.historyRepository.delete(record.id)
+                            }
+                        )
                     }
                 }
             }
+        }
+
+        if (showClearDialog) {
+            AlertDialog(
+                onDismissRequest = { showClearDialog = false },
+                title = { Text("Clear All Transfer History?", color = KmTextPrimary) },
+                text = { Text("This removes the transfer activity log. Transferred files in your Downloads folder will not be deleted.", color = KmTextMuted) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            manager.historyRepository.clearAll()
+                            showClearDialog = false
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = KmError)
+                    ) {
+                        Text("Clear All", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showClearDialog = false }) {
+                        Text("Cancel", color = KmTextMuted)
+                    }
+                },
+                containerColor = KmBlackCard
+            )
         }
     }
 }
 
 @Composable
-private fun TransferHistoryItem(record: TransferRecord) {
+private fun TransferHistoryCard(record: TransferRecord, onDelete: () -> Unit) {
     val statusColor = when (record.status) {
-        TransferStatus.COMPLETE -> KmSuccess
-        TransferStatus.FAILED -> KmError
-        TransferStatus.IN_PROGRESS -> KmOrange
+        TransferRecordStatus.COMPLETED -> KmSuccess
+        TransferRecordStatus.TRANSFERRING -> KmOrange
+        TransferRecordStatus.CONNECTING,
+        TransferRecordStatus.PREPARING,
+        TransferRecordStatus.WAITING_ACCEPTANCE,
+        TransferRecordStatus.VERIFYING -> KmInfo
+        TransferRecordStatus.FAILED -> KmError
+        TransferRecordStatus.CANCELLED -> KmTextMuted
     }
-    val statusLabel = when (record.status) {
-        TransferStatus.COMPLETE -> "Complete"
-        TransferStatus.FAILED -> "Failed"
-        TransferStatus.IN_PROGRESS -> "In Progress"
-    }
-    val directionIcon = when (record.direction) {
-        TransferDirection.SENT -> "↑"
-        TransferDirection.RECEIVED -> "↓"
-    }
+
+    val dirIcon = if (record.direction == TransferDirection.SENT) Icons.Default.Upload else Icons.Default.Download
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = KmGlassBackground,
-        border = ButtonDefaults.outlinedButtonBorder,
+        shape = RoundedCornerShape(14.dp),
+        color = KmBlackCard,
+        border = androidx.compose.foundation.BorderStroke(1.dp, KmGlassBorder)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Direction indicator
+            // Direction indicator with vector icon
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(42.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(KmOrangeGlow),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = directionIcon,
-                    color = KmOrange,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                Icon(
+                    imageVector = dirIcon,
+                    contentDescription = record.direction.name,
+                    tint = KmOrange,
+                    modifier = Modifier.size(22.dp)
                 )
             }
 
@@ -158,30 +247,32 @@ private fun TransferHistoryItem(record: TransferRecord) {
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "${record.deviceName} · ${record.sizeFormatted}",
+                    text = "${record.peerDeviceName} • ${record.formattedSize} • ${record.transport}",
                     color = KmTextSecondary,
                     fontSize = 12.sp,
+                    maxLines = 1
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = record.dateFormatted,
+                    text = record.formattedDate,
                     color = KmTextMuted,
                     fontSize = 11.sp,
                 )
             }
 
             // Status badge
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(statusColor.copy(alpha = 0.12f))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = statusLabel,
-                    color = statusColor,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
+            KmBadge(
+                text = record.status.displayName,
+                color = statusColor
+            )
+
+            // Remove button
+            IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Remove record",
+                    tint = KmTextDisabled,
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }

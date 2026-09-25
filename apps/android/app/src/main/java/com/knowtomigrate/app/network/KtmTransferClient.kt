@@ -23,6 +23,7 @@ class KtmTransferClient(private val context: Context) {
     suspend fun sendUris(
         targetIp: String,
         targetPort: Int,
+        targetDeviceName: String = targetIp,
         localDeviceId: String,
         localDeviceName: String,
         uris: List<Uri>,
@@ -31,8 +32,9 @@ class KtmTransferClient(private val context: Context) {
         if (uris.isEmpty()) return@withContext true
 
         val friendlyTransport = KtmTransportType.fromCode(selectedTransport).displayName
+        val historyRepo = com.knowtomigrate.app.data.TransferHistoryRepository.getInstance(context)
         val prog = TransferProgressInfo(
-            peerName = targetIp,
+            peerName = targetDeviceName,
             totalFiles = uris.size,
             transportType = friendlyTransport
         )
@@ -78,6 +80,22 @@ class KtmTransferClient(private val context: Context) {
                 prog.totalBytes = totalBytes
                 _progress.value = prog.copy()
 
+                val mainFileName = manifestItems.firstOrNull()?.relativePath ?: "Files"
+                val displayTitle = if (manifestItems.size > 1) "$mainFileName (+${manifestItems.size - 1} more)" else mainFileName
+                historyRepo.insert(
+                    com.knowtomigrate.app.data.TransferRecord(
+                        sessionId = manifest.sessionId,
+                        fileName = displayTitle,
+                        fileCount = manifestItems.size,
+                        totalBytes = totalBytes,
+                        bytesTransferred = 0L,
+                        peerDeviceName = targetDeviceName,
+                        direction = com.knowtomigrate.app.data.TransferDirection.SENT,
+                        status = com.knowtomigrate.app.data.TransferRecordStatus.CONNECTING,
+                        transport = selectedTransport
+                    )
+                )
+
                 // 2. Handshake with 6-digit confirmation PIN
                 val pin = KtmSecurityUtils.generate6DigitPin()
                 val handshakeObj = JSONObject().apply {
@@ -96,9 +114,11 @@ class KtmTransferClient(private val context: Context) {
                 if (!ackObj.optBoolean("accepted", false)) {
                     val reason = ackObj.optString("reason", "Rejected by recipient")
                     Log.w("KtmTransferClient", "[HANDSHAKE_REJECTED] Reason: $reason")
+                    historyRepo.updateProgress(manifest.sessionId, com.knowtomigrate.app.data.TransferRecordStatus.CANCELLED, 0L, totalBytes, reason)
                     throw IOException("Transfer rejected by recipient: $reason")
                 }
                 Log.i("KtmTransferClient", "[HANDSHAKE_ACCEPTED] Recipient confirmed PIN")
+                historyRepo.updateProgress(manifest.sessionId, com.knowtomigrate.app.data.TransferRecordStatus.TRANSFERRING, 0L, totalBytes)
 
                 // 3. Send Manifest
                 writeLengthPrefixedString(outputStream, manifest.toJson())
@@ -195,12 +215,20 @@ class KtmTransferClient(private val context: Context) {
                 prog.isCompleted = doneObj.optBoolean("success", false)
                 _progress.value = prog.copy()
                 Log.i("KtmTransferClient", "[TRANSFER_COMPLETED] Success=${prog.isCompleted}")
+                if (prog.isCompleted) {
+                    historyRepo.updateProgress(manifest.sessionId, com.knowtomigrate.app.data.TransferRecordStatus.COMPLETED, totalBytes, totalBytes)
+                } else {
+                    historyRepo.updateProgress(manifest.sessionId, com.knowtomigrate.app.data.TransferRecordStatus.FAILED, prog.bytesTransferred, totalBytes, "Transfer failed at destination")
+                }
                 return@withContext prog.isCompleted
             }
         } catch (e: Exception) {
             Log.e("KtmTransferClient", "[TRANSFER_ERROR] ${e.message}", e)
             prog.errorMessage = e.message ?: "Transfer error"
             _progress.value = prog.copy()
+            if (prog.sessionId.isNotBlank()) {
+                historyRepo.updateProgress(prog.sessionId, com.knowtomigrate.app.data.TransferRecordStatus.FAILED, prog.bytesTransferred, prog.totalBytes, e.message)
+            }
             return@withContext false
         }
     }

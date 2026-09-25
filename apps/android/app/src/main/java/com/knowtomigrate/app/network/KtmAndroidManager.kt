@@ -2,16 +2,25 @@ package com.knowtomigrate.app.network
 
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
+import com.knowtomigrate.app.data.KtmPreferences
+import com.knowtomigrate.app.data.TransferHistoryRepository
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 import java.util.UUID
 
 class KtmAndroidManager private constructor(private val context: Context) {
 
-    val localDeviceName: String = (Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android Device").trim()
-    val localDeviceId: String = "ktm-and-" + localDeviceName.replace(Regex("[^a-zA-Z0-9-]"), "-").lowercase().take(20) + "-" + UUID.randomUUID().toString().take(6)
+    val preferences = KtmPreferences.getInstance(context)
+    val historyRepository = TransferHistoryRepository.getInstance(context)
+
+    val localDeviceName: String
+        get() = preferences.deviceName.value
+
+    val localDeviceId: String by lazy {
+        val base = localDeviceName.replace(Regex("[^a-zA-Z0-9-]"), "-").lowercase().take(20)
+        "ktm-and-$base-${UUID.randomUUID().toString().take(6)}"
+    }
 
     val downloadDirectory: File by lazy {
         try {
@@ -64,6 +73,7 @@ class KtmAndroidManager private constructor(private val context: Context) {
         return transferClient.sendUris(
             targetIp = target.ipAddress,
             targetPort = target.transferPort,
+            targetDeviceName = target.deviceName,
             localDeviceId = localDeviceId,
             localDeviceName = localDeviceName,
             uris = uris,

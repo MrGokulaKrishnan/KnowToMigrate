@@ -1,14 +1,11 @@
 package com.knowtomigrate.app.ui.screens
 
 import android.net.Uri
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,43 +15,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.knowtomigrate.app.data.TransferDirection
+import com.knowtomigrate.app.data.TransferRecord
+import com.knowtomigrate.app.data.TransferRecordStatus
 import com.knowtomigrate.app.ui.components.*
 import com.knowtomigrate.app.ui.navigation.Screen
 import com.knowtomigrate.app.ui.theme.*
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Sample data
-// ─────────────────────────────────────────────────────────────────────────────
-
-private val sampleDevices = listOf(
-    UiDevice("1", "iPhone 15 Pro", "ios", "192.168.1.10", "online"),
-    UiDevice("2", "MacBook Air M3", "macos", "192.168.1.11", "online"),
-    UiDevice("3", "Pixel 8 Pro", "android", "192.168.1.12", "transferring"),
-)
-
-private data class RecentTransfer(
-    val name: String,
-    val size: String,
-    val device: String,
-    val direction: String,
-    val status: String
-)
-
-private val sampleHistory = listOf(
-    RecentTransfer("vacation_photos.zip", "2.3 GB", "iPhone 15 Pro", "sent", "completed"),
-    RecentTransfer("project_docs.pdf", "18 MB", "MacBook Air M3", "received", "completed"),
-    RecentTransfer("music_library.zip", "4.1 GB", "Pixel 8 Pro", "sent", "in progress"),
-)
-
-// ─────────────────────────────────────────────────────────────────────────────
-// HomeScreen
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 fun HomeScreen(
@@ -63,15 +35,22 @@ fun HomeScreen(
 ) {
     var selectedNavItem by remember { mutableIntStateOf(0) }
 
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val discoveredDevices by com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).discoveredDevices.collectAsState()
+    val context = LocalContext.current
+    val manager = remember { com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context) }
+    val discoveredDevices by manager.discoveredDevices.collectAsState()
+    val transfers by manager.historyRepository.transfers.collectAsState()
+    val recentTransfers = transfers.take(5)
+
     val uiDevices = discoveredDevices.map { dev ->
         UiDevice(
             id = dev.deviceId,
             name = dev.deviceName,
             platform = dev.platform.lowercase(),
             ip = dev.ipAddress,
-            status = if (dev.isOnline) "online" else "offline"
+            status = if (dev.isOnline) "online" else "offline",
+            supportedTransports = dev.supportedTransports,
+            bestTransport = dev.bestTransport,
+            isWifiLanReachable = dev.isWifiLanReachable
         )
     }
 
@@ -103,7 +82,7 @@ fun HomeScreen(
         ) {
             // Header
             item {
-                HomeHeader()
+                HomeHeader(deviceName = manager.localDeviceName)
             }
 
             // Share Sheet banner
@@ -132,36 +111,76 @@ fun HomeScreen(
                 }
             }
 
-            // Discovery radar
+            // Distinctive Discovery Radar with live discovered devices
             item {
                 KmGlassCard(modifier = Modifier.fillMaxWidth()) {
-                    KmSectionHeader(title = "Discovering nearby devices", subtitle = "Wi-Fi Direct • Local Network")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Nearby Device Discovery",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = KmTextPrimary,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = if (uiDevices.isEmpty()) "Scanning Wi-Fi & Local Network (54123)" else "${uiDevices.size} nearby device(s) online",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (uiDevices.isNotEmpty()) KmSuccess else KmTextMuted
+                            )
+                        }
+                        KmBadge(
+                            text = if (uiDevices.isNotEmpty()) "${uiDevices.size} Found" else "Scanning",
+                            color = if (uiDevices.isNotEmpty()) KmSuccess else KmOrange
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(16.dp))
                     KmDiscoveryRadar(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp)
+                            .height(200.dp),
+                        devices = uiDevices,
+                        onDeviceClick = {
+                            navController.navigate(Screen.Send.route)
+                        }
                     )
                 }
             }
 
-            // Nearby devices
+            // Nearby devices list
             item {
                 KmSectionHeader(
                     title = "Nearby Devices",
-                    subtitle = if (uiDevices.isEmpty()) "Scanning on Wi-Fi (Port 54123)..." else "${uiDevices.size} discovered"
+                    subtitle = if (uiDevices.isEmpty()) "Open KnowToMigrate on PC or other phone" else "${uiDevices.size} ready for migration"
                 )
             }
             if (uiDevices.isEmpty()) {
                 item {
                     KmGlassCard(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = "No other devices detected on this network yet.\nMake sure KnowToMigrate is open on your Windows PC or other phone.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = KmTextMuted,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth().padding(8.dp)
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Devices,
+                                contentDescription = null,
+                                tint = KmTextDisabled,
+                                modifier = Modifier.size(32.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "No other devices detected on this network yet.\nMake sure KnowToMigrate is running on your Windows PC or other phone.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = KmTextMuted,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
             } else {
@@ -173,15 +192,70 @@ fun HomeScreen(
                 }
             }
 
-            // Recent transfers
+            // Recent transfers section
             item {
-                KmSectionHeader(title = "Recent Transfers")
-            }
-            items(sampleHistory) { transfer ->
-                RecentTransferRow(transfer)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    KmSectionHeader(
+                        title = "Recent Transfers",
+                        subtitle = if (recentTransfers.isNotEmpty()) "${transfers.size} total" else null
+                    )
+                    if (transfers.isNotEmpty()) {
+                        Text(
+                            text = "View All",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = KmOrange,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { navController.navigate(Screen.History.route) }
+                                .padding(4.dp)
+                        )
+                    }
+                }
             }
 
-            // Migration CTA
+            if (recentTransfers.isEmpty()) {
+                item {
+                    KmGlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.SwapHoriz,
+                                contentDescription = null,
+                                tint = KmTextDisabled,
+                                modifier = Modifier.size(32.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "No transfers yet",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = KmTextSecondary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Send files to a nearby device or tap Receive to accept transfers from your PC or phone.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = KmTextMuted,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            } else {
+                items(recentTransfers) { record ->
+                    HomeTransferRow(record)
+                }
+            }
+
+            // Full device migration CTA
             item {
                 MigrationCtaCard(navController)
             }
@@ -191,12 +265,8 @@ fun HomeScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Header composable with KTM lightning bolt logo
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
-private fun HomeHeader() {
+private fun HomeHeader(deviceName: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -205,19 +275,21 @@ private fun HomeHeader() {
     ) {
         Box(
             modifier = Modifier
-                .size(42.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .size(44.dp)
+                .clip(RoundedCornerShape(10.dp))
                 .background(Color.Black)
-                .border(1.dp, KmOrange, RoundedCornerShape(8.dp))
+                .border(1.dp, KmOrange, RoundedCornerShape(10.dp))
         ) {
             androidx.compose.foundation.Image(
                 painter = androidx.compose.ui.res.painterResource(id = com.knowtomigrate.app.R.drawable.logo),
                 contentDescription = "KnowToMigrate Logo",
-                modifier = Modifier.fillMaxSize().padding(2.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(3.dp),
                 contentScale = androidx.compose.ui.layout.ContentScale.Fit
             )
         }
-        Spacer(modifier = Modifier.width(10.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         Column {
             Text(
                 text = "KnowToMigrate",
@@ -226,21 +298,13 @@ private fun HomeHeader() {
                 fontWeight = FontWeight.ExtraBold
             )
             Text(
-                text = "Ready to migrate",
+                text = deviceName,
                 style = MaterialTheme.typography.bodySmall,
                 color = KmOrange
             )
         }
-        Spacer(modifier = Modifier.weight(1f))
-        IconButton(onClick = {}) {
-            Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = KmTextSecondary)
-        }
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Shared files banner (appears when launched via Share Sheet)
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun SharedFilesBanner(uris: List<Uri>, navController: NavController) {
@@ -263,41 +327,63 @@ private fun SharedFilesBanner(uris: List<Uri>, navController: NavController) {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Recent transfer row
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
-private fun RecentTransferRow(transfer: RecentTransfer) {
-    val statusColor = when (transfer.status) {
-        "completed"   -> KmSuccess
-        "in progress" -> KmOrange
-        "failed"      -> KmError
-        else          -> KmTextMuted
+private fun HomeTransferRow(record: TransferRecord) {
+    val statusColor = when (record.status) {
+        TransferRecordStatus.COMPLETED -> KmSuccess
+        TransferRecordStatus.TRANSFERRING -> KmOrange
+        TransferRecordStatus.CONNECTING,
+        TransferRecordStatus.PREPARING,
+        TransferRecordStatus.WAITING_ACCEPTANCE,
+        TransferRecordStatus.VERIFYING -> KmInfo
+        TransferRecordStatus.FAILED -> KmError
+        TransferRecordStatus.CANCELLED -> KmTextMuted
     }
-    val dirIcon = if (transfer.direction == "sent") Icons.Default.Upload else Icons.Default.Download
+
+    val dirIcon = if (record.direction == TransferDirection.SENT) Icons.Default.Upload else Icons.Default.Download
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(KmBlackCard)
+            .border(1.dp, KmGlassBorder, RoundedCornerShape(12.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(dirIcon, contentDescription = transfer.direction, tint = KmOrange, modifier = Modifier.size(20.dp))
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(KmOrangeGlow),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = dirIcon,
+                contentDescription = record.direction.name,
+                tint = KmOrange,
+                modifier = Modifier.size(20.dp)
+            )
+        }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = transfer.name, style = MaterialTheme.typography.bodyMedium, color = KmTextPrimary)
-            Text(text = "${transfer.size} • ${transfer.device}", style = MaterialTheme.typography.bodySmall, color = KmTextMuted)
+            Text(
+                text = record.fileName,
+                style = MaterialTheme.typography.bodyMedium,
+                color = KmTextPrimary,
+                maxLines = 1,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "${record.formattedSize} • ${record.peerDeviceName} • ${record.formattedDate}",
+                style = MaterialTheme.typography.bodySmall,
+                color = KmTextMuted,
+                maxLines = 1
+            )
         }
-        KmBadge(text = transfer.status, color = statusColor)
+        KmBadge(text = record.status.displayName, color = statusColor)
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Migration CTA card
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun MigrationCtaCard(navController: NavController) {
@@ -313,16 +399,26 @@ private fun MigrationCtaCard(navController: NavController) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = "Full Device Migration", style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold)
-            Text(text = "Transfer everything at once", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.8f))
+            Text(
+                text = "Full Device Migration",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Transfer photos, videos, contacts and files in one go",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.85f)
+            )
         }
-        Icon(Icons.Default.MoveDown, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+        Icon(
+            imageVector = Icons.Default.MoveDown,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(28.dp)
+        )
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Bottom navigation bar
-// ─────────────────────────────────────────────────────────────────────────────
 
 private data class NavItem(val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
