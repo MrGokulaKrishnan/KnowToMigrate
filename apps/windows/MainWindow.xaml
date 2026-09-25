@@ -6,111 +6,230 @@
     xmlns:local="using:KnowToMigrate"
     Title="KnowToMigrate">
 
-    <Grid>
-        <!-- Two-column layout: narrow sidebar + expanding content area -->
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="72" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+    <Window.Resources>
+        <!-- Neutral Title Bar Control Button Style -->
+        <Style x:Key="TitleBarButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid x:Name="RootGrid" Background="{TemplateBinding Background}">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootGrid.Background" Value="rgba(255, 255, 255, 0.08)" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootGrid.Background" Value="rgba(255, 255, 255, 0.16)" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-        <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
-        <Border Grid.Column="0"
-                Background="#050505"
-                BorderBrush="#1A1A1A"
-                BorderThickness="0,0,1,0">
-            <StackPanel Orientation="Vertical"
-                        Spacing="8"
-                        Margin="8,24,8,8">
+        <!-- Red Title Bar Close Button Style -->
+        <Style x:Key="TitleBarCloseButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid x:Name="RootGrid" Background="{TemplateBinding Background}">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootGrid.Background" Value="#E81123" />
+                                            <Setter Target="CloseIconPath.Stroke" Value="#FFFFFF" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootGrid.Background" Value="#F1707A" />
+                                            <Setter Target="CloseIconPath.Stroke" Value="#FFFFFF" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
-                <!-- KM logo / brand button -->
-                <Button x:Name="LogoBtn"
-                        Width="56" Height="56"
-                        CornerRadius="18"
-                        Background="#FF5A00"
-                        BorderThickness="0"
-                        HorizontalAlignment="Center">
-                    <TextBlock Text="KM"
-                               FontWeight="ExtraBold"
-                               FontSize="18"
-                               Foreground="White"
-                               HorizontalAlignment="Center" />
+    <Grid Background="#000000">
+        <Grid.RowDefinitions>
+            <!-- ROW 0: CUSTOM COMPACT TITLE BAR (Height=44) -->
+            <RowDefinition Height="44" />
+            <!-- ROW 1: MAIN APPLICATION BODY (Sidebar + Frame) -->
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ═══════════════════════ CUSTOM TITLE BAR ═══════════════════════ -->
+        <Grid x:Name="AppTitleBar" Grid.Row="0" Background="#000000" BorderBrush="#1A1A1A" BorderThickness="0,0,0,1">
+            <Grid.ColumnDefinitions>
+                <!-- Drag Region Left (Logo + Brand + Subtitle) -->
+                <ColumnDefinition Width="Auto" />
+                <!-- Drag Region Center (Flexible Spacer) -->
+                <ColumnDefinition Width="*" />
+                <!-- Window Controls Right (Minimize, Maximize/Restore, Close) -->
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Brand Section (Left) -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,12,0" Spacing="10">
+                <!-- App Logo Emblem (KM Orange) -->
+                <Border Width="26" Height="26" CornerRadius="7" Background="#FF5A00" VerticalAlignment="Center">
+                    <TextBlock Text="KM" FontSize="11" FontWeight="ExtraBold" Foreground="White"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0"/>
+                </Border>
+                <TextBlock Text="KnowToMigrate" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                <TextBlock Text="·" FontSize="13" FontWeight="Normal" Foreground="#444444" VerticalAlignment="Center" Margin="1,0" />
+                <TextBlock Text="Move Anything. Anywhere. Seamlessly." FontSize="12" FontWeight="Normal" Foreground="#8A8A8A" VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Title Bar Drag Area (Middle) -->
+            <Grid x:Name="TitleBarDragArea" Grid.Column="1" Background="Transparent" />
+
+            <!-- Window Control Buttons (Right) -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch">
+                <!-- Minimize Button -->
+                <Button x:Name="BtnMinimize" Width="46" Height="44" Style="{StaticResource TitleBarButtonStyle}" ToolTipService.ToolTip="Minimize">
+                    <Path Data="M 0 0 L 10 0" Stroke="#D4D4D4" StrokeThickness="1.2" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Button>
 
-                <!-- Spacer -->
-                <Border Height="12" />
-
-                <!-- Home -->
-                <Button x:Name="NavHome"
-                        Width="56" Height="56"
-                        CornerRadius="14"
-                        Background="#111111"
-                        BorderThickness="0"
-                        HorizontalAlignment="Center"
-                        ToolTipService.ToolTip="Home">
-                    <FontIcon Glyph="&#xE80F;" FontSize="20" Foreground="#FFFFFF" />
+                <!-- Maximize / Restore Button -->
+                <Button x:Name="BtnMaximize" Width="46" Height="44" Style="{StaticResource TitleBarButtonStyle}" ToolTipService.ToolTip="Maximize">
+                    <Grid Width="11" Height="11" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <!-- Square Outline for Normal/Restored State -->
+                        <Path x:Name="GlyphMaximize" Data="M 0.5 0.5 L 10.5 0.5 L 10.5 10.5 L 0.5 10.5 Z"
+                              Stroke="#D4D4D4" StrokeThickness="1.2" Fill="Transparent" Visibility="Visible" />
+                        <!-- Double Square for Maximized State -->
+                        <Canvas x:Name="GlyphRestore" Width="11" Height="11" Visibility="Collapsed">
+                            <Path Data="M 3 0.5 L 10.5 0.5 L 10.5 8 L 8 8 L 8 10.5 L 0.5 10.5 L 0.5 3 L 3 3 Z"
+                                  Stroke="#D4D4D4" StrokeThickness="1" Fill="Transparent" />
+                            <Path Data="M 0.5 3 L 8 3 L 8 10.5 L 0.5 10.5 Z"
+                                  Stroke="#D4D4D4" StrokeThickness="1" Fill="#000000" />
+                        </Canvas>
+                    </Grid>
                 </Button>
 
-                <!-- Send -->
-                <Button x:Name="NavSend"
-                        Width="56" Height="56"
-                        CornerRadius="14"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        HorizontalAlignment="Center"
-                        ToolTipService.ToolTip="Send Files">
-                    <FontIcon Glyph="&#xE724;" FontSize="20" Foreground="#8A8A8A" />
-                </Button>
-
-                <!-- Receive -->
-                <Button x:Name="NavReceive"
-                        Width="56" Height="56"
-                        CornerRadius="14"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        HorizontalAlignment="Center"
-                        ToolTipService.ToolTip="Receive Files">
-                    <FontIcon Glyph="&#xE8B5;" FontSize="20" Foreground="#8A8A8A" />
-                </Button>
-
-                <!-- History -->
-                <Button x:Name="NavHistory"
-                        Width="56" Height="56"
-                        CornerRadius="14"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        HorizontalAlignment="Center"
-                        ToolTipService.ToolTip="Transfer History">
-                    <FontIcon Glyph="&#xE81C;" FontSize="20" Foreground="#8A8A8A" />
-                </Button>
-
-                <!-- Migration wizard -->
-                <Button x:Name="NavMigration"
-                        Width="56" Height="56"
-                        CornerRadius="14"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        HorizontalAlignment="Center"
-                        ToolTipService.ToolTip="PC Migration">
-                    <FontIcon Glyph="&#xE8AB;" FontSize="20" Foreground="#8A8A8A" />
-                </Button>
-
-                <!-- Push Settings to bottom -->
-                <StackPanel VerticalAlignment="Bottom" />
-
-                <!-- Settings -->
-                <Button x:Name="NavSettings"
-                        Width="56" Height="56"
-                        CornerRadius="14"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        HorizontalAlignment="Center"
-                        ToolTipService.ToolTip="Settings">
-                    <FontIcon Glyph="&#xE713;" FontSize="20" Foreground="#8A8A8A" />
+                <!-- Close Button -->
+                <Button x:Name="BtnClose" Width="46" Height="44" Style="{StaticResource TitleBarCloseButtonStyle}" ToolTipService.ToolTip="Close">
+                    <Path x:Name="CloseIconPath" Data="M 0 0 L 10 10 M 10 0 L 0 10" Stroke="#D4D4D4" StrokeThickness="1.2" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Button>
             </StackPanel>
-        </Border>
+        </Grid>
 
-        <!-- ═══════════════════════ CONTENT ═══════════════════════ -->
-        <Frame x:Name="MainFrame" Grid.Column="1" />
+        <!-- ═══════════════════════ MAIN CONTENT BODY ═══════════════════════ -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="72" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- SIDEBAR -->
+            <Border Grid.Column="0"
+                    Background="#050505"
+                    BorderBrush="#1A1A1A"
+                    BorderThickness="0,0,1,0">
+                <StackPanel Orientation="Vertical"
+                            Spacing="8"
+                            Margin="8,16,8,8">
+
+                    <!-- Home -->
+                    <Button x:Name="NavHome"
+                            Width="56" Height="56"
+                            CornerRadius="14"
+                            Background="#111111"
+                            BorderThickness="0"
+                            HorizontalAlignment="Center"
+                            ToolTipService.ToolTip="Home">
+                        <FontIcon Glyph="&#xE80F;" FontSize="20" Foreground="#FFFFFF" />
+                    </Button>
+
+                    <!-- Send -->
+                    <Button x:Name="NavSend"
+                            Width="56" Height="56"
+                            CornerRadius="14"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            HorizontalAlignment="Center"
+                            ToolTipService.ToolTip="Send Files">
+                        <FontIcon Glyph="&#xE724;" FontSize="20" Foreground="#8A8A8A" />
+                    </Button>
+
+                    <!-- Receive -->
+                    <Button x:Name="NavReceive"
+                            Width="56" Height="56"
+                            CornerRadius="14"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            HorizontalAlignment="Center"
+                            ToolTipService.ToolTip="Receive Files">
+                        <FontIcon Glyph="&#xE8B5;" FontSize="20" Foreground="#8A8A8A" />
+                    </Button>
+
+                    <!-- History -->
+                    <Button x:Name="NavHistory"
+                            Width="56" Height="56"
+                            CornerRadius="14"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            HorizontalAlignment="Center"
+                            ToolTipService.ToolTip="Transfer History">
+                        <FontIcon Glyph="&#xE81C;" FontSize="20" Foreground="#8A8A8A" />
+                    </Button>
+
+                    <!-- Migration wizard -->
+                    <Button x:Name="NavMigration"
+                            Width="56" Height="56"
+                            CornerRadius="14"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            HorizontalAlignment="Center"
+                            ToolTipService.ToolTip="PC Migration">
+                        <FontIcon Glyph="&#xE8AB;" FontSize="20" Foreground="#8A8A8A" />
+                    </Button>
+
+                    <!-- Settings at bottom -->
+                    <StackPanel VerticalAlignment="Bottom" />
+
+                    <Button x:Name="NavSettings"
+                            Width="56" Height="56"
+                            CornerRadius="14"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            HorizontalAlignment="Center"
+                            ToolTipService.ToolTip="Settings">
+                        <FontIcon Glyph="&#xE713;" FontSize="20" Foreground="#8A8A8A" />
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <!-- MAIN FRAME CONTENT -->
+            <Frame x:Name="MainFrame" Grid.Column="1" />
+        </Grid>
     </Grid>
 </Window>
