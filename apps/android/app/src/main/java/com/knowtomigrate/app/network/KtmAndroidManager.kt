@@ -32,6 +32,7 @@ class KtmAndroidManager private constructor(private val context: Context) {
         File(context.cacheDir, "KnowToMigrate").apply { mkdirs() }
     }
 
+    val transportManager = KtmTransportManager.getInstance(context)
     val discoveryService = KtmDiscoveryService(context, localDeviceId, localDeviceName)
     val transferServer by lazy { KtmTransferServer(downloadDirectory, KtmConstants.TRANSFER_PORT, context) }
     val transferClient = KtmTransferClient(context)
@@ -54,13 +55,19 @@ class KtmAndroidManager private constructor(private val context: Context) {
         } catch (_: Exception) {}
     }
 
-    suspend fun sendUris(target: DiscoveredDevice, uris: List<Uri>): Boolean {
+    suspend fun evaluateTargetTransport(target: DiscoveredDevice): KtmTransportType {
+        return transportManager.evaluateAndSelectBest(target)
+    }
+
+    suspend fun sendUris(target: DiscoveredDevice, uris: List<Uri>, forcedTransport: String? = null): Boolean {
+        val selected = forcedTransport ?: target.bestTransport
         return transferClient.sendUris(
             targetIp = target.ipAddress,
             targetPort = target.transferPort,
             localDeviceId = localDeviceId,
             localDeviceName = localDeviceName,
-            uris = uris
+            uris = uris,
+            selectedTransport = selected
         )
     }
 

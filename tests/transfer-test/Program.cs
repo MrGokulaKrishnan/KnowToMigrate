@@ -158,12 +158,68 @@ namespace TransferTest
             Console.WriteLine($"[TEST 4 PASS] Folder tree received and verified correctly!");
             Console.ResetColor();
 
+            // Test 5: Multi-Transport Capability Check & Hierarchy Verification
+            Console.WriteLine("\n--- TEST 5: Multi-Transport Capability Check & Hierarchy ---");
+            var dev1 = new DiscoveredDevice
+            {
+                DeviceId = "dev-reachable",
+                DeviceName = "Nearby Reachable Peer",
+                IpAddress = "127.0.0.1",
+                TransferPort = testPort,
+                SupportedTransports = new List<string> { KtmTransportCodes.WifiLan, KtmTransportCodes.WifiDirect, KtmTransportCodes.Bluetooth }
+            };
+            string best1 = await KtmTransportManager.Instance.EvaluateAndSelectBestTransportAsync(dev1);
+            if (best1 != KtmTransportCodes.WifiLan)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[TEST 5 FAIL] Expected best transport {KtmTransportCodes.WifiLan} for reachable peer, got {best1}");
+                Console.ResetColor();
+                return 5;
+            }
+            Console.WriteLine($"[TEST 5.1 PASS] Reachable peer selected Priority 1: {best1} (Speed: {KtmTransportCodes.GetSpeedRating(best1)})");
+
+            var dev2 = new DiscoveredDevice
+            {
+                DeviceId = "dev-unreachable",
+                DeviceName = "Off-subnet / Outdoor Peer",
+                IpAddress = "192.0.2.1", // RFC 5737 TEST-NET-1 (unreachable)
+                TransferPort = 54199,
+                SupportedTransports = new List<string> { KtmTransportCodes.WifiLan, KtmTransportCodes.WifiDirect, KtmTransportCodes.Bluetooth }
+            };
+            string best2 = await KtmTransportManager.Instance.EvaluateAndSelectBestTransportAsync(dev2);
+            if (best2 != KtmTransportCodes.WifiDirect)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[TEST 5 FAIL] Expected fallback to Priority 2 ({KtmTransportCodes.WifiDirect}), got {best2}");
+                Console.ResetColor();
+                return 5;
+            }
+            Console.WriteLine($"[TEST 5.2 PASS] Unreachable LAN peer successfully failed over to Priority 2: {best2} (Speed: {KtmTransportCodes.GetSpeedRating(best2)})");
+
+            var dev3 = new DiscoveredDevice
+            {
+                DeviceId = "dev-no-wifi",
+                DeviceName = "Bluetooth Only Peer",
+                IpAddress = "192.0.2.2",
+                TransferPort = 54199,
+                SupportedTransports = new List<string> { KtmTransportCodes.Bluetooth }
+            };
+            string best3 = await KtmTransportManager.Instance.EvaluateAndSelectBestTransportAsync(dev3);
+            if (best3 != KtmTransportCodes.Bluetooth)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[TEST 5 FAIL] Expected fallback to Priority 3 ({KtmTransportCodes.Bluetooth}), got {best3}");
+                Console.ResetColor();
+                return 5;
+            }
+            Console.WriteLine($"[TEST 5.3 PASS] Peer without Wi-Fi successfully failed over to Priority 3: {best3} (Speed: {KtmTransportCodes.GetSpeedRating(best3)})");
+
             // Cleanup test directory
             server.Stop();
             try { Directory.Delete(testRoot, true); } catch { }
 
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("\n>>> ALL TESTS PASSED SUCCESSFULLY! <<<");
+            Console.WriteLine("\n>>> ALL 5 TESTS (TRANSFERS + MULTI-TRANSPORT CAPABILITY PIPELINE) PASSED SUCCESSFULLY! <<<");
             Console.ResetColor();
             return 0;
         }

@@ -130,6 +130,7 @@
                             <RowDefinition Height="2*" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Margin="0,0,0,18">
@@ -183,7 +184,7 @@
                                     </StackPanel>
 
                                     <!-- Devices ListBox -->
-                                    <ListBox x:Name="ListDevices" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox x:Name="ListDevices" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="ListDevices_SelectionChanged">
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
                                                 <!-- Device Card (12px Radius) -->
@@ -200,6 +201,18 @@
                                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding DeviceName}" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13" />
                                                             <TextBlock Text="{Binding IpAddress}" Foreground="#888888" FontSize="11" />
+                                                            <!-- Transport Capability Badges -->
+                                                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                                <Border Background="#1A1108" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="5" Padding="5,1" Margin="0,0,4,0">
+                                                                    <TextBlock Text="Wi-Fi [Best]" Foreground="#FF8A00" FontSize="9" FontWeight="SemiBold" />
+                                                                </Border>
+                                                                <Border Background="#0C171F" BorderBrush="#38BDF8" BorderThickness="1" CornerRadius="5" Padding="5,1" Margin="0,0,4,0">
+                                                                    <TextBlock Text="Direct" Foreground="#38BDF8" FontSize="9" />
+                                                                </Border>
+                                                                <Border Background="#0F172A" BorderBrush="#60A5FA" BorderThickness="1" CornerRadius="5" Padding="5,1">
+                                                                    <TextBlock Text="BT" Foreground="#60A5FA" FontSize="9" />
+                                                                </Border>
+                                                            </StackPanel>
                                                         </StackPanel>
                                                         <!-- Platform Badge (8px Radius) -->
                                                         <Border Grid.Column="2" Background="#140D00" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="8" Padding="8,4" VerticalAlignment="Center">
@@ -214,8 +227,35 @@
                             </Border>
                         </Grid>
 
+                        <!-- Multi-Transport Capability & Selection Pipeline (16px Radius) -->
+                        <Border Grid.Row="2" Margin="0,14,0,0" Background="#0C0C0C" BorderBrush="#222222" BorderThickness="1" CornerRadius="16" Padding="16,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="Transport Capability Check" Foreground="#FFFFFF" FontWeight="Bold" FontSize="13" />
+                                        <Border Background="#1C1000" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="6" Padding="6,2" Margin="10,0,0,0">
+                                            <TextBlock x:Name="TxtBestTransportBadge" Text="Best: Wi-Fi LAN (50–120+ MB/s)" Foreground="#FF8A00" FontSize="10" FontWeight="Bold" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Pipeline: Nearby Device ➔ Capability Check ➔ Select Best (Wi-Fi / Direct / BT) ➔ Authenticate (PIN) ➔ Transfer" Foreground="#777777" FontSize="11" Margin="0,3,0,0" />
+                                </StackPanel>
+
+                                <!-- Transport Selector Buttons (Auto Best, Wi-Fi LAN, Wi-Fi Direct, Bluetooth) -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button x:Name="BtnTransportAuto" Content="Auto (Best)" Click="TransportSelect_Click" Tag="AUTO" Style="{StaticResource KmPrimaryButton}" Height="30" Padding="12,0" FontSize="11" Margin="0,0,6,0" />
+                                    <Button x:Name="BtnTransportWifi" Content="Wi-Fi LAN" Click="TransportSelect_Click" Tag="WIFI_LAN" Style="{StaticResource KmGlassButton}" Height="30" Padding="10,0" FontSize="11" Margin="0,0,6,0" />
+                                    <Button x:Name="BtnTransportDirect" Content="Direct" Click="TransportSelect_Click" Tag="WIFI_DIRECT" Style="{StaticResource KmGlassButton}" Height="30" Padding="10,0" FontSize="11" Margin="0,0,6,0" />
+                                    <Button x:Name="BtnTransportBt" Content="Bluetooth" Click="TransportSelect_Click" Tag="BLUETOOTH" Style="{StaticResource KmGlassButton}" Height="30" Padding="10,0" FontSize="11" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
                         <!-- Active Progress Panel (16px Radius, Orange Glow) -->
-                        <Border x:Name="PanelProgress" Grid.Row="2" Margin="0,16,0,0" Background="#0C0C0C" BorderBrush="#FF5A00" BorderThickness="1.5" CornerRadius="16" Padding="16" Visibility="Collapsed">
+                        <Border x:Name="PanelProgress" Grid.Row="3" Margin="0,16,0,0" Background="#0C0C0C" BorderBrush="#FF5A00" BorderThickness="1.5" CornerRadius="16" Padding="16" Visibility="Collapsed">
                             <Border.Effect>
                                 <DropShadowEffect Color="#FF5A00" BlurRadius="20" ShadowDepth="0" Opacity="0.3"/>
                             </Border.Effect>
@@ -231,7 +271,8 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0">
                                         <TextBlock x:Name="TxtProgressTitle" Text="Transferring..." Foreground="#FFFFFF" FontWeight="Bold" FontSize="14" />
-                                        <TextBlock x:Name="TxtProgressDetail" Text="0 MB / 0 MB (0%) · 0.0 MB/s" Foreground="#AAAAAA" FontSize="12" Margin="0,3,0,8" />
+                                        <TextBlock x:Name="TxtActiveTransport" Text="Active Transport: Wi-Fi LAN [Best Verified]" Foreground="#FF8A00" FontSize="11" FontWeight="SemiBold" Margin="0,2,0,2" />
+                                        <TextBlock x:Name="TxtProgressDetail" Text="0 MB / 0 MB (0%) · 0.0 MB/s" Foreground="#AAAAAA" FontSize="12" Margin="0,2,0,8" />
                                     </StackPanel>
                                     <Button x:Name="BtnCancelTransfer" Grid.Column="1" Content="Cancel" Click="CancelTransfer_Click" Style="{StaticResource KmGlassButton}" Height="34" Padding="14,0" Foreground="#FF5555" BorderBrush="#552222" />
                                 </Grid>
@@ -240,7 +281,7 @@
                         </Border>
 
                         <!-- Action Bar (16px Radius) -->
-                        <Border Grid.Row="3" Margin="0,16,0,0" Background="#0A0A0A" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="16" Padding="16">
+                        <Border Grid.Row="4" Margin="0,16,0,0" Background="#0A0A0A" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="16" Padding="16">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />

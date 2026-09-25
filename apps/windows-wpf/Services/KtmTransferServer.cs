@@ -103,7 +103,12 @@ namespace KnowToMigrate.Services
                         return;
                     }
 
-                    await SendLengthPrefixedJsonAsync(stream, new KtmHandshakeAck { Accepted = true, Pin = handshake.Pin }, token);
+                    await SendLengthPrefixedJsonAsync(stream, new KtmHandshakeAck
+                    {
+                        Accepted = true,
+                        Pin = handshake.Pin,
+                        SelectedTransport = handshake.SelectedTransport
+                    }, token);
 
                     // 2. Read MANIFEST
                     string manifestJson = await ReadLengthPrefixedJsonAsync(stream, token);
@@ -117,6 +122,7 @@ namespace KnowToMigrate.Services
                     sessionId = manifest.SessionId;
                     progress.SessionId = sessionId;
                     progress.PeerName = handshake.DeviceName;
+                    progress.TransportType = KtmTransportCodes.GetDisplayName(handshake.SelectedTransport);
                     progress.TotalFiles = manifest.Files.Count;
                     progress.TotalBytes = manifest.TotalBytes;
 

@@ -23,7 +23,7 @@ class KtmTransferServer(
     private var scope: CoroutineScope? = null
     private var serverSocket: ServerSocket? = null
 
-    var onHandshakeReceived: ((deviceName: String, pin: String) -> Boolean)? = null
+    var onHandshakeReceived: ((deviceName: String, pin: String, transport: String) -> Boolean)? = null
 
     private val _progress = MutableStateFlow(TransferProgressInfo())
     val progress: StateFlow<TransferProgressInfo> = _progress.asStateFlow()
@@ -87,17 +87,21 @@ class KtmTransferServer(
                 val handshakeObj = JSONObject(handshakeJson)
                 val senderName = handshakeObj.optString("deviceName", "Remote Device")
                 val pin = handshakeObj.optString("pin", "000000")
-                Log.i("KtmTransferServer", "[HANDSHAKE_RECEIVED] Sender='$senderName', PIN=$pin")
+                val senderTransport = handshakeObj.optString("selectedTransport", "WIFI_LAN")
+                val friendlyTransport = KtmTransportType.fromCode(senderTransport).displayName
+                prog.transportType = friendlyTransport
+                Log.i("KtmTransferServer", "[HANDSHAKE_RECEIVED] Sender='$senderName', PIN=$pin, Transport=$senderTransport")
 
-                val accepted = onHandshakeReceived?.invoke(senderName, pin) ?: true
+                val accepted = onHandshakeReceived?.invoke(senderName, pin, friendlyTransport) ?: true
                 val ackObj = JSONObject().apply {
                     put("type", "HANDSHAKE_ACK")
                     put("accepted", accepted)
                     put("pin", pin)
+                    put("selectedTransport", senderTransport)
                     put("reason", if (accepted) "" else "Rejected by user")
                 }
                 writeLengthPrefixedString(outputStream, ackObj.toString())
-                Log.i("KtmTransferServer", "[HANDSHAKE_ACK] Accepted=$accepted")
+                Log.i("KtmTransferServer", "[HANDSHAKE_ACK] Accepted=$accepted, ConfirmedTransport=$senderTransport")
 
                 if (!accepted) return
 

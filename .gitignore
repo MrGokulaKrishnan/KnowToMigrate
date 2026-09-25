@@ -26,3 +26,5 @@ test_wpf/
 *.wixpdb
 .firebase/
 releases/windows/publish/
+tests/**/bin/
+tests/**/obj/

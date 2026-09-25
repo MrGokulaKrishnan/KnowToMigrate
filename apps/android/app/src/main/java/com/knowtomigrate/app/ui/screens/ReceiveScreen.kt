@@ -34,11 +34,13 @@ fun ReceiveScreen(navController: NavController) {
 
     var incomingSender by remember { mutableStateOf("") }
     var incomingPin by remember { mutableStateOf("") }
+    var incomingTransport by remember { mutableStateOf("Wi-Fi LAN") }
 
     DisposableEffect(Unit) {
-        manager.transferServer.onHandshakeReceived = { sender, pin ->
+        manager.transferServer.onHandshakeReceived = { sender, pin, transport ->
             incomingSender = sender
             incomingPin = pin
+            incomingTransport = transport
             showIncomingRequest = true
             true // auto-accept or display dialog
         }
@@ -197,7 +199,9 @@ fun ReceiveScreen(navController: NavController) {
             ) {
                 IncomingRequestSheet(
                     device = UiDevice("remote", incomingSender.ifBlank { "Nearby Device" }, "remote", "", "online"),
-                    files = listOf("PIN: ${incomingPin.ifBlank { "123456" }}", "Incoming P2P Transfer"),
+                    pin = incomingPin,
+                    transport = incomingTransport,
+                    files = listOf("Incoming Encrypted Transfer"),
                     onAccept = { showIncomingRequest = false },
                     onDecline = { showIncomingRequest = false }
                 )
@@ -272,6 +276,8 @@ private fun QrCornerMarks() {
 @Composable
 private fun IncomingRequestSheet(
     device: UiDevice,
+    pin: String,
+    transport: String,
     files: List<String>,
     onAccept: () -> Unit,
     onDecline: () -> Unit
@@ -290,12 +296,31 @@ private fun IncomingRequestSheet(
         )
         KmGlassCard(modifier = Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Smartphone, contentDescription = null, tint = KmOrange, modifier = Modifier.size(24.dp))
-                Spacer(modifier = Modifier.width(10.dp))
-                Column {
-                    Text(text = device.name, style = MaterialTheme.typography.titleSmall, color = KmTextPrimary, fontWeight = FontWeight.SemiBold)
-                    Text(text = device.ip, style = MaterialTheme.typography.bodySmall, color = KmTextMuted)
+                Icon(Icons.Default.Smartphone, contentDescription = null, tint = KmOrange, modifier = Modifier.size(28.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = device.name, style = MaterialTheme.typography.titleMedium, color = KmTextPrimary, fontWeight = FontWeight.SemiBold)
+                    Text(text = "Negotiated Transport: $transport", style = MaterialTheme.typography.bodySmall, color = KmOrange)
                 }
+                KmTransportPill(label = transport, isBest = true, color = KmOrange)
+            }
+        }
+        KmGlassCard(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(text = "Authentication PIN", style = MaterialTheme.typography.labelMedium, color = KmTextSecondary)
+                    Text(text = "Verify matching code on sender", style = MaterialTheme.typography.bodySmall, color = KmTextMuted)
+                }
+                Text(
+                    text = pin.ifBlank { "000000" },
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = KmOrange
+                )
             }
         }
         Text(

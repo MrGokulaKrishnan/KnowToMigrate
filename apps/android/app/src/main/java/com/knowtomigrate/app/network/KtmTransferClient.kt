@@ -25,13 +25,16 @@ class KtmTransferClient(private val context: Context) {
         targetPort: Int,
         localDeviceId: String,
         localDeviceName: String,
-        uris: List<Uri>
+        uris: List<Uri>,
+        selectedTransport: String = "WIFI_LAN"
     ): Boolean = withContext(Dispatchers.IO) {
         if (uris.isEmpty()) return@withContext true
 
+        val friendlyTransport = KtmTransportType.fromCode(selectedTransport).displayName
         val prog = TransferProgressInfo(
             peerName = targetIp,
-            totalFiles = uris.size
+            totalFiles = uris.size,
+            transportType = friendlyTransport
         )
 
         try {
@@ -83,8 +86,9 @@ class KtmTransferClient(private val context: Context) {
                     put("deviceName", localDeviceName)
                     put("platform", "Android")
                     put("pin", pin)
+                    put("selectedTransport", selectedTransport)
                 }
-                Log.i("KtmTransferClient", "[HANDSHAKE_SEND] PIN=$pin, Sender=$localDeviceName")
+                Log.i("KtmTransferClient", "[HANDSHAKE_SEND] PIN=$pin, Sender=$localDeviceName, Transport=$selectedTransport")
                 writeLengthPrefixedString(outputStream, handshakeObj.toString())
 
                 val ackJson = readLengthPrefixedString(inputStream)

@@ -94,6 +94,7 @@ class KtmDiscoveryService(
     }
 
     private fun startBroadcaster() {
+        val transportMgr = KtmTransportManager.getInstance(context)
         scope?.launch {
             while (isActive) {
                 try {
@@ -102,7 +103,9 @@ class KtmDiscoveryService(
                         deviceName = localDeviceName,
                         platform = "Android",
                         transferPort = KtmConstants.TRANSFER_PORT,
-                        version = "1.0.0"
+                        version = "1.0.0",
+                        supportedTransports = transportMgr.localSupportedTransports,
+                        wifiDirectName = "DIRECT-KM-" + localDeviceName.replace(Regex("[^a-zA-Z0-9-]"), "-").take(15)
                     )
                     val jsonBytes = localDev.toJson().toByteArray(Charsets.UTF_8)
                     val broadcastAddr = InetAddress.getByName("255.255.255.255")

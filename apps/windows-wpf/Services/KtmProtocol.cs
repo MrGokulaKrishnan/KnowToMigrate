@@ -20,6 +20,29 @@ namespace KnowToMigrate.Services
         public const int DeviceTimeoutMs = 7000;
     }
 
+    public static class KtmTransportCodes
+    {
+        public const string WifiLan = "WIFI_LAN";
+        public const string WifiDirect = "WIFI_DIRECT";
+        public const string Bluetooth = "BLUETOOTH";
+
+        public static string GetDisplayName(string code) => code switch
+        {
+            WifiLan => "Wi-Fi LAN",
+            WifiDirect => "Wi-Fi Direct",
+            Bluetooth => "Bluetooth",
+            _ => code
+        };
+
+        public static string GetSpeedRating(string code) => code switch
+        {
+            WifiLan => "50–120+ MB/s",
+            WifiDirect => "30–80 MB/s",
+            Bluetooth => "1–2 MB/s",
+            _ => "Variable"
+        };
+    }
+
     public class DiscoveredDevice
     {
         [JsonPropertyName("magic")]
@@ -40,14 +63,56 @@ namespace KnowToMigrate.Services
         [JsonPropertyName("version")]
         public string Version { get; set; } = "1.0.0";
 
+        [JsonPropertyName("supportedTransports")]
+        public List<string> SupportedTransports { get; set; } = new() { "WIFI_LAN", "WIFI_DIRECT", "BLUETOOTH" };
+
+        [JsonPropertyName("wifiDirectName")]
+        public string WifiDirectName { get; set; } = string.Empty;
+
+        [JsonPropertyName("wifiDirectPort")]
+        public int WifiDirectPort { get; set; } = KtmConstants.TransferPort;
+
+        [JsonPropertyName("bluetoothAddress")]
+        public string BluetoothAddress { get; set; } = string.Empty;
+
+        [JsonPropertyName("bestTransport")]
+        public string BestTransport { get; set; } = "WIFI_LAN";
+
         [JsonIgnore]
         public string IpAddress { get; set; } = string.Empty;
+
+        [JsonIgnore]
+        public string ActiveTransport { get; set; } = "WIFI_LAN";
+
+        [JsonIgnore]
+        public bool IsWifiLanReachable { get; set; } = true;
 
         [JsonIgnore]
         public DateTime LastSeen { get; set; } = DateTime.UtcNow;
 
         [JsonIgnore]
         public bool IsOnline => (DateTime.UtcNow - LastSeen).TotalMilliseconds < KtmConstants.DeviceTimeoutMs;
+
+        [JsonIgnore]
+        public bool SupportsWifiLan => SupportedTransports.Contains(KtmTransportCodes.WifiLan);
+
+        [JsonIgnore]
+        public bool SupportsWifiDirect => SupportedTransports.Contains(KtmTransportCodes.WifiDirect);
+
+        [JsonIgnore]
+        public bool SupportsBluetooth => SupportedTransports.Contains(KtmTransportCodes.Bluetooth);
+
+        [JsonIgnore]
+        public bool IsBestWifiLan => BestTransport == KtmTransportCodes.WifiLan;
+
+        [JsonIgnore]
+        public bool IsBestWifiDirect => BestTransport == KtmTransportCodes.WifiDirect;
+
+        [JsonIgnore]
+        public bool IsBestBluetooth => BestTransport == KtmTransportCodes.Bluetooth;
+
+        [JsonIgnore]
+        public string BestTransportDisplay => KtmTransportCodes.GetDisplayName(BestTransport);
     }
 
     public class KtmManifestItem
@@ -108,6 +173,12 @@ namespace KnowToMigrate.Services
 
         [JsonPropertyName("pin")]
         public string Pin { get; set; } = string.Empty;
+
+        [JsonPropertyName("selectedTransport")]
+        public string SelectedTransport { get; set; } = KtmTransportCodes.WifiLan;
+
+        [JsonPropertyName("supportedTransports")]
+        public List<string> SupportedTransports { get; set; } = new() { KtmTransportCodes.WifiLan, KtmTransportCodes.WifiDirect, KtmTransportCodes.Bluetooth };
     }
 
     public class KtmHandshakeAck
@@ -120,6 +191,9 @@ namespace KnowToMigrate.Services
 
         [JsonPropertyName("pin")]
         public string Pin { get; set; } = string.Empty;
+
+        [JsonPropertyName("selectedTransport")]
+        public string SelectedTransport { get; set; } = KtmTransportCodes.WifiLan;
 
         [JsonPropertyName("reason")]
         public string Reason { get; set; } = string.Empty;
@@ -190,6 +264,7 @@ namespace KnowToMigrate.Services
         public bool IsCompleted { get; set; }
         public bool IsCancelled { get; set; }
         public string ErrorMessage { get; set; } = string.Empty;
+        public string TransportType { get; set; } = "Wi-Fi (LAN)";
     }
 
     public static class KtmSecurityUtils

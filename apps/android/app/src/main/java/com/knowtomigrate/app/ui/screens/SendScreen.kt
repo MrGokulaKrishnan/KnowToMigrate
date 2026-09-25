@@ -35,6 +35,8 @@ fun SendScreen(navController: NavController) {
     var selectedDevice by remember { mutableStateOf<UiDevice?>(null) }
     var isSending by remember { mutableStateOf(false) }
     var manualIp by remember { mutableStateOf("") }
+    var userTransportOverride by remember { mutableStateOf<String?>(null) }
+    var isCheckingCapabilities by remember { mutableStateOf(false) }
 
     val discoveredDevices by com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).discoveredDevices.collectAsState()
     val nearbyDevices = discoveredDevices.map { dev ->
@@ -43,8 +45,23 @@ fun SendScreen(navController: NavController) {
             name = dev.deviceName,
             platform = dev.platform.lowercase(),
             ip = dev.ipAddress,
-            status = if (dev.isOnline) "online" else "offline"
+            status = if (dev.isOnline) "online" else "offline",
+            supportedTransports = dev.supportedTransports,
+            bestTransport = dev.bestTransport,
+            isWifiLanReachable = dev.isWifiLanReachable
         )
+    }
+
+    LaunchedEffect(selectedDevice?.id) {
+        val dev = selectedDevice
+        if (dev != null) {
+            isCheckingCapabilities = true
+            val targetRaw = discoveredDevices.find { it.deviceId == dev.id }
+            if (targetRaw != null) {
+                com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).evaluateTargetTransport(targetRaw)
+            }
+            isCheckingCapabilities = false
+        }
     }
 
     val filePicker = rememberLauncherForActivityResult(
@@ -188,6 +205,107 @@ fun SendScreen(navController: NavController) {
                 )
             }
 
+            // Capability Check & Transport Selection Card
+            if (selectedDevice != null) {
+                item {
+                    val activeTransportCode = userTransportOverride ?: selectedDevice!!.bestTransport
+                    val isAuto = userTransportOverride == null
+                    val bestType = com.knowtomigrate.app.network.KtmTransportType.fromCode(activeTransportCode)
+
+                    KmGlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Transport Capability Check",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = KmTextPrimary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                KmTransportPill(
+                                    label = if (isAuto) "${bestType.displayName}" else "${bestType.displayName} (Manual)",
+                                    isBest = true,
+                                    color = KmOrange
+                                )
+                            }
+
+                            Text(
+                                text = "Pipeline: Nearby Device ➔ Capability Check ➔ Select Best ➔ Authenticate ➔ Transfer",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = KmTextMuted
+                            )
+
+                            // Transport Selection Chips
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                FilterChip(
+                                    selected = isAuto,
+                                    onClick = { userTransportOverride = null },
+                                    label = { Text("Auto (Best)") },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = KmOrange.copy(alpha = 0.25f),
+                                        selectedLabelColor = KmOrange,
+                                        labelColor = KmTextSecondary
+                                    )
+                                )
+                                FilterChip(
+                                    selected = userTransportOverride == "WIFI_LAN",
+                                    onClick = { userTransportOverride = "WIFI_LAN" },
+                                    label = { Text("Wi-Fi") },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = KmOrange.copy(alpha = 0.25f),
+                                        selectedLabelColor = KmOrange,
+                                        labelColor = KmTextSecondary
+                                    )
+                                )
+                                FilterChip(
+                                    selected = userTransportOverride == "WIFI_DIRECT",
+                                    onClick = { userTransportOverride = "WIFI_DIRECT" },
+                                    label = { Text("Direct") },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = KmInfo.copy(alpha = 0.25f),
+                                        selectedLabelColor = KmInfo,
+                                        labelColor = KmTextSecondary
+                                    )
+                                )
+                                FilterChip(
+                                    selected = userTransportOverride == "BLUETOOTH",
+                                    onClick = { userTransportOverride = "BLUETOOTH" },
+                                    label = { Text("BT") },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = androidx.compose.ui.graphics.Color(0xFF60A5FA).copy(alpha = 0.25f),
+                                        selectedLabelColor = androidx.compose.ui.graphics.Color(0xFF60A5FA),
+                                        labelColor = KmTextSecondary
+                                    )
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Speed: ${bestType.speedRating}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = KmTextSecondary
+                                )
+                                Text(
+                                    text = "Security: AES-256-GCM + PIN",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = KmSuccess
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // Direct IP Connect Card
             item {
                 KmGlassCard(modifier = Modifier.fillMaxWidth()) {
@@ -239,7 +357,7 @@ fun SendScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(4.dp))
                 val canSend = selectedUris.isNotEmpty() && selectedDevice != null && !isSending
                 KmPrimaryButton(
-                    text = if (isSending) "Encrypting & Streaming Chunks…" else "Send ${if (selectedUris.isEmpty()) "" else "${selectedUris.size} File(s)"}",
+                    text = if (isSending) "Streaming over ${userTransportOverride ?: selectedDevice?.bestTransport ?: "Wi-Fi"}…" else "Send ${if (selectedUris.isEmpty()) "" else "${selectedUris.size} File(s)"}",
                     onClick = {
                         if (canSend && selectedDevice != null) {
                             isSending = true
@@ -248,8 +366,13 @@ fun SendScreen(navController: NavController) {
                                 deviceName = selectedDevice!!.name,
                                 ipAddress = selectedDevice!!.ip
                             )
+                            val chosen = userTransportOverride ?: selectedDevice!!.bestTransport
                             scope.launch {
-                                val success = com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).sendUris(targetRaw, selectedUris)
+                                val success = com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context).sendUris(
+                                    target = targetRaw,
+                                    uris = selectedUris,
+                                    forcedTransport = chosen
+                                )
                                 isSending = false
                                 if (success) {
                                     android.widget.Toast.makeText(context, "Transfer completed and verified", android.widget.Toast.LENGTH_LONG).show()

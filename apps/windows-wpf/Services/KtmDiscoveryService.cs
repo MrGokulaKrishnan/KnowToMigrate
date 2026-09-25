@@ -30,7 +30,11 @@ namespace KnowToMigrate.Services
                 DeviceName = deviceName,
                 Platform = "Windows",
                 TransferPort = KtmConstants.TransferPort,
-                Version = "1.0.0"
+                Version = "1.0.0",
+                SupportedTransports = KtmTransportManager.Instance.LocalSupportedTransports,
+                WifiDirectName = "DIRECT-KM-" + deviceName.Replace(" ", "-"),
+                WifiDirectPort = KtmConstants.TransferPort,
+                BestTransport = KtmTransportCodes.WifiLan
             };
         }
 
@@ -83,6 +87,15 @@ namespace KnowToMigrate.Services
                     dev.IpAddress = result.RemoteEndPoint.Address.ToString();
                     dev.LastSeen = DateTime.UtcNow;
 
+                    if (dev.SupportedTransports == null || dev.SupportedTransports.Count == 0)
+                    {
+                        dev.SupportedTransports = new List<string> { KtmTransportCodes.WifiLan, KtmTransportCodes.WifiDirect, KtmTransportCodes.Bluetooth };
+                    }
+                    if (string.IsNullOrEmpty(dev.BestTransport))
+                    {
+                        dev.BestTransport = KtmTransportCodes.WifiLan;
+                    }
+
                     _devices.AddOrUpdate(dev.DeviceId, dev, (_, existing) =>
                     {
                         existing.DeviceName = dev.DeviceName;
@@ -90,6 +103,11 @@ namespace KnowToMigrate.Services
                         existing.TransferPort = dev.TransferPort;
                         existing.IpAddress = dev.IpAddress;
                         existing.LastSeen = DateTime.UtcNow;
+                        existing.SupportedTransports = dev.SupportedTransports;
+                        existing.WifiDirectName = dev.WifiDirectName;
+                        existing.WifiDirectPort = dev.WifiDirectPort;
+                        existing.BluetoothAddress = dev.BluetoothAddress;
+                        existing.BestTransport = dev.BestTransport;
                         return existing;
                     });
 

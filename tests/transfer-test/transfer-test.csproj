@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="..\..\apps\windows-wpf\Services\KtmProtocol.cs" Link="KtmProtocol.cs" />
+    <Compile Include="..\..\apps\windows-wpf\Services\KtmTransportManager.cs" Link="KtmTransportManager.cs" />
     <Compile Include="..\..\apps\windows-wpf\Services\KtmTransferClient.cs" Link="KtmTransferClient.cs" />
     <Compile Include="..\..\apps\windows-wpf\Services\KtmTransferServer.cs" Link="KtmTransferServer.cs" />
   </ItemGroup>

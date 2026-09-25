@@ -20,6 +20,7 @@ namespace KnowToMigrate.Services
             string localDeviceId,
             string localDeviceName,
             IReadOnlyList<string> filePaths,
+            string selectedTransport = KtmTransportCodes.WifiLan,
             CancellationToken token = default)
         {
             if (filePaths.Count == 0) return true;
@@ -33,7 +34,8 @@ namespace KnowToMigrate.Services
             {
                 PeerName = targetIp,
                 TotalFiles = 0,
-                TotalBytes = 0
+                TotalBytes = 0,
+                TransportType = KtmTransportCodes.GetDisplayName(selectedTransport)
             };
 
             try
@@ -103,7 +105,8 @@ namespace KnowToMigrate.Services
                     DeviceId = localDeviceId,
                     DeviceName = localDeviceName,
                     Platform = "Windows",
-                    Pin = pin
+                    Pin = pin,
+                    SelectedTransport = selectedTransport
                 };
 
                 await SendLengthPrefixedJsonAsync(stream, handshake, token);

@@ -36,7 +36,10 @@ data class UiDevice(
     val name: String,
     val platform: String,        // "android" | "ios" | "macos" | "windows" | "linux"
     val ip: String = "",
-    val status: String = "online" // "online" | "offline" | "transferring"
+    val status: String = "online", // "online" | "offline" | "transferring"
+    val supportedTransports: List<String> = listOf("WIFI_LAN", "WIFI_DIRECT", "BLUETOOTH"),
+    val bestTransport: String = "WIFI_LAN",
+    val isWifiLanReachable: Boolean = false
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -146,8 +149,46 @@ fun KmGlassCard(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. KmDeviceCard — device entry with platform icon, name and status
+// 4. KmDeviceCard — device entry with platform icon, name, transport badges and status
 // ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+fun KmTransportPill(
+    label: String,
+    isBest: Boolean = false,
+    color: Color = KmOrange,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(if (isBest) color.copy(alpha = 0.22f) else KmGlassBackground)
+            .border(
+                width = 1.dp,
+                color = if (isBest) color else KmGlassBorder,
+                shape = RoundedCornerShape(6.dp)
+            )
+            .padding(horizontal = 6.dp, vertical = 2.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (isBest) {
+                Box(
+                    modifier = Modifier
+                        .size(5.dp)
+                        .clip(CircleShape)
+                        .background(color)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            Text(
+                text = if (isBest) "$label [Best]" else label,
+                fontSize = 10.sp,
+                fontWeight = if (isBest) FontWeight.Bold else FontWeight.Medium,
+                color = if (isBest) color else KmTextSecondary
+            )
+        }
+    }
+}
 
 @Composable
 fun KmDeviceCard(
@@ -193,6 +234,34 @@ fun KmDeviceCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = KmTextMuted
             )
+            Spacer(modifier = Modifier.height(4.dp))
+            // Capability check transport badges
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (device.supportedTransports.contains("WIFI_LAN")) {
+                    KmTransportPill(
+                        label = "Wi-Fi",
+                        isBest = device.bestTransport == "WIFI_LAN",
+                        color = KmOrange
+                    )
+                }
+                if (device.supportedTransports.contains("WIFI_DIRECT")) {
+                    KmTransportPill(
+                        label = "Direct",
+                        isBest = device.bestTransport == "WIFI_DIRECT",
+                        color = KmInfo
+                    )
+                }
+                if (device.supportedTransports.contains("BLUETOOTH")) {
+                    KmTransportPill(
+                        label = "BT",
+                        isBest = device.bestTransport == "BLUETOOTH",
+                        color = Color(0xFF60A5FA)
+                    )
+                }
+            }
         }
         KmStatusDot(status = device.status)
     }

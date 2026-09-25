@@ -19,6 +19,18 @@ object KtmConstants {
     const val DEVICE_TIMEOUT_MS = 7000L
 }
 
+enum class KtmTransportType(val code: String, val displayName: String, val speedRating: String, val priority: Int) {
+    WIFI_LAN("WIFI_LAN", "Wi-Fi LAN", "50–120+ MB/s", 1),
+    WIFI_DIRECT("WIFI_DIRECT", "Wi-Fi Direct", "30–80 MB/s", 2),
+    BLUETOOTH("BLUETOOTH", "Bluetooth", "1–2 MB/s", 3);
+
+    companion object {
+        fun fromCode(code: String): KtmTransportType {
+            return entries.find { it.code.equals(code, ignoreCase = true) } ?: WIFI_LAN
+        }
+    }
+}
+
 data class DiscoveredDevice(
     val deviceId: String,
     val deviceName: String,
@@ -26,7 +38,14 @@ data class DiscoveredDevice(
     val transferPort: Int = KtmConstants.TRANSFER_PORT,
     val version: String = "1.0.0",
     var ipAddress: String = "",
-    var lastSeen: Long = System.currentTimeMillis()
+    var lastSeen: Long = System.currentTimeMillis(),
+    val supportedTransports: List<String> = listOf("WIFI_LAN", "WIFI_DIRECT", "BLUETOOTH"),
+    val wifiDirectName: String = "DIRECT-KM-" + deviceName.replace(Regex("[^a-zA-Z0-9-]"), "-").take(15),
+    val wifiDirectPort: Int = KtmConstants.TRANSFER_PORT,
+    val bluetoothAddress: String = "",
+    var activeTransport: String = "WIFI_LAN",
+    var bestTransport: String = "WIFI_LAN",
+    var isWifiLanReachable: Boolean = false
 ) {
     val isOnline: Boolean
         get() = (System.currentTimeMillis() - lastSeen) < KtmConstants.DEVICE_TIMEOUT_MS
@@ -39,6 +58,13 @@ data class DiscoveredDevice(
         obj.put("platform", platform)
         obj.put("transferPort", transferPort)
         obj.put("version", version)
+        val arr = JSONArray()
+        supportedTransports.forEach { arr.put(it) }
+        obj.put("supportedTransports", arr)
+        obj.put("wifiDirectName", wifiDirectName)
+        obj.put("wifiDirectPort", wifiDirectPort)
+        obj.put("bluetoothAddress", bluetoothAddress)
+        obj.put("bestTransport", bestTransport)
         return obj.toString()
     }
 
@@ -47,14 +73,29 @@ data class DiscoveredDevice(
             return try {
                 val obj = JSONObject(json)
                 if (obj.optString("magic") != KtmConstants.DISCOVERY_MAGIC) return null
+                val transports = mutableListOf<String>()
+                val arr = obj.optJSONArray("supportedTransports")
+                if (arr != null) {
+                    for (i in 0 until arr.length()) transports.add(arr.getString(i))
+                }
+                if (transports.isEmpty()) {
+                    transports.addAll(listOf("WIFI_LAN", "WIFI_DIRECT", "BLUETOOTH"))
+                }
+
+                val devName = obj.getString("deviceName")
                 DiscoveredDevice(
                     deviceId = obj.getString("deviceId"),
-                    deviceName = obj.getString("deviceName"),
+                    deviceName = devName,
                     platform = obj.optString("platform", "Unknown"),
                     transferPort = obj.optInt("transferPort", KtmConstants.TRANSFER_PORT),
                     version = obj.optString("version", "1.0.0"),
                     ipAddress = remoteIp,
-                    lastSeen = System.currentTimeMillis()
+                    lastSeen = System.currentTimeMillis(),
+                    supportedTransports = transports,
+                    wifiDirectName = obj.optString("wifiDirectName", "DIRECT-KM-" + devName.take(15)),
+                    wifiDirectPort = obj.optInt("wifiDirectPort", KtmConstants.TRANSFER_PORT),
+                    bluetoothAddress = obj.optString("bluetoothAddress", ""),
+                    bestTransport = obj.optString("bestTransport", "WIFI_LAN")
                 )
             } catch (e: Exception) {
                 null
@@ -140,6 +181,90 @@ data class KtmManifest(
     }
 }
 
+data class KtmHandshake(
+    val deviceId: String,
+    val deviceName: String,
+    val platform: String = "Android",
+    val pin: String,
+    val selectedTransport: String = "WIFI_LAN",
+    val supportedTransports: List<String> = listOf("WIFI_LAN", "WIFI_DIRECT", "BLUETOOTH")
+) {
+    fun toJson(): String {
+        val obj = JSONObject()
+        obj.put("type", "HANDSHAKE")
+        obj.put("deviceId", deviceId)
+        obj.put("deviceName", deviceName)
+        obj.put("platform", platform)
+        obj.put("pin", pin)
+        obj.put("selectedTransport", selectedTransport)
+        val arr = JSONArray()
+        supportedTransports.forEach { arr.put(it) }
+        obj.put("supportedTransports", arr)
+        return obj.toString()
+    }
+
+    companion object {
+        fun fromJson(json: String): KtmHandshake? {
+            return try {
+                val obj = JSONObject(json)
+                if (obj.optString("type") != "HANDSHAKE") return null
+                val transports = mutableListOf<String>()
+                val arr = obj.optJSONArray("supportedTransports")
+                if (arr != null) {
+                    for (i in 0 until arr.length()) transports.add(arr.getString(i))
+                }
+                if (transports.isEmpty()) {
+                    transports.addAll(listOf("WIFI_LAN", "WIFI_DIRECT", "BLUETOOTH"))
+                }
+                KtmHandshake(
+                    deviceId = obj.optString("deviceId"),
+                    deviceName = obj.optString("deviceName"),
+                    platform = obj.optString("platform", "Android"),
+                    pin = obj.optString("pin"),
+                    selectedTransport = obj.optString("selectedTransport", "WIFI_LAN"),
+                    supportedTransports = transports
+                )
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+}
+
+data class KtmHandshakeAck(
+    val accepted: Boolean,
+    val pin: String = "",
+    val reason: String = "",
+    val selectedTransport: String = "WIFI_LAN"
+) {
+    fun toJson(): String {
+        val obj = JSONObject()
+        obj.put("type", "HANDSHAKE_ACK")
+        obj.put("accepted", accepted)
+        obj.put("pin", pin)
+        obj.put("reason", reason)
+        obj.put("selectedTransport", selectedTransport)
+        return obj.toString()
+    }
+
+    companion object {
+        fun fromJson(json: String): KtmHandshakeAck? {
+            return try {
+                val obj = JSONObject(json)
+                if (obj.optString("type") != "HANDSHAKE_ACK") return null
+                KtmHandshakeAck(
+                    accepted = obj.optBoolean("accepted", false),
+                    pin = obj.optString("pin", ""),
+                    reason = obj.optString("reason", ""),
+                    selectedTransport = obj.optString("selectedTransport", "WIFI_LAN")
+                )
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+}
+
 data class TransferProgressInfo(
     var sessionId: String = "",
     var currentFileName: String = "",
@@ -151,7 +276,8 @@ data class TransferProgressInfo(
     var peerName: String = "",
     var isCompleted: Boolean = false,
     var isCancelled: Boolean = false,
-    var errorMessage: String = ""
+    var errorMessage: String = "",
+    var transportType: String = "Wi-Fi (LAN)"
 ) {
     val percentage: Double
         get() = if (totalBytes > 0) Math.min(100.0, (bytesTransferred.toDouble() / totalBytes) * 100.0) else 0.0

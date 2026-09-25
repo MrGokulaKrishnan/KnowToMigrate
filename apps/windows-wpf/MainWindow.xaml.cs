@@ -14,6 +14,7 @@ namespace KnowToMigrate
     {
         private readonly List<string> _selectedFiles = new();
         private CancellationTokenSource? _transferCts;
+        private string? _forcedTransport = null;
 
         public MainWindow()
         {
@@ -95,6 +96,7 @@ namespace KnowToMigrate
                 PanelProgress.Visibility = Visibility.Visible;
                 ProgressBarTransfer.Value = info.Percentage;
                 TxtProgressTitle.Text = $"Transferring: {info.CurrentFileName} ({info.CurrentFileIndex}/{info.TotalFiles})";
+                TxtActiveTransport.Text = $"Active Transport: {info.TransportType} [Best Verified]";
                 TxtProgressDetail.Text = $"{FormatBytes(info.BytesTransferred)} / {FormatBytes(info.TotalBytes)} ({info.Percentage:0.0}%) · {info.SpeedMBps:0.0} MB/s";
 
                 if (info.IsCompleted)
@@ -313,12 +315,14 @@ namespace KnowToMigrate
             BtnTransfer.IsEnabled = false;
             PanelProgress.Visibility = Visibility.Visible;
             ProgressBarTransfer.Value = 0;
+            string transportLabel = _forcedTransport == null ? "Auto (Best)" : KtmTransportCodes.GetDisplayName(_forcedTransport);
             TxtProgressTitle.Text = $"Connecting to {targetDevice.DeviceName} ({targetDevice.IpAddress})...";
+            TxtActiveTransport.Text = $"Selected Transport: {transportLabel}";
             TxtProgressDetail.Text = "Performing mutual cryptographic handshake...";
 
             try
             {
-                bool success = await Task.Run(() => KtmManager.Instance.SendFilesAsync(targetDevice, _selectedFiles, _transferCts.Token));
+                bool success = await Task.Run(() => KtmManager.Instance.SendFilesAsync(targetDevice, _selectedFiles, _forcedTransport, _transferCts.Token));
                 if (success)
                 {
                     MessageBox.Show("Transfer completed and cryptographically verified!", "KnowToMigrate Success", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -335,6 +339,48 @@ namespace KnowToMigrate
             finally
             {
                 BtnTransfer.IsEnabled = true;
+            }
+        }
+
+        private void TransportSelect_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string tag)
+            {
+                Button[] buttons = { BtnTransportAuto, BtnTransportWifi, BtnTransportDirect, BtnTransportBt };
+                foreach (var b in buttons)
+                {
+                    b.Style = (Style)FindResource("KmGlassButton");
+                }
+                btn.Style = (Style)FindResource("KmPrimaryButton");
+
+                _forcedTransport = tag == "AUTO" ? null : tag;
+
+                if (ListDevices.SelectedItem is DiscoveredDevice dev)
+                {
+                    string chosen = _forcedTransport ?? dev.BestTransport;
+                    TxtBestTransportBadge.Text = _forcedTransport == null
+                        ? $"Best: {KtmTransportCodes.GetDisplayName(chosen)} ({KtmTransportCodes.GetSpeedRating(chosen)})"
+                        : $"Manual: {KtmTransportCodes.GetDisplayName(chosen)} ({KtmTransportCodes.GetSpeedRating(chosen)})";
+                }
+                else
+                {
+                    string chosen = _forcedTransport ?? KtmTransportCodes.WifiLan;
+                    TxtBestTransportBadge.Text = _forcedTransport == null
+                        ? $"Best: {KtmTransportCodes.GetDisplayName(chosen)} ({KtmTransportCodes.GetSpeedRating(chosen)})"
+                        : $"Manual: {KtmTransportCodes.GetDisplayName(chosen)} ({KtmTransportCodes.GetSpeedRating(chosen)})";
+                }
+            }
+        }
+
+        private async void ListDevices_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ListDevices.SelectedItem is DiscoveredDevice dev)
+            {
+                string best = await KtmTransportManager.Instance.EvaluateAndSelectBestTransportAsync(dev);
+                string chosen = _forcedTransport ?? best;
+                TxtBestTransportBadge.Text = _forcedTransport == null
+                    ? $"Best: {KtmTransportCodes.GetDisplayName(chosen)} ({KtmTransportCodes.GetSpeedRating(chosen)})"
+                    : $"Manual: {KtmTransportCodes.GetDisplayName(chosen)} ({KtmTransportCodes.GetSpeedRating(chosen)})";
             }
         }
 

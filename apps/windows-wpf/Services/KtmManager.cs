@@ -62,8 +62,9 @@ namespace KnowToMigrate.Services
             {
                 return await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
+                    string transportName = KtmTransportCodes.GetDisplayName(handshake.SelectedTransport);
                     var result = MessageBox.Show(
-                        $"Incoming transfer request from:\n\nDevice: {handshake.DeviceName} ({handshake.Platform})\nPIN: {handshake.Pin}\n\nDo you want to accept this transfer?",
+                        $"Incoming transfer request from:\n\nDevice: {handshake.DeviceName} ({handshake.Platform})\nAuthentication PIN: {handshake.Pin}\nNegotiated Transport: {transportName} [Best Verified]\n\nDo you want to accept this transfer?",
                         "KnowToMigrate - Accept Transfer?",
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Question
@@ -110,14 +111,26 @@ namespace KnowToMigrate.Services
             TransferServer.Stop();
         }
 
-        public async Task<bool> SendFilesAsync(DiscoveredDevice target, IReadOnlyList<string> files, CancellationToken token = default)
+        public async Task<string> EvaluateTargetTransportAsync(DiscoveredDevice target)
         {
+            return await KtmTransportManager.Instance.EvaluateAndSelectBestTransportAsync(target);
+        }
+
+        public async Task<bool> SendFilesAsync(DiscoveredDevice target, IReadOnlyList<string> files, string? forcedTransport = null, CancellationToken token = default)
+        {
+            string chosenTransport = forcedTransport ?? await EvaluateTargetTransportAsync(target);
+            if (string.IsNullOrEmpty(chosenTransport))
+            {
+                chosenTransport = KtmTransportCodes.WifiLan;
+            }
+
             return await TransferClient.SendFilesAsync(
                 target.IpAddress,
                 target.TransferPort,
                 LocalDeviceId,
                 LocalDeviceName,
                 files,
+                chosenTransport,
                 token
             );
         }

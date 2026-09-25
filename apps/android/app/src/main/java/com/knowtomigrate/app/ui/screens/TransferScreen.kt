@@ -74,8 +74,11 @@ fun TransferScreen(navController: NavController, sessionId: String) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Session ID badge
-            KmBadge(text = "Session: ${sessionId.takeLast(16)}", color = KmInfo)
+            // Session ID and active transport badge
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                KmBadge(text = "Session: ${sessionId.takeLast(16)}", color = KmInfo)
+                KmTransportPill(label = "Wi-Fi LAN", isBest = true, color = KmOrange)
+            }
 
             // Device names
             Row(
