@@ -4,38 +4,99 @@
            Version="1.0.0.0"
            UpgradeCode="C8B72D32-1594-4F77-8E82-7AC4E7D01A4B"
            Scope="perMachine">
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    
+    <SummaryInformation Description="KnowToMigrate Windows Installer"
+                        Manufacturer="KnowToMigrate Team" />
+
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+                  Schedule="afterInstallInitialize" />
     <MediaTemplate EmbedCab="yes" />
 
+    <!-- Application Icon definition for Add/Remove Programs and Shortcuts -->
     <Icon Id="AppIcon" SourceFile="apps\windows-wpf\Assets\KnowToMigrate.ico" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+    <Property Id="ARPHELPLINK" Value="https://knowtomigrate.web.app/docs" />
+    <Property Id="ARPURLINFOABOUT" Value="https://knowtomigrate.web.app" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://knowtomigrate.web.app/download" />
+    <Property Id="ApplicationFolderName" Value="KnowToMigrate" />
 
+    <!-- Main Installation Directory: C:\Program Files\KnowToMigrate\ -->
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="KnowToMigrate">
-        <Component Id="MainExecutable" Bitness="always64">
-          <File Id="KnowToMigrateEXE" Source="releases\windows\KnowToMigrate-1.0.0-x64.exe" KeyPath="yes">
-            <Shortcut Id="DesktopShortcut"
-                      Directory="DesktopFolder"
-                      Name="KnowToMigrate"
-                      WorkingDirectory="INSTALLFOLDER"
-                      Icon="AppIcon"
-                      Advertise="yes" />
-            <Shortcut Id="StartMenuShortcut"
-                      Directory="ProgramMenuFolder"
-                      Name="KnowToMigrate"
-                      WorkingDirectory="INSTALLFOLDER"
-                      Icon="AppIcon"
-                      Advertise="yes" />
-          </File>
+        <Component Id="MainExecutable" Bitness="always64" Guid="A2B1C3D4-5E6F-7A8B-9C0D-1E2F3A4B5C6D">
+          <File Id="KnowToMigrateEXE"
+                Name="KnowToMigrate.exe"
+                Source="releases\windows\publish\KnowToMigrate.exe"
+                KeyPath="yes" />
+          
+          <!-- App Paths registration so Win+R 'knowtomigrate' works and Windows Search links the EXE directly -->
+          <RegistryKey Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\KnowToMigrate.exe">
+            <RegistryValue Type="string" Value="[#KnowToMigrateEXE]" />
+            <RegistryValue Type="string" Name="Path" Value="[INSTALLFOLDER]" />
+          </RegistryKey>
+        </Component>
+
+        <Directory Id="AssetsFolder" Name="Assets">
+          <Component Id="AppAssets" Bitness="always64" Guid="D1E2F3A4-B5C6-7D8E-9F0A-1B2C3D4E5F6A">
+            <File Id="AppIconFile" Name="KnowToMigrate.ico" Source="apps\windows-wpf\Assets\KnowToMigrate.ico" KeyPath="yes" />
+            <File Id="AppLogoFile" Name="logo.jpg" Source="apps\windows-wpf\Assets\logo.jpg" />
+          </Component>
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <!-- Start Menu: Programs -> KnowToMigrate -> KnowToMigrate.lnk -->
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="KnowToMigrate">
+        <Component Id="StartMenuShortcutComponent" Bitness="always64" Guid="B3C2D1E0-6F5A-4B3C-2D1E-0F9A8B7C6D5E">
+          <Shortcut Id="AppStartMenuShortcut"
+                    Name="KnowToMigrate"
+                    Description="KnowToMigrate - Fast, Secure Cross-Platform Migration &amp; File Sharing"
+                    Target="[#KnowToMigrateEXE]"
+                    WorkingDirectory="INSTALLFOLDER"
+                    Icon="AppIcon"
+                    IconIndex="0">
+            <ShortcutProperty Key="System.AppUserModel.ID" Value="KnowToMigrate.App" />
+          </Shortcut>
+          <RemoveFolder Id="CleanUpStartMenuFolder" On="uninstall" />
+          <RegistryValue Root="HKLM"
+                         Key="Software\KnowToMigrate"
+                         Name="StartMenuShortcut"
+                         Type="integer"
+                         Value="1"
+                         KeyPath="yes" />
         </Component>
       </Directory>
     </StandardDirectory>
 
-    <StandardDirectory Id="ProgramMenuFolder" />
-    <StandardDirectory Id="DesktopFolder" />
+    <!-- Desktop Shortcut: Desktop -> KnowToMigrate.lnk -->
+    <StandardDirectory Id="DesktopFolder">
+      <Component Id="DesktopShortcutComponent" Bitness="always64" Guid="C4D3E2F1-7A6B-5C4D-3E2F-1A0B9C8D7E6F">
+        <Shortcut Id="AppDesktopShortcut"
+                  Name="KnowToMigrate"
+                  Description="KnowToMigrate - Fast, Secure Cross-Platform Migration &amp; File Sharing"
+                  Target="[#KnowToMigrateEXE]"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="AppIcon"
+                  IconIndex="0">
+          <ShortcutProperty Key="System.AppUserModel.ID" Value="KnowToMigrate.App" />
+        </Shortcut>
+        <RegistryValue Root="HKLM"
+                       Key="Software\KnowToMigrate"
+                       Name="DesktopShortcut"
+                       Type="integer"
+                       Value="1"
+                       KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
 
-    <Feature Id="Main">
+    <!-- Features -->
+    <Feature Id="Main" Title="KnowToMigrate Application" Level="1">
       <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="AppAssets" />
+      <ComponentRef Id="StartMenuShortcutComponent" />
+      <ComponentRef Id="DesktopShortcutComponent" />
     </Feature>
   </Package>
 </Wix>

@@ -24,6 +24,7 @@ apps/windows-wpf/bin/
 apps/windows-wpf/obj/
 test_wpf/
 *.wixpdb
+*.cab
 .firebase/
 releases/windows/publish/
 tests/**/bin/

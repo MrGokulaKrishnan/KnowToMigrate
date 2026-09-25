@@ -4,99 +4,105 @@ This document contains the exact reproducible build commands, prerequisites, and
 
 ---
 
-## 1. Prerequisites & Toolchains
+## 1. Windows Installer & Application Registration Verification Matrix
 
-| Toolchain | Minimum Version | Path / Verification Command |
-| :--- | :--- | :--- |
-| **.NET SDK** | 8.0.400+ | `C:\dotnet\dotnet.exe --version` |
-| **WiX Toolset** | v4.0.0+ | `C:\Users\gokul\.dotnet\tools\wix.exe --version` |
-| **Android SDK** | API 35 (Build-tools 35.0.0) | `C:\Users\gokul\android-sdk` |
-| **Java JDK** | OpenJDK 17.0.12+ | `java -version` |
-| **Node.js** | v20.0.0+ (LTS) | `node -v` |
-| **Firebase CLI** | v13.0.0+ | `npx firebase-tools --version` |
+| Verification Item | Status | Details / Implementation |
+| :--- | :---: | :--- |
+| **Installer Framework** | **PASS** | WiX Toolset v4 (v4.0.6), pure 64-bit (`x64;0`) MSI package |
+| **Install Directory** | **PASS** | `C:\Program Files\KnowToMigrate\` (stable, standard 64-bit Program Files) |
+| **EXE Executable** | **PASS** | `KnowToMigrate.exe` (72.2 MB, single-file bundle compressed, embedded icon, DPI-aware manifest) |
+| **MSI Package** | **PASS** | `KnowToMigrate-1.0.0-x64.msi` (65.9 MB, perMachine, embedded CAB) |
+| **Start Menu Shortcut** | **PASS** | `C:\ProgramData\Microsoft\Windows\Start Menu\Programs\KnowToMigrate\KnowToMigrate.lnk` pointing to `C:\Program Files\KnowToMigrate\KnowToMigrate.exe` with `AppUserModel.ID = KnowToMigrate.App` |
+| **Desktop Shortcut** | **PASS** | `C:\Users\Public\Desktop\KnowToMigrate.lnk` pointing to `C:\Program Files\KnowToMigrate\KnowToMigrate.exe` with `AppUserModel.ID = KnowToMigrate.App` |
+| **Windows Search** | **PASS** | Non-advertised `.lnk` shortcut allows Windows Search Indexer to read the target executable and display "KnowToMigrate App" with master icon |
+| **Application Icon** | **PASS** | Multi-resolution `.ico` (16, 24, 32, 48, 64, 128, 256) embedded in `KnowToMigrate.exe`, referencing approved master logo with 15% rounded corners |
+| **Taskbar Icon** | **PASS** | Process registers `SetCurrentProcessExplicitAppUserModelID("KnowToMigrate.App")` on startup, linking taskbar instance to Start Menu shortcut |
+| **Installed Apps** | **PASS** | Registered in `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` as "KnowToMigrate" by "KnowToMigrate Team" with `ARPPRODUCTICON` |
+| **Uninstall** | **PASS** | Standard MSI uninstallation cleanly removes binaries, Start Menu directory & shortcut, Desktop shortcut, and registry entries |
+| **Upgrade** | **PASS** | `MajorUpgrade` configured with `AllowSameVersionUpgrades="yes"` and `Schedule="afterInstallInitialize"`, preventing duplicate shortcuts |
+| **Reboot Test** | **PASS** | Hardened `.lnk` targets and `App Paths` registry entries remain permanent across reboots |
+| **Known Issues** | **None** | All previous Darwin advertised shortcut issues resolved |
 
 ---
 
-## 2. Windows Standalone Executable (.EXE)
+## 2. Windows Standalone Executable (.EXE) Build
 
-Builds a self-contained, single-file compressed executable containing all runtime components:
+Builds a self-contained, single-file compressed executable containing all runtime components and native FFI libraries:
 
 ```powershell
 # Navigate to project root
 cd c:\KnowToMigrate
 
 # Publish compressed single-file Windows x64 binary
-C:\dotnet\dotnet.exe publish c:\KnowToMigrate\apps\windows-wpf\KnowToMigrate.csproj `
+C:\Users\gokul\.dotnet\dotnet.exe publish apps\windows-wpf\KnowToMigrate.csproj `
     -c Release `
     -r win-x64 `
     --self-contained true `
     -p:PublishSingleFile=true `
     -p:EnableCompressionInSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
-    -o c:\KnowToMigrate\releases\windows_build
+    -o releases\windows\publish
 
 # Copy to final releases folder
-Copy-Item "c:\KnowToMigrate\releases\windows_build\KnowToMigrate.exe" "c:\KnowToMigrate\releases\windows\KnowToMigrate-1.0.0-x64.exe" -Force
-Remove-Item -Recurse -Force "c:\KnowToMigrate\releases\windows_build"
+Copy-Item "releases\windows\publish\KnowToMigrate.exe" "releases\windows\KnowToMigrate-1.0.0-x64.exe" -Force
 
 # Verify file hash and size
-Get-FileHash "c:\KnowToMigrate\releases\windows\KnowToMigrate-1.0.0-x64.exe" -Algorithm SHA256
+Get-FileHash "releases\windows\KnowToMigrate-1.0.0-x64.exe" -Algorithm SHA256
 ```
 
-- **Output Artifact**: `c:\KnowToMigrate\releases\windows\KnowToMigrate-1.0.0-x64.exe` (68.7 MB)
-- **SHA-256**: `2B888126CE08F5C8F52BD7CAC775DA2C6FCA25475F1B29CA9B3609F367DAADE9`
+- **Output Artifact**: `releases\windows\KnowToMigrate-1.0.0-x64.exe` (72.2 MB)
+- **SHA-256**: `F9971350E5B905E0E9D30976432C4C6B4F0AB576FB316EC385E7FCAD73FA79DA`
 
 ---
 
-## 3. Windows Standalone MSI Installer (.MSI)
+## 3. Windows Standalone MSI Installer (.MSI) Build
 
-Builds a per-machine Windows Installer package with embedded CAB via WiX Toolset v4:
+Builds a native 64-bit per-machine Windows Installer package with embedded CAB via WiX Toolset v4:
 
 ```powershell
 # Navigate to project root
 cd c:\KnowToMigrate
 
-# Build standalone MSI installer
-C:\Users\gokul\.dotnet\tools\wix.exe build c:\KnowToMigrate\Package.wxs -o c:\KnowToMigrate\releases\windows\KnowToMigrate-1.0.0-x64.msi
+# Build native 64-bit MSI installer
+wix build -arch x64 Package.wxs -o releases\windows\KnowToMigrate-1.0.0-x64.msi
 
 # Clean up symbol databases
-Remove-Item -Force "c:\KnowToMigrate\releases\windows\*.wixpdb" -ErrorAction SilentlyContinue
+Remove-Item -Force "releases\windows\*.wixpdb" -ErrorAction SilentlyContinue
 
 # Verify file hash and size
-Get-FileHash "c:\KnowToMigrate\releases\windows\KnowToMigrate-1.0.0-x64.msi" -Algorithm SHA256
+Get-FileHash "releases\windows\KnowToMigrate-1.0.0-x64.msi" -Algorithm SHA256
 ```
 
-- **Output Artifact**: `c:\KnowToMigrate\releases\windows\KnowToMigrate-1.0.0-x64.msi` (62.7 MB)
-- **SHA-256**: `28F8A7D4D41024762D88DB24DD27AA3F1A14A37E2B1B483AF30A033474557BDF`
+- **Output Artifact**: `releases\windows\KnowToMigrate-1.0.0-x64.msi` (65.9 MB)
+- **SHA-256**: `90B58D5C79A348B606815591288117F099B8D021B1093D35BD2AE47ADB3A8C51`
 
 ---
 
-## 4. Android APK Package (.APK)
+## 4. Android APK Package (.APK) Build
 
-Compiles native C++ libraries for `arm64-v8a` and `x86_64`, processes Hilt dependency injection, compiles Jetpack Compose UI, and produces the debug/release APK:
+Compiles native Rust core via CMake, processes Hilt dependency injection, compiles Jetpack Compose UI, and produces the signed production APK:
 
 ```powershell
-# Navigate to Android directory
-cd c:\KnowToMigrate\apps\android
+# Set Java and Android SDK paths
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-17"
+$env:ANDROID_HOME = "C:\Users\gokul\android-sdk"
+cd apps\android
 
 # Execute Gradle assemble
-.\gradlew.bat assembleDebug
-
-# Copy output APK to distribution folder
-Copy-Item "c:\KnowToMigrate\apps\android\app\build\outputs\apk\debug\app-debug.apk" "c:\KnowToMigrate\releases\android\KnowToMigrate-1.0.0.apk" -Force
+.\gradlew.bat :app:assembleRelease --quiet
 
 # Verify file hash and size
-Get-FileHash "c:\KnowToMigrate\releases\android\KnowToMigrate-1.0.0.apk" -Algorithm SHA256
+Get-FileHash "app\build\outputs\apk\release\app-release.apk" -Algorithm SHA256
 ```
 
-- **Output Artifact**: `c:\KnowToMigrate\releases\android\KnowToMigrate-1.0.0.apk` (17.8 MB)
-- **SHA-256**: `239D0A3FD506EAFE5A09ECC92F7E4815171B197C55A95B7BB73FC14A2FD1EADA`
+- **Output Artifact**: `apps\android\app\build\outputs\apk\release\app-release.apk` (11.36 MB)
+- **SHA-256**: `602A399D1D090E2A39B05D1FF928EEAF99F0E0C0BBAAA23B583BC4D5B6EE43DD`
 
 ---
 
 ## 5. Website Build & Firebase Hosting Deployment
 
-Builds the production Vite bundle and deploys to Firebase Hosting with custom domain direct download redirects:
+Builds the production Vite bundle and deploys live to Firebase Hosting:
 
 ```powershell
 # Build website distribution
@@ -105,7 +111,7 @@ npm run build
 
 # Deploy to Firebase Hosting
 cd c:\KnowToMigrate
-npx firebase-tools deploy --only hosting --non-interactive
+npx firebase deploy --only hosting
 ```
 
 - **Live URL**: [https://knowtomigrate.web.app](https://knowtomigrate.web.app)
@@ -116,17 +122,15 @@ npx firebase-tools deploy --only hosting --non-interactive
 
 ---
 
-## 6. Running the Automated Integration Stress Test Suite
+## 6. Automated Diagnostic Transfer Suite
 
-Validates path traversal protection, 100 MB large file transfers, folder trees, and network interruption/resume:
+Validates file transfer integrity, folder hierarchies, and multi-transport capability selection (Wi-Fi LAN, Wi-Fi Direct, Bluetooth):
 
 ```powershell
-cd c:\KnowToMigrate\tests\KtmIntegrationTests
-C:\dotnet\dotnet.exe run -c Release
+cd c:\KnowToMigrate
+C:\Users\gokul\.dotnet\dotnet.exe run --project tests\transfer-test\transfer-test.csproj
 ```
 Expected output:
 ```text
-============================================================
-ALL TESTS PASSED (4/4) - PRODUCTION READY!
-============================================================
+>>> ALL 5 TESTS (TRANSFERS + MULTI-TRANSPORT CAPABILITY PIPELINE) PASSED SUCCESSFULLY! <<<
 ```

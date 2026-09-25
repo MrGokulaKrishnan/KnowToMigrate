@@ -8,8 +8,19 @@ namespace KnowToMigrate
 {
     public partial class App : Application
     {
+        [System.Runtime.InteropServices.DllImport("shell32.dll", SetLastError = true)]
+        private static extern void SetCurrentProcessExplicitAppUserModelID([System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPWStr)] string AppID);
+
+        public const string AppUserModelId = "KnowToMigrate.App";
+
         protected override void OnStartup(StartupEventArgs e)
         {
+            try
+            {
+                SetCurrentProcessExplicitAppUserModelID(AppUserModelId);
+            }
+            catch { }
+
             base.OnStartup(e);
 
             DispatcherUnhandledException += App_DispatcherUnhandledException;

@@ -12,7 +12,11 @@
     <SelfContained>true</SelfContained>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <ApplicationIcon>Assets\KnowToMigrate.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>KnowToMigrate</AssemblyName>
+    <Product>KnowToMigrate</Product>
+    <Company>KnowToMigrate Team</Company>
+    <Description>KnowToMigrate - Fast, Secure Cross-Platform Migration</Description>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
