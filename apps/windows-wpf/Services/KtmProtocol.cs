@@ -306,6 +306,8 @@ namespace KnowToMigrate.Services
         public bool IsCancelled { get; set; }
         public string ErrorMessage { get; set; } = string.Empty;
         public string TransportType { get; set; } = "Wi-Fi (LAN)";
+        public string FinalizedFilePath { get; set; } = string.Empty;
+        public string FinalizedFileName { get; set; } = string.Empty;
 
         public double Percentage => TotalBytes > 0 ? Math.Min(100.0, (double)BytesTransferred / TotalBytes * 100.0) : 0.0;
         public long RemainingBytes => Math.Max(0L, TotalBytes - BytesTransferred);

@@ -314,10 +314,21 @@ class KtmTransferServer(
                 }
                 writeLengthPrefixedString(outputStream, doneObj.toString())
 
+                // Capture the primary received file for the completion UI
+                val firstItem = manifest.files.firstOrNull()
+                if (firstItem != null) {
+                    val firstSafeRel = KtmSecurityUtils.sanitizeRelativePath(firstItem.relativePath)
+                    val firstFinal = File(downloadDir, firstSafeRel)
+                    prog.finalizedFilePath = firstFinal.absolutePath
+                    prog.finalizedFileName = firstFinal.name
+                }
+
                 prog.status = TransferStatus.COMPLETED
                 prog.isCompleted = true
                 prog.elapsedTimeMs = System.currentTimeMillis() - startMs
+                _progress.value = prog.copy()
                 historyRepo?.updateProgress(manifest.sessionId, com.knowtomigrate.app.data.TransferRecordStatus.COMPLETED, prog.totalBytes, prog.totalBytes)
+
             } catch (e: Exception) {
                 Log.e("KtmTransferServer", "[TRANSFER_SERVER_ERROR] ${e.message}", e)
                 prog.status = TransferStatus.FAILED

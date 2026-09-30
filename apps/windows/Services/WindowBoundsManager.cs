@@ -33,11 +33,38 @@ namespace KnowToMigrate.Services
 
                 var saved = LoadSavedState();
 
-                // Get display work area for default/fallback calculations
+                // Called AFTER window.Activate() so the window is on its real monitor.
+                // DisplayArea.GetFromWindowId is now reliable.
                 var windowId = appWindow.Id;
                 var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
                 var workArea = displayArea.WorkArea;
 
+                System.Diagnostics.Debug.WriteLine(
+                    $"[WindowBoundsManager] WorkArea: {workArea.X},{workArea.Y} " +
+                    $"{workArea.Width}x{workArea.Height}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[WindowBoundsManager] Saved: X={saved.X} Y={saved.Y} " +
+                    $"W={saved.Width} H={saved.Height} Max={saved.IsMaximized}");
+
+                // ── MAXIMIZED STATE ───────────────────────────────────────────────────
+                // When restoring maximized, let the OS handle geometry entirely.
+                // Do NOT call MoveAndResize before Maximize() — the two fight each other
+                // and can result in the window clipping above the work area.
+                if (saved.IsMaximized)
+                {
+                    if (appWindow.Presenter is OverlappedPresenter presenterMax)
+                    {
+                        presenterMax.IsMinimizable = true;
+                        presenterMax.IsMaximizable = true;
+                        presenterMax.IsResizable = true;
+                        presenterMax.IsAlwaysOnTop = false;
+                        presenterMax.Maximize();
+                        System.Diagnostics.Debug.WriteLine("[WindowBoundsManager] Restored: MAXIMIZED");
+                    }
+                    return;
+                }
+
+                // ── NORMAL / RESTORED STATE ───────────────────────────────────────────
                 // Determine safe width & height (min 960x640, max workArea)
                 int minWidth = Math.Min(960, workArea.Width);
                 int minHeight = Math.Min(640, workArea.Height);
@@ -55,57 +82,64 @@ namespace KnowToMigrate.Services
 
                 if (saved.X != -1 && saved.Y != -1)
                 {
-                    // Check rect against display area
+                    // Use DisplayAreaFallback.None so disconnected-monitor positions
+                    // correctly return null (not snapped to wrong monitor)
                     var targetRect = new RectInt32(saved.X, saved.Y, width, height);
                     var targetDisplay = DisplayArea.GetFromRect(targetRect, DisplayAreaFallback.None);
 
                     if (targetDisplay != null)
                     {
                         var targetWorkArea = targetDisplay.WorkArea;
-                        // Ensure title bar top is at or below workArea.Y and window is sufficiently visible
-                        if (targetY >= targetWorkArea.Y &&
-                            targetY <= targetWorkArea.Y + targetWorkArea.Height - 60 &&
-                            targetX >= targetWorkArea.X - width + 150 &&
-                            targetX <= targetWorkArea.X + targetWorkArea.Width - 150)
+                        // ALL of the title bar must be inside the work area
+                        // (Y must be >= workArea.Y; enough horizontal space to grab the window)
+                        bool yOk = targetY >= targetWorkArea.Y &&
+                                   targetY <= targetWorkArea.Y + targetWorkArea.Height - 60;
+                        bool xOk = targetX >= targetWorkArea.X - width + 150 &&
+                                   targetX <= targetWorkArea.X + targetWorkArea.Width - 150;
+
+                        if (yOk && xOk)
                         {
                             hasValidPos = true;
-                            // Clamp Y to work area top to prevent negative / hidden title bar
+                            // Strict clamp: title bar top must be AT OR BELOW work-area top
                             targetY = Math.Max(targetWorkArea.Y, targetY);
+                            // Keep window horizontally within the work area
+                            targetX = Math.Clamp(targetX,
+                                targetWorkArea.X,
+                                targetWorkArea.X + targetWorkArea.Width - Math.Min(width, 300));
                         }
                     }
                 }
 
                 if (!hasValidPos)
                 {
-                    // Center on primary/current monitor work area
+                    // Safe default: centered on current monitor work area
                     targetX = workArea.X + Math.Max(0, (workArea.Width - width) / 2);
                     targetY = workArea.Y + Math.Max(0, (workArea.Height - height) / 2);
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[WindowBoundsManager] Using safe center: {targetX},{targetY}");
                 }
 
-                // Move and Resize window BEFORE showing or restoring presenter
+                System.Diagnostics.Debug.WriteLine(
+                    $"[WindowBoundsManager] Applying: X={targetX} Y={targetY} W={width} H={height}");
+
+                // Apply position and size to the activated, visible window
                 appWindow.MoveAndResize(new RectInt32(targetX, targetY, width, height));
 
-                // Presenter mode: NORMAL / RESTORED (or MAXIMIZED if user intentionally closed maximized)
+                // Restore normal presenter state
                 if (appWindow.Presenter is OverlappedPresenter presenter)
                 {
                     presenter.IsMinimizable = true;
                     presenter.IsMaximizable = true;
                     presenter.IsResizable = true;
                     presenter.IsAlwaysOnTop = false;
-
-                    if (saved.IsMaximized)
-                    {
-                        presenter.Maximize();
-                    }
-                    else
-                    {
-                        presenter.Restore();
-                    }
+                    presenter.Restore();
+                    System.Diagnostics.Debug.WriteLine("[WindowBoundsManager] Restored: NORMAL");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[WindowBoundsManager] Error applying bounds: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[WindowBoundsManager] Error applying bounds: {ex.Message}");
             }
         }
 

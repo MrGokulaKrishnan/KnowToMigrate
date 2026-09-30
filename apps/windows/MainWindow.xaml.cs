@@ -10,6 +10,7 @@ namespace KnowToMigrate
     public sealed partial class MainWindow : Window
     {
         private readonly KtmService _ktmService;
+        private bool _boundsApplied = false;
 
         public MainWindow()
         {
@@ -20,8 +21,11 @@ namespace KnowToMigrate
             this.ExtendsContentIntoTitleBar = true;
             this.SetTitleBar(AppTitleBar);
 
-            // 2. Apply safe window bounds validation & work-area positioning
-            WindowBoundsManager.ApplySavedBoundsOrSafeDefaults(this);
+            // 2. CRITICAL FIX: Do NOT call MoveAndResize before Activate().
+            //    WinUI 3 repositions the window during its first show cycle,
+            //    discarding any pre-activation position set in the constructor.
+            //    Instead, hook Activated and apply bounds exactly once on first show.
+            this.Activated += OnFirstActivated;
 
             // 3. Track presenter window state changes to toggle Maximize vs Restore icon
             if (this.AppWindow != null)
@@ -54,6 +58,22 @@ namespace KnowToMigrate
                 WindowBoundsManager.SaveWindowState(this);
                 _ktmService?.Dispose();
             };
+        }
+
+        /// <summary>
+        /// Called exactly once when the window first becomes active (after Activate()).
+        /// At this point the window is visible and AppWindow.MoveAndResize() is reliable.
+        /// </summary>
+        private void OnFirstActivated(object sender, WindowActivatedEventArgs args)
+        {
+            if (_boundsApplied) return;
+            _boundsApplied = true;
+
+            // Unsubscribe immediately — run once only
+            this.Activated -= OnFirstActivated;
+
+            // Now apply saved/safe bounds on the real, visible, activated window
+            WindowBoundsManager.ApplySavedBoundsOrSafeDefaults(this);
         }
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)

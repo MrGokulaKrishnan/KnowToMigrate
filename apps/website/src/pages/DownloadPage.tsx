@@ -14,17 +14,17 @@ const WINDOWS_DOWNLOADS: DownloadEntry[] = [
   {
     filename: 'KnowToMigrate-1.0.0-x64.msi',
     version: '1.0.0',
-    size: '65.9 MB',
-    sha256: '35C92C4EE8570415F5CE20805A66E3947F35950E8A3B450192785ED8ECD3A37A',
+    size: '63.0 MB',
+    sha256: '7EE760BD824E931E4210734F8604ADC7E581192368D7B2E27CF6E072CB417B7D',
     requirements: 'Windows 10 / 11, 64-bit (Official MSI Installer with Desktop & Start Menu Shortcut)',
     downloadUrl: '/download/KnowToMigrate-1.0.0-x64.msi.bin',
   },
   {
     filename: 'KnowToMigrate-1.0.0-x64.exe',
     version: '1.0.0',
-    size: '72.2 MB',
-    sha256: 'CBA232E9796551A3977B9CEEA4B9AA37D55D921527A97A7DD055590867AEB993',
-    requirements: 'Windows 10 / 11, 64-bit (Portable Standalone Executable)',
+    size: '68.9 MB',
+    sha256: 'A7BEFEF0E59A6E6666D947B02922177F370043F0C6DE9DC3E28252B2C33ED0A1',
+    requirements: 'Windows 10 / 11, 64-bit (Portable Compressed Standalone Executable)',
     downloadUrl: '/download/KnowToMigrate-1.0.0-x64.exe.bin',
   },
 ]
@@ -33,9 +33,9 @@ const ANDROID_DOWNLOADS: DownloadEntry[] = [
   {
     filename: 'KnowToMigrate-1.0.0.apk',
     version: '1.0.0',
-    size: '10.9 MB',
-    sha256: '2B61E2F756FA08A619AB9B0FE9F93EE77A3BF894513B87BDE8BF57D542B6E0E0',
-    requirements: 'Android 8.0+ (API 26+) - Native APK Package with Multi-Transport & Dynamic Node Discovery',
+    size: '11.0 MB',
+    sha256: 'EE9B8346055CB491E5810A1BF52974A146683DDF872336FDB89325E211AA673F',
+    requirements: 'Android 8.0+ (API 26+) — Enable "Install from unknown sources" in Settings',
     downloadUrl: '/download/KnowToMigrate-1.0.0.apk.bin',
   },
 ]

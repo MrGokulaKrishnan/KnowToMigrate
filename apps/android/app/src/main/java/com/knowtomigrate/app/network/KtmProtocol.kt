@@ -315,7 +315,10 @@ data class TransferProgressInfo(
     var isCompleted: Boolean = false,
     var isCancelled: Boolean = false,
     var errorMessage: String = "",
-    var transportType: String = "Wi-Fi (LAN)"
+    var transportType: String = "Wi-Fi (LAN)",
+    // Set by server on successful finalization — the real file on disk
+    var finalizedFilePath: String = "",
+    var finalizedFileName: String = ""
 ) {
     val percentage: Double
         get() = if (totalBytes > 0) Math.min(100.0, (bytesTransferred.toDouble() / totalBytes) * 100.0) else 0.0

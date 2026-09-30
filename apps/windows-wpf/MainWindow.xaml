@@ -5,7 +5,7 @@
         Icon="Assets/KnowToMigrate.ico"
         Width="1280" Height="820"
         MinWidth="1000" MinHeight="650"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="Manual"
         WindowStyle="None"
         ResizeMode="CanResize"
         Background="#000000"
@@ -106,7 +106,7 @@
                             
                             <!-- Engine Status Pill (8px Radius) -->
                             <Border Margin="0,16,0,0" Background="#140900" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="8" Padding="10,6">
-                                <TextBlock x:Name="TxtCoreStatus" Text="Engine Active (Port 54124)" Foreground="#FF8A00" FontSize="11" FontWeight="SemiBold" />
+                                <TextBlock x:Name="TxtCoreStatus" Text="Pluto Engine Active (Port 54124)" Foreground="#FF8A00" FontSize="11" FontWeight="SemiBold" />
                             </Border>
                         </StackPanel>
 
@@ -123,7 +123,7 @@
 
                         <!-- Navigation Buttons (Zero Emojis, 10px Radius) -->
                         <StackPanel DockPanel.Dock="Top">
-                            <Button x:Name="BtnNavHome" Content="Quick Share" Click="Nav_Click" Tag="Home" Style="{StaticResource KmNavButton}" Background="#1C0E00" Foreground="#FF8A00" BorderBrush="#FF5A00" FontWeight="Bold" />
+                            <Button x:Name="BtnNavHome" Content="Send Files" Click="Nav_Click" Tag="Home" Style="{StaticResource KmNavButton}" Background="#1C0E00" Foreground="#FF8A00" BorderBrush="#FF5A00" FontWeight="Bold" />
                             <Button x:Name="BtnNavReceive" Content="Receive Files" Click="Nav_Click" Tag="Receive" Style="{StaticResource KmNavButton}" />
                             <Button x:Name="BtnNavMigration" Content="Migration Wizard" Click="Nav_Click" Tag="Migration" Style="{StaticResource KmNavButton}" />
                             <Button x:Name="BtnNavHistory" Content="Transfer History" Click="Nav_Click" Tag="History" Style="{StaticResource KmNavButton}" />
@@ -134,7 +134,7 @@
                 <!-- Main Content Area (Responsive Scrollable Container) -->
                 <ScrollViewer Grid.Column="1" Focusable="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="28,24,28,24">
                     <Grid>
-                        <!-- TAB 1: Quick Share (Send & Devices) -->
+                        <!-- TAB 1: Send Files (Send & Devices) -->
                     <Grid x:Name="ViewHome" Visibility="Visible">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -387,7 +387,8 @@
                                     <Path Data="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" Fill="#FF8A00" Width="26" Height="26" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <TextBlock Text="Receive Mode Active" Foreground="#FFFFFF" FontWeight="Bold" FontSize="22" HorizontalAlignment="Center" />
-                                <TextBlock Text="Listening for incoming P2P transfers on TCP port 54124" Foreground="#888888" FontSize="13" HorizontalAlignment="Center" Margin="0,4,0,22" />
+                                <TextBlock Text="Listening for incoming P2P transfers on TCP port 54124" Foreground="#888888" FontSize="13" HorizontalAlignment="Center" Margin="0,4,0,6" />
+                                <TextBlock Text="Powered by Pluto Engine · End-to-End Encrypted" Foreground="#665533" FontSize="11" HorizontalAlignment="Center" Margin="0,0,0,22" />
                                 
                                 <Border Background="#111111" BorderBrush="#222222" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,18">
                                     <StackPanel>
@@ -490,6 +491,98 @@
                     </Grid>
                 </Grid>
             </ScrollViewer>
+        </Grid>
+
+        <!-- MODAL OVERLAY: Premium Received-File Completion Card -->
+        <Grid x:Name="ModalReceiveCompletion" Grid.RowSpan="2" Background="#DD000000" Visibility="Collapsed" Panel.ZIndex="1000">
+            <!-- Centered Card -->
+            <Border Width="480" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#0D0D0D" BorderBrush="#26FFFFFF" BorderThickness="1.5" CornerRadius="24" Padding="28">
+                <Border.Effect>
+                    <DropShadowEffect Color="#FF5A00" BlurRadius="36" ShadowDepth="0" Opacity="0.35"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Row 0: Top Close Button -->
+                    <Button Grid.Row="0" HorizontalAlignment="Right" Click="BtnCloseReceiveModal_Click" Style="{StaticResource KmGlassButton}" Width="32" Height="32" Padding="0" ToolTip="Dismiss">
+                        <Path Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Fill="#888888" Width="14" Height="14" Stretch="Uniform" />
+                    </Button>
+
+                    <!-- Row 1: Verification Ring & Checkmark -->
+                    <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,16">
+                        <Border Width="76" Height="76" CornerRadius="38" Background="#0E2818" BorderBrush="#22C55E" BorderThickness="2" HorizontalAlignment="Center">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#22C55E" BlurRadius="24" ShadowDepth="0" Opacity="0.5"/>
+                            </Border.Effect>
+                            <Path Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Fill="#22C55E" Width="32" Height="32" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="File Received" Foreground="#FFFFFF" FontWeight="ExtraBold" FontSize="20" HorizontalAlignment="Center" Margin="0,14,0,2" />
+                        <TextBlock Text="Verified · End-to-End Encrypted (AES-256-GCM)" Foreground="#22C55E" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- Row 2: File Preview Card -->
+                    <Border Grid.Row="2" Background="#141414" BorderBrush="#222222" BorderThickness="1" CornerRadius="14" Padding="16,14" Margin="0,0,0,14">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <!-- File Icon Badge -->
+                            <Border Grid.Column="0" Width="44" Height="44" CornerRadius="10" Background="#1A0D00" BorderBrush="#FF5A00" BorderThickness="1" Margin="0,0,14,0" VerticalAlignment="Center">
+                                <Path x:Name="IconReceivedFile" Data="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" Fill="#FF8A00" Width="20" Height="20" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock x:Name="TxtReceivedFileName" Text="Screenshot_20260928.jpg" Foreground="#FFFFFF" FontWeight="Bold" FontSize="14" TextTrimming="CharacterEllipsis" />
+                                <TextBlock x:Name="TxtReceivedFileSize" Text="8.4 MB" Foreground="#888888" FontSize="12" Margin="0,3,0,0" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Row 3: Metadata (Sender + Destination) -->
+                    <Grid Grid.Row="3" Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <!-- Sender Chip -->
+                        <Border Grid.Column="0" Background="#111111" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,6,0">
+                            <StackPanel>
+                                <TextBlock Text="Received from:" Foreground="#777777" FontSize="10" FontWeight="SemiBold" />
+                                <TextBlock x:Name="TxtReceivedSender" Text="Galaxy S24 Ultra" Foreground="#DDDDDD" FontSize="12" FontWeight="SemiBold" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </Border>
+                        <!-- Destination Chip -->
+                        <Border Grid.Column="1" Background="#111111" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="6,0,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Saved to:" Foreground="#777777" FontSize="10" FontWeight="SemiBold" />
+                                <TextBlock x:Name="TxtReceivedSavedTo" Text="Downloads / KnowToMigrate" Foreground="#DDDDDD" FontSize="12" FontWeight="SemiBold" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Row 4: Action Buttons (Open, Show in Folder, Copy) -->
+                    <Grid Grid.Row="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Open" Click="BtnOpenReceivedFile_Click" Style="{StaticResource KmPrimaryButton}" Height="40" Margin="0,0,6,0" FontSize="12" FontWeight="SemiBold" />
+                        <Button Grid.Column="1" Content="Show in Folder" Click="BtnShowInFolder_Click" Style="{StaticResource KmGlassButton}" Height="40" Margin="3,0,3,0" FontSize="11" />
+                        <Button Grid.Column="2" Content="Copy" Click="BtnCopyReceivedFile_Click" Style="{StaticResource KmGlassButton}" Height="40" Margin="6,0,0,0" FontSize="11" />
+                    </Grid>
+
+                    <!-- Row 5: Feedback label -->
+                    <TextBlock x:Name="TxtCopyFeedback" Grid.Row="5" Text="✓ Copied to clipboard" Foreground="#22C55E" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,10,0,0" Visibility="Collapsed" />
+                </Grid>
+            </Border>
         </Grid>
     </Grid>
 </Border>

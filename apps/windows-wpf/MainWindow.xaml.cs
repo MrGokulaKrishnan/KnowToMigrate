@@ -26,6 +26,11 @@ namespace KnowToMigrate
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            // CRITICAL FIX: Apply saved/validated window bounds in Loaded (after Activate),
+            // never in the constructor. This prevents clipping caused by CenterScreen
+            // resolving to wrong coordinates before the window is fully shown.
+            WindowBoundsManager.ApplyToWindow(this);
+
             // Safely set window icon
             try
             {
@@ -86,9 +91,13 @@ namespace KnowToMigrate
 
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
+            // Save window state on close so we can restore it correctly next launch
+            WindowBoundsManager.SaveWindowState(this);
             _transferCts?.Cancel();
             KtmManager.Instance.Stop();
         }
+
+        private string? _lastReceivedFilePath;
 
         private void OnTransferProgress(TransferProgressInfo info)
         {
@@ -97,11 +106,18 @@ namespace KnowToMigrate
                 if (info.IsCompleted)
                 {
                     PanelProgress.Visibility = Visibility.Collapsed;
-                    ShowNotificationBanner(
-                        title: "✓ Transfer Complete",
-                        body: $"{info.CurrentFileName} ({KtmFormatting.FormatBytes(info.TotalBytes)}) · Verified",
-                        isSuccess: true
-                    );
+                    if (info.Direction == TransferDirection.Receiving)
+                    {
+                        ShowReceiveCompletionModal(info);
+                    }
+                    else
+                    {
+                        ShowNotificationBanner(
+                            title: "✓ Transfer Complete",
+                            body: $"{info.CurrentFileName} ({KtmFormatting.FormatBytes(info.TotalBytes)}) · Verified",
+                            isSuccess: true
+                        );
+                    }
                 }
                 else if (!string.IsNullOrEmpty(info.ErrorMessage))
                 {
@@ -131,6 +147,130 @@ namespace KnowToMigrate
                     BtnCancelTransfer.Visibility = Visibility.Visible;
                 }
             });
+        }
+
+        private void ShowReceiveCompletionModal(TransferProgressInfo info)
+        {
+            _lastReceivedFilePath = !string.IsNullOrEmpty(info.FinalizedFilePath) && File.Exists(info.FinalizedFilePath)
+                ? info.FinalizedFilePath
+                : Path.Combine(KtmManager.Instance.DownloadDirectory, info.CurrentFileName);
+
+            string displayName = !string.IsNullOrEmpty(info.FinalizedFileName)
+                ? info.FinalizedFileName
+                : (string.IsNullOrEmpty(info.CurrentFileName) ? "Received File" : info.CurrentFileName);
+
+            TxtReceivedFileName.Text = displayName;
+            TxtReceivedFileSize.Text = KtmFormatting.FormatBytes(info.TotalBytes);
+            TxtReceivedSender.Text = string.IsNullOrEmpty(info.PeerName) ? "Nearby Device" : info.PeerName;
+            TxtReceivedSavedTo.Text = "Downloads / KnowToMigrate";
+            TxtCopyFeedback.Visibility = Visibility.Collapsed;
+
+            try
+            {
+                string ext = Path.GetExtension(displayName).ToLowerInvariant();
+                if (ext is ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp" or ".bmp" or ".svg")
+                {
+                    IconReceivedFile.Data = Geometry.Parse("M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z");
+                }
+                else if (ext is ".mp4" or ".mkv" or ".avi" or ".mov" or ".webm" or ".wmv")
+                {
+                    IconReceivedFile.Data = Geometry.Parse("M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z");
+                }
+                else if (ext is ".mp3" or ".wav" or ".flac" or ".aac" or ".m4a" or ".ogg")
+                {
+                    IconReceivedFile.Data = Geometry.Parse("M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z");
+                }
+                else if (ext is ".pdf")
+                {
+                    IconReceivedFile.Data = Geometry.Parse("M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zm4.5 1.5h1v-2.5h-1V11z");
+                }
+                else if (ext is ".zip" or ".rar" or ".7z" or ".tar" or ".gz")
+                {
+                    IconReceivedFile.Data = Geometry.Parse("M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6 10h-2v-2h2v2zm0-4h-2v-2h2v2z");
+                }
+                else
+                {
+                    IconReceivedFile.Data = Geometry.Parse("M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z");
+                }
+            }
+            catch { }
+
+            ModalReceiveCompletion.Visibility = Visibility.Visible;
+        }
+
+        private void BtnCloseReceiveModal_Click(object sender, RoutedEventArgs e)
+        {
+            ModalReceiveCompletion.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnOpenReceivedFile_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(_lastReceivedFilePath) && File.Exists(_lastReceivedFilePath))
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = _lastReceivedFilePath,
+                        UseShellExecute = true
+                    });
+                }
+                else
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = KtmManager.Instance.DownloadDirectory,
+                        UseShellExecute = true
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Could not open file: {ex.Message}", "KnowToMigrate", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void BtnShowInFolder_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(_lastReceivedFilePath) && File.Exists(_lastReceivedFilePath))
+                {
+                    System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{_lastReceivedFilePath}\"");
+                }
+                else
+                {
+                    System.Diagnostics.Process.Start("explorer.exe", $"\"{KtmManager.Instance.DownloadDirectory}\"");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Could not open folder: {ex.Message}", "KnowToMigrate", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void BtnCopyReceivedFile_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(_lastReceivedFilePath) && File.Exists(_lastReceivedFilePath))
+                {
+                    var fileList = new System.Collections.Specialized.StringCollection { _lastReceivedFilePath };
+                    Clipboard.SetFileDropList(fileList);
+                    TxtCopyFeedback.Text = "✓ Copied to clipboard";
+                    TxtCopyFeedback.Visibility = Visibility.Visible;
+                }
+                else if (!string.IsNullOrEmpty(_lastReceivedFilePath))
+                {
+                    Clipboard.SetText(_lastReceivedFilePath);
+                    TxtCopyFeedback.Text = "✓ Copied path to clipboard";
+                    TxtCopyFeedback.Visibility = Visibility.Visible;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Could not copy file: {ex.Message}", "KnowToMigrate", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         private void ShowNotificationBanner(string title, string body, bool isSuccess)

@@ -315,6 +315,9 @@ namespace KnowToMigrate.Services
                             throw new IOException($"Target file verification failed on disk: {fullTargetPath}");
                         }
 
+                        progress.FinalizedFilePath = fullTargetPath;
+                        progress.FinalizedFileName = Path.GetFileName(fullTargetPath);
+
                         await SendLengthPrefixedJsonAsync(stream, new KtmFileComplete
                         {
                             FileIndex = fileItem.FileIndex,
