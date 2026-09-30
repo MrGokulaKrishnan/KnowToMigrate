@@ -99,12 +99,12 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     KmPrimaryButton(
-                        text = "Send Files",
+                        text = "Launch Transfer",
                         onClick = { navController.navigate(Screen.Send.route) },
                         modifier = Modifier.weight(1f)
                     )
                     KmSecondaryButton(
-                        text = "Receive",
+                        text = "Incoming",
                         onClick = { navController.navigate(Screen.Receive.route) },
                         modifier = Modifier.weight(1f)
                     )
@@ -121,19 +121,19 @@ fun HomeScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Nearby Device Discovery",
+                                text = "Migration Radar",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = KmTextPrimary,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = if (uiDevices.isEmpty()) "Scanning Wi-Fi & Local Network (54123)" else "${uiDevices.size} nearby device(s) online",
+                                text = if (uiDevices.isEmpty()) "Scanning Wi-Fi & Local Network (Pluto Engine)" else "${uiDevices.size} target(s) online",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (uiDevices.isNotEmpty()) KmSuccess else KmTextMuted
                             )
                         }
                         KmBadge(
-                            text = if (uiDevices.isNotEmpty()) "${uiDevices.size} Found" else "Scanning",
+                            text = if (uiDevices.isNotEmpty()) "${uiDevices.size} Online" else "Scanning",
                             color = if (uiDevices.isNotEmpty()) KmSuccess else KmOrange
                         )
                     }
@@ -154,7 +154,7 @@ fun HomeScreen(
             // Nearby devices list
             item {
                 KmSectionHeader(
-                    title = "Nearby Devices",
+                    title = "Migration Targets",
                     subtitle = if (uiDevices.isEmpty()) "Open KnowToMigrate on PC or other phone" else "${uiDevices.size} ready for migration"
                 )
             }
@@ -200,7 +200,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     KmSectionHeader(
-                        title = "Recent Transfers",
+                        title = "Latest Moves",
                         subtitle = if (recentTransfers.isNotEmpty()) "${transfers.size} total" else null
                     )
                     if (transfers.isNotEmpty()) {
@@ -425,11 +425,11 @@ private data class NavItem(val label: String, val icon: androidx.compose.ui.grap
 @Composable
 fun KmBottomBar(selectedIndex: Int, onSelect: (Int) -> Unit) {
     val items = listOf(
-        NavItem("Home", Icons.Default.Home),
-        NavItem("Send", Icons.Default.Upload),
-        NavItem("Receive", Icons.Default.Download),
-        NavItem("History", Icons.Default.History),
-        NavItem("Settings", Icons.Default.Settings),
+        NavItem("Command", Icons.Default.Home),
+        NavItem("Launch", Icons.Default.Upload),
+        NavItem("Incoming", Icons.Default.Download),
+        NavItem("Ledger", Icons.Default.History),
+        NavItem("Control", Icons.Default.Settings),
     )
     NavigationBar(
         containerColor = KmBlackCard,

@@ -50,7 +50,7 @@ fun HistoryScreen(navController: NavController) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Transfer History",
+                        text = "Migration Ledger",
                         style = MaterialTheme.typography.headlineMedium,
                         color = KmTextPrimary,
                         fontWeight = FontWeight.Bold

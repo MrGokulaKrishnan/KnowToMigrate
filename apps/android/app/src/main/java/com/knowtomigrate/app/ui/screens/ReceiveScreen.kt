@@ -476,7 +476,7 @@ fun ReceiveScreen(navController: NavController) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Receive Files",
+                        text = "Incoming Transfers",
                         style = MaterialTheme.typography.headlineMedium,
                         color = KmTextPrimary,
                         fontWeight = FontWeight.Bold
@@ -517,7 +517,7 @@ fun ReceiveScreen(navController: NavController) {
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = if (isDiscoverable) "Ready to Receive" else "Visibility Hidden",
+                                    text = if (isDiscoverable) "Incoming Mode Ready" else "Visibility Hidden",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = KmTextPrimary,
                                     fontWeight = FontWeight.Bold

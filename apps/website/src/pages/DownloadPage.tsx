@@ -12,18 +12,26 @@ interface DownloadEntry {
 
 const WINDOWS_DOWNLOADS: DownloadEntry[] = [
   {
+    filename: 'KnowToMigrate-Setup.exe',
+    version: '1.0.0',
+    size: '63.0 MB',
+    sha256: '00E9DFEFD91ACFF2268AAC4E34631E9A0353598221344AD9C54C82FFA073CBF3',
+    requirements: 'Windows 10 / 11, 64-bit (Official Setup Installer with Start Menu & Desktop Shortcut)',
+    downloadUrl: '/download/KnowToMigrate-Setup.exe.bin',
+  },
+  {
     filename: 'KnowToMigrate-1.0.0-x64.msi',
     version: '1.0.0',
     size: '63.0 MB',
-    sha256: '7EE760BD824E931E4210734F8604ADC7E581192368D7B2E27CF6E072CB417B7D',
-    requirements: 'Windows 10 / 11, 64-bit (Official MSI Installer with Desktop & Start Menu Shortcut)',
+    sha256: 'E10C36228D449E9047B090B631064DCD2F2B8A5D7166148EB6CE528D066BF0CF',
+    requirements: 'Windows 10 / 11, 64-bit (Standard Enterprise Windows Installer Package)',
     downloadUrl: '/download/KnowToMigrate-1.0.0-x64.msi.bin',
   },
   {
-    filename: 'KnowToMigrate-1.0.0-x64.exe',
+    filename: 'KnowToMigrate.exe',
     version: '1.0.0',
     size: '68.9 MB',
-    sha256: 'A7BEFEF0E59A6E6666D947B02922177F370043F0C6DE9DC3E28252B2C33ED0A1',
+    sha256: '7A2DEA198956D6480D5C3F1009B22FAF3AC5808073353129FF07CBD2ED4B2185',
     requirements: 'Windows 10 / 11, 64-bit (Portable Compressed Standalone Executable)',
     downloadUrl: '/download/KnowToMigrate-1.0.0-x64.exe.bin',
   },
@@ -33,8 +41,8 @@ const ANDROID_DOWNLOADS: DownloadEntry[] = [
   {
     filename: 'KnowToMigrate-1.0.0.apk',
     version: '1.0.0',
-    size: '11.0 MB',
-    sha256: 'EE9B8346055CB491E5810A1BF52974A146683DDF872336FDB89325E211AA673F',
+    size: '10.9 MB',
+    sha256: '963EBD343A8F60F3760B1393994E52754764F039D5E62A30F89FD422A67A63BD',
     requirements: 'Android 8.0+ (API 26+) — Enable "Install from unknown sources" in Settings',
     downloadUrl: '/download/KnowToMigrate-1.0.0.apk.bin',
   },

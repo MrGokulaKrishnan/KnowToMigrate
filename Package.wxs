@@ -35,6 +35,18 @@
             <RegistryValue Type="string" Value="[#KnowToMigrateEXE]" />
             <RegistryValue Type="string" Name="Path" Value="[INSTALLFOLDER]" />
           </RegistryKey>
+
+          <!-- Windows Shell Registration: Friendly application name and default icon for Windows Search -->
+          <RegistryKey Root="HKLM" Key="SOFTWARE\Classes\Applications\KnowToMigrate.exe">
+            <RegistryValue Type="string" Name="FriendlyAppName" Value="KnowToMigrate" />
+            <RegistryValue Type="string" Name="ApplicationCompany" Value="KnowToMigrate" />
+          </RegistryKey>
+          <RegistryKey Root="HKLM" Key="SOFTWARE\Classes\Applications\KnowToMigrate.exe\DefaultIcon">
+            <RegistryValue Type="string" Value="[#KnowToMigrateEXE],0" />
+          </RegistryKey>
+          <RegistryKey Root="HKLM" Key="SOFTWARE\Classes\Applications\KnowToMigrate.exe\shell\open\command">
+            <RegistryValue Type="string" Value="&quot;[#KnowToMigrateEXE]&quot;" />
+          </RegistryKey>
         </Component>
 
         <Directory Id="AssetsFolder" Name="Assets">
@@ -47,14 +59,16 @@
     </StandardDirectory>
 
     <!-- Start Menu: Programs -> KnowToMigrate.lnk -->
-    <!-- Direct shortcut under ProgramMenuFolder ensures it appears under 'K' in Windows 11 All Apps list with its embedded icon -->
+    <!-- Direct shortcut under ProgramMenuFolder with explicit Icon reference ensuring Windows Search Indexer resolves the master logo -->
     <StandardDirectory Id="ProgramMenuFolder">
       <Component Id="StartMenuShortcutComponent" Bitness="always64" Guid="B3C2D1E0-6F5A-4B3C-2D1E-0F9A8B7C6D5E">
         <Shortcut Id="AppStartMenuShortcut"
                   Name="KnowToMigrate"
                   Description="KnowToMigrate - Move Anything. Anywhere. Seamlessly."
                   Target="[#KnowToMigrateEXE]"
-                  WorkingDirectory="INSTALLFOLDER">
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="AppIcon"
+                  IconIndex="0">
           <ShortcutProperty Key="System.AppUserModel.ID" Value="KnowToMigrate.App" />
         </Shortcut>
         <RegistryValue Root="HKLM"
@@ -73,7 +87,9 @@
                   Name="KnowToMigrate"
                   Description="KnowToMigrate - Move Anything. Anywhere. Seamlessly."
                   Target="[#KnowToMigrateEXE]"
-                  WorkingDirectory="INSTALLFOLDER">
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="AppIcon"
+                  IconIndex="0">
           <ShortcutProperty Key="System.AppUserModel.ID" Value="KnowToMigrate.App" />
         </Shortcut>
         <RegistryValue Root="HKLM"

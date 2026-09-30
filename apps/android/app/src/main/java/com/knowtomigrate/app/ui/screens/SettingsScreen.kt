@@ -75,7 +75,7 @@ fun SettingsScreen(navController: NavController) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Settings",
+                        text = "Control Center",
                         style = MaterialTheme.typography.headlineMedium,
                         color = KmTextPrimary,
                         fontWeight = FontWeight.Bold

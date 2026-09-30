@@ -94,7 +94,7 @@ fun SendScreen(navController: NavController) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Send Files",
+                        text = "Launch Transfer",
                         style = MaterialTheme.typography.headlineMedium,
                         color = KmTextPrimary,
                         fontWeight = FontWeight.Bold
@@ -236,8 +236,8 @@ fun SendScreen(navController: NavController) {
             // Destination device selector
             item {
                 KmSectionHeader(
-                    title = "Choose Destination Device",
-                    subtitle = if (nearbyDevices.isEmpty()) "Searching for nearby devices..." else "${nearbyDevices.size} nearby device(s) online"
+                    title = "Choose Migration Target",
+                    subtitle = if (nearbyDevices.isEmpty()) "Scanning for migration targets..." else "${nearbyDevices.size} target(s) online"
                 )
             }
 
@@ -320,7 +320,7 @@ fun SendScreen(navController: NavController) {
                                 FilterChip(
                                     selected = isAuto,
                                     onClick = { userTransportOverride = null },
-                                    label = { Text("Auto (Best)") },
+                                    label = { Text("Adaptive Route") },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = KmOrange.copy(alpha = 0.25f),
                                         selectedLabelColor = KmOrange,
@@ -461,7 +461,7 @@ fun SendScreen(navController: NavController) {
                 when {
                     selectedUris.isEmpty() -> {
                         KmPrimaryButton(
-                            text = "Choose Files to Send",
+                            text = "Choose Files to Launch",
                             onClick = { filePicker.launch(arrayOf("*/*")) },
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -480,7 +480,7 @@ fun SendScreen(navController: NavController) {
                                 .height(52.dp)
                         ) {
                             Text(
-                                text = "Select Destination Device Above",
+                                text = "Select Migration Target Above",
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -515,7 +515,7 @@ fun SendScreen(navController: NavController) {
                     else -> {
                         val transportCode = userTransportOverride ?: selectedDevice?.bestTransport ?: "WIFI_LAN"
                         KmPrimaryButton(
-                            text = "Send Now • ${selectedUris.size} File(s)",
+                            text = "Launch Transfer • ${selectedUris.size} File(s)",
                             onClick = {
                                 isSending = true
                                 val targetRaw = discoveredDevices.find { it.deviceId == selectedDevice!!.id } ?: com.knowtomigrate.app.network.DiscoveredDevice(

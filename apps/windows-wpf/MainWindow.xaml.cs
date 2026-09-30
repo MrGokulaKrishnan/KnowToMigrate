@@ -485,7 +485,7 @@ namespace KnowToMigrate
             BtnTransfer.IsEnabled = false;
             PanelProgress.Visibility = Visibility.Visible;
             ProgressBarTransfer.Value = 0;
-            string transportLabel = _forcedTransport == null ? "Auto (Best)" : KtmTransportCodes.GetDisplayName(_forcedTransport);
+            string transportLabel = _forcedTransport == null ? "Adaptive Route" : KtmTransportCodes.GetDisplayName(_forcedTransport);
             TxtProgressTitle.Text = $"Connecting to {targetDevice.DeviceName} ({targetDevice.IpAddress})...";
             TxtActiveTransport.Text = transportLabel;
             TxtDirection.Text = "Connecting";

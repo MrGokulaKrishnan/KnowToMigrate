@@ -421,7 +421,7 @@ fun KmDeviceCard(
                 }
                 if (device.supportedTransports.contains("BLUETOOTH")) {
                     KmTransportPill(
-                        label = "BT",
+                        label = "Bluetooth",
                         isBest = device.bestTransport == "BLUETOOTH",
                         color = Color(0xFF60A5FA)
                     )
@@ -649,19 +649,20 @@ fun KmDiscoveryRadar(
                     val isWindows = dev.platform.contains("win", ignoreCase = true)
                     val icon = if (isWindows) Icons.Default.Devices else Icons.Default.Smartphone
 
-                    Box(
+                    Column(
                         modifier = Modifier
-                            .offset(x = offsetX, y = offsetY)
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .background(KmBlackElevated)
-                            .border(1.5.dp, KmOrange, CircleShape)
-                            .clickable { onDeviceClick?.invoke(dev) },
-                        contentAlignment = Alignment.Center
+                            .offset(x = offsetX - 16.dp, y = offsetY)
+                            .width(80.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(KmBlackElevated)
+                                .border(1.5.dp, KmOrange, CircleShape)
+                                .clickable { onDeviceClick?.invoke(dev) },
+                            contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = icon,
@@ -670,6 +671,16 @@ fun KmDiscoveryRadar(
                                 modifier = Modifier.size(20.dp)
                             )
                         }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = dev.name,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = KmTextPrimary,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
             }

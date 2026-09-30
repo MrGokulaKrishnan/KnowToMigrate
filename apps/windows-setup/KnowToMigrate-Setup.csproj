@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>KnowToMigrate.Setup</RootNamespace>
+    <UseWPF>true</UseWPF>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <ApplicationIcon>..\windows-wpf\Assets\KnowToMigrate.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>KnowToMigrate-Setup</AssemblyName>
+    <Product>KnowToMigrate Setup</Product>
+    <Company>KnowToMigrate</Company>
+    <Description>KnowToMigrate Setup Installer</Description>
+    <AssemblyTitle>KnowToMigrate Setup</AssemblyTitle>
+    <AssemblyProduct>KnowToMigrate</AssemblyProduct>
+    <AssemblyCompany>KnowToMigrate</AssemblyCompany>
+    <AssemblyDescription>KnowToMigrate Windows Installer</AssemblyDescription>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\windows-wpf\Assets\KnowToMigrate.ico" LogicalName="Assets.KnowToMigrate.ico" />
+    <EmbeddedResource Include="..\windows-wpf\Assets\logo.jpg" LogicalName="Assets.logo.jpg" />
+    <EmbeddedResource Include="..\..\releases\windows\publish\KnowToMigrate.exe" LogicalName="Payload.KnowToMigrate.exe" />
+  </ItemGroup>
+
+</Project>
