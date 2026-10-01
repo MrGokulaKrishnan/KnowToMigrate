@@ -79,6 +79,10 @@ namespace KnowToMigrate
                 ListHistory.ItemsSource = KtmManager.Instance.TransferHistory;
                 TxtDownloadDir.Text = KtmManager.Instance.DownloadDirectory;
                 TxtLocalInfo.Text = $"Device: {KtmManager.Instance.LocalDeviceName} ({KtmManager.Instance.LocalDeviceId})";
+                TxtUpdatedOn.Text = "Updated On: " + DateTime.Now.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
+
+                KtmManager.Instance.NearbyDevices.CollectionChanged += (s, e) => UpdateDiscoveryStatus();
+                UpdateDiscoveryStatus();
 
                 KtmManager.Instance.OnProgress += OnTransferProgress;
                 KtmManager.Instance.OnTransferDone += OnTransferCompleted;
@@ -87,6 +91,32 @@ namespace KnowToMigrate
             {
                 MessageBox.Show($"Failed to initialize network services: {ex.Message}", "KnowToMigrate Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        private void UpdateDiscoveryStatus()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                int count = KtmManager.Instance.NearbyDevices.Count;
+                if (count == 0)
+                {
+                    DotDiscoveryStatus.Fill = new SolidColorBrush(Color.FromRgb(0xFF, 0x5A, 0x00));
+                    TxtDiscoveryStatus.Text = "Scanning";
+                    TxtDiscoveryStatus.Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0x8A, 0x00));
+                }
+                else if (count == 1)
+                {
+                    DotDiscoveryStatus.Fill = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
+                    TxtDiscoveryStatus.Text = "1 Target Found";
+                    TxtDiscoveryStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
+                }
+                else
+                {
+                    DotDiscoveryStatus.Fill = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
+                    TxtDiscoveryStatus.Text = $"{count} Targets Found";
+                    TxtDiscoveryStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
+                }
+            });
         }
 
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)

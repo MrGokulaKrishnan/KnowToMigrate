@@ -114,8 +114,10 @@
                         <StackPanel DockPanel.Dock="Bottom">
                             <Border Background="#0C0C0C" BorderBrush="#181818" BorderThickness="1" CornerRadius="10" Padding="12,10">
                                 <StackPanel>
-                                    <TextBlock Text="AES-256-GCM · SHA-256 Verified" Foreground="#777777" FontSize="11" />
-                                    <TextBlock Text="Local Offline P2P Transfer" Foreground="#777777" FontSize="11" Margin="0,2,0,0" />
+                                    <TextBlock Text="KnowToMigrate · v1.0.0" Foreground="#DDDDDD" FontSize="11" FontWeight="SemiBold" />
+                                    <TextBlock x:Name="TxtUpdatedOn" Text="Updated On: 01 October 2026" Foreground="#FF8A00" FontSize="10" Margin="0,2,0,0" />
+                                    <TextBlock Text="Transfer Engine: Pluto Engine" Foreground="#777777" FontSize="10" Margin="0,2,0,0" />
+                                    <TextBlock Text="AES-256-GCM · X25519 · SHA-256" Foreground="#555555" FontSize="10" Margin="0,2,0,0" />
                                     <TextBlock x:Name="TxtLocalInfo" Text="Device: Windows PC" Foreground="#555555" FontSize="10" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
                             </Border>
@@ -124,7 +126,7 @@
                         <!-- Navigation Buttons (Zero Emojis, 10px Radius) -->
                         <StackPanel DockPanel.Dock="Top">
                             <Button x:Name="BtnNavHome" Content="Command Center" Click="Nav_Click" Tag="Home" Style="{StaticResource KmNavButton}" Background="#1C0E00" Foreground="#FF8A00" BorderBrush="#FF5A00" FontWeight="Bold" />
-                            <Button x:Name="BtnNavReceive" Content="Incoming" Click="Nav_Click" Tag="Receive" Style="{StaticResource KmNavButton}" />
+                            <Button x:Name="BtnNavReceive" Content="Landing" Click="Nav_Click" Tag="Receive" Style="{StaticResource KmNavButton}" />
                             <Button x:Name="BtnNavMigration" Content="Migration Wizard" Click="Nav_Click" Tag="Migration" Style="{StaticResource KmNavButton}" />
                             <Button x:Name="BtnNavHistory" Content="Migration Ledger" Click="Nav_Click" Tag="History" Style="{StaticResource KmNavButton}" />
                         </StackPanel>
@@ -177,7 +179,17 @@
                             <!-- Migration Targets Discovery Panel (Glass Card, 16px Radius) -->
                             <Border Grid.Column="1" Background="#080808" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="16" Padding="16">
                                 <DockPanel>
-                                    <TextBlock DockPanel.Dock="Top" Text="Migration Targets" Foreground="#FFFFFF" FontWeight="Bold" FontSize="14" Margin="0,0,0,10" />
+                                    <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Migration Targets" Foreground="#FFFFFF" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Ellipse x:Name="DotDiscoveryStatus" Width="7" Height="7" Fill="#FF5A00" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                            <TextBlock x:Name="TxtDiscoveryStatus" Text="Scanning" Foreground="#FF8A00" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Grid>
                                     
                                     <!-- Direct Connect Bar -->
                                     <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">

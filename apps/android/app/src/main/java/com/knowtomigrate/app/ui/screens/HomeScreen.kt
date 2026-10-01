@@ -1,6 +1,7 @@
 package com.knowtomigrate.app.ui.screens
 
 import android.net.Uri
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,11 +16,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.knowtomigrate.app.data.TransferDirection
 import com.knowtomigrate.app.data.TransferRecord
@@ -104,7 +107,7 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f)
                     )
                     KmSecondaryButton(
-                        text = "Incoming",
+                        text = "Landing",
                         onClick = { navController.navigate(Screen.Receive.route) },
                         modifier = Modifier.weight(1f)
                     )
@@ -119,24 +122,25 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
-                            Text(
-                                text = "Migration Radar",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = KmTextPrimary,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = if (uiDevices.isEmpty()) "Scanning Wi-Fi & Local Network (Pluto Engine)" else "${uiDevices.size} target(s) online",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (uiDevices.isNotEmpty()) KmSuccess else KmTextMuted
-                            )
-                        }
-                        KmBadge(
-                            text = if (uiDevices.isNotEmpty()) "${uiDevices.size} Online" else "Scanning",
-                            color = if (uiDevices.isNotEmpty()) KmSuccess else KmOrange
+                        Text(
+                            text = "Migration Radar",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = KmTextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                        KmInlineRadarStatus(
+                            deviceCount = uiDevices.size,
+                            isScanning = true
                         )
                     }
+                    Text(
+                        text = if (uiDevices.isEmpty()) "Wi-Fi • Local Network" else "${uiDevices.size} ready for migration",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (uiDevices.isNotEmpty()) KmSuccess else KmTextMuted,
+                        maxLines = 1
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
                     KmDiscoveryRadar(
@@ -175,7 +179,15 @@ fun HomeScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "No other devices detected on this network yet.\nMake sure KnowToMigrate is running on your Windows PC or other phone.",
+                                text = "No Migration Targets Yet",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = KmTextSecondary,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Open KnowToMigrate on another device nearby.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = KmTextMuted,
                                 textAlign = TextAlign.Center
@@ -420,42 +432,80 @@ private fun MigrationCtaCard(navController: NavController) {
     }
 }
 
-private data class NavItem(val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
-
 @Composable
 fun KmBottomBar(selectedIndex: Int, onSelect: (Int) -> Unit) {
-    val items = listOf(
-        NavItem("Command", Icons.Default.Home),
-        NavItem("Launch", Icons.Default.Upload),
-        NavItem("Incoming", Icons.Default.Download),
-        NavItem("Ledger", Icons.Default.History),
-        NavItem("Control", Icons.Default.Settings),
-    )
-    NavigationBar(
-        containerColor = KmBlackCard,
-        tonalElevation = 0.dp,
-        modifier = Modifier.border(
-            width = 1.dp,
-            color = KmGlassBorder,
-            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-        )
+    val tabs = remember { KmNavTab.values() }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = KmGlassBorder,
+                shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
+            ),
+        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
+        color = KmBlackCard,
+        shadowElevation = 8.dp
     ) {
-        items.forEachIndexed { idx, item ->
-            NavigationBarItem(
-                selected = selectedIndex == idx,
-                onClick = { onSelect(idx) },
-                icon = {
-                    Icon(item.icon, contentDescription = item.label)
-                },
-                label = { Text(item.label, style = MaterialTheme.typography.labelSmall) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = KmOrange,
-                    selectedTextColor = KmOrange,
-                    unselectedIconColor = KmTextMuted,
-                    unselectedTextColor = KmTextMuted,
-                    indicatorColor = KmOrangeGlow
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 6.dp, vertical = 6.dp)
+                .navigationBarsPadding(),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            tabs.forEachIndexed { idx, tab ->
+                val isSelected = selectedIndex == idx
+
+                val scale by animateFloatAsState(
+                    targetValue = if (isSelected) 1.05f else 1.0f,
+                    animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
+                    label = "tab_scale_$idx"
                 )
-            )
+                val capsuleAlpha by animateFloatAsState(
+                    targetValue = if (isSelected) 1.0f else 0.0f,
+                    animationSpec = tween(200, easing = FastOutSlowInEasing),
+                    label = "tab_capsule_$idx"
+                )
+
+                Box(
+                    modifier = Modifier
+                        .scale(scale)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(KmOrangeGlow.copy(alpha = KmOrangeGlow.alpha * capsuleAlpha))
+                        .then(
+                            if (isSelected) Modifier.border(
+                                width = 1.dp,
+                                color = KmOrange.copy(alpha = 0.35f * capsuleAlpha),
+                                shape = RoundedCornerShape(12.dp)
+                            ) else Modifier
+                        )
+                        .clickable { onSelect(idx) }
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        KmNavIcon(
+                            tab = tab,
+                            isSelected = isSelected,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Text(
+                            text = tab.label,
+                            fontSize = 11.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) KmOrange else KmTextMuted,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
+                }
+            }
         }
     }
 }

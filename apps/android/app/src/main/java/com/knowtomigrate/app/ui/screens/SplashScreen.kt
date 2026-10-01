@@ -5,7 +5,9 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,7 +47,7 @@ fun SplashScreen(navController: NavController) {
     }
 
     val logoAlpha = remember { Animatable(0f) }
-    val logoScale = remember { Animatable(if (isReducedMotion) 1f else 0.88f) }
+    val logoScale = remember { Animatable(if (isReducedMotion) 1f else 0.96f) }
     val glowAlpha = remember { Animatable(0f) }
     val glowRadiusFraction = remember { Animatable(0.85f) }
 
@@ -58,10 +60,10 @@ fun SplashScreen(navController: NavController) {
                 popUpTo(Screen.Splash.route) { inclusive = true }
             }
         } else {
-            // Premium Startup Sequence (~900ms):
-            // 1. Logo appears with subtle fade + scale (0 -> 350ms)
-            // 2. Migration energy animation: subtle orange glow pulse + logo settles (350 -> 750ms)
-            // 3. Smooth transition directly to Home (750 -> 900ms)
+            // Premium Startup Sequence (~850ms):
+            // 1. Logo appears with subtle fade + scale 96% -> 100%
+            // 2. Migration energy animation: subtle orange glow pulse
+            // 3. Smooth transition directly to Home
             
             // Fade in
             launch {
@@ -71,15 +73,11 @@ fun SplashScreen(navController: NavController) {
                 )
             }
             
-            // Scale and settle
+            // Scale smoothly from 96% -> 100%
             launch {
                 logoScale.animateTo(
-                    targetValue = 1.04f,
-                    animationSpec = tween(durationMillis = 380, easing = FastOutSlowInEasing)
-                )
-                logoScale.animateTo(
                     targetValue = 1.0f,
-                    animationSpec = tween(durationMillis = 280, easing = EaseOutCubic)
+                    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
                 )
             }
 
@@ -146,15 +144,27 @@ fun SplashScreen(navController: NavController) {
             }
         }
 
-        // Master KnowToMigrate Logo (aspect ratio preserved 1:1, optically centered)
-        Image(
-            painter = painterResource(id = R.drawable.splash_logo),
-            contentDescription = "KnowToMigrate Logo",
-            contentScale = ContentScale.Fit,
+        // Master KnowToMigrate Logo Container (15% Rounded Corner Radius, Orange Border/Glow)
+        Box(
             modifier = Modifier
-                .size(190.dp)
+                .size(176.dp)
                 .alpha(logoAlpha.value)
                 .scale(logoScale.value)
-        )
+                .background(Color.Black, shape = RoundedCornerShape(26.dp))
+                .border(
+                    width = 1.5.dp,
+                    color = KmOrange.copy(alpha = 0.65f),
+                    shape = RoundedCornerShape(26.dp)
+                )
+                .padding(14.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.splash_logo),
+                contentDescription = "KnowToMigrate Logo",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
     }
 }

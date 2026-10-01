@@ -1,6 +1,7 @@
 package com.knowtomigrate.app.ui.components
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -871,5 +872,202 @@ fun KmStatusDot(
                 .clip(CircleShape)
                 .background(color)
         )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 11. KmInlineRadarStatus — compact non-wrapping inline status indicator
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+fun KmInlineRadarStatus(
+    deviceCount: Int,
+    isScanning: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    val (statusText, statusColor) = when {
+        deviceCount == 1 -> "1 Target Found" to KmSuccess
+        deviceCount > 1  -> "$deviceCount Targets Found" to KmSuccess
+        isScanning       -> "Scanning" to KmOrange
+        else             -> "No Targets" to KmTextMuted
+    }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "inline_radar_pulse")
+    val dotAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "dotAlpha"
+    )
+
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Canvas(modifier = Modifier.size(8.dp)) {
+            val radius = size.minDimension / 2f
+            drawCircle(
+                color = statusColor.copy(alpha = if (isScanning || deviceCount > 0) dotAlpha else 0.5f),
+                radius = radius
+            )
+            if (isScanning || deviceCount > 0) {
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.8f),
+                    radius = radius * 0.45f
+                )
+            }
+        }
+        Text(
+            text = statusText,
+            color = statusColor,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            softWrap = false
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 12. Bespoke KnowToMigrate Navigation Tabs & Vector Iconography
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum class KmNavTab(val label: String, val contentDescription: String) {
+    COMMAND("Command", "Command Center"),
+    LAUNCH("Launch", "Launch Transfer"),
+    LANDING("Landing", "Landing Transfers"),
+    LEDGER("Ledger", "Migration Ledger"),
+    CONTROL("Control", "Control Center")
+}
+
+@Composable
+fun KmNavIcon(
+    tab: KmNavTab,
+    isSelected: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val color = if (isSelected) KmOrange else KmTextMuted
+
+    Canvas(modifier = modifier.size(24.dp)) {
+        val w = size.width
+        val h = size.height
+        val strokePx = 1.75.dp.toPx()
+
+        when (tab) {
+            KmNavTab.COMMAND -> {
+                // Upper protective chevron / energy roof
+                val roofPath = Path().apply {
+                    moveTo(w * 0.18f, h * 0.44f)
+                    lineTo(w * 0.50f, h * 0.16f)
+                    lineTo(w * 0.82f, h * 0.44f)
+                }
+                drawPath(roofPath, color = color, style = Stroke(width = strokePx, cap = StrokeCap.Round, join = StrokeJoin.Round))
+
+                // Side walls and base
+                val bodyPath = Path().apply {
+                    moveTo(w * 0.24f, h * 0.42f)
+                    lineTo(w * 0.24f, h * 0.84f)
+                    lineTo(w * 0.76f, h * 0.84f)
+                    lineTo(w * 0.76f, h * 0.42f)
+                }
+                drawPath(bodyPath, color = color, style = Stroke(width = strokePx, cap = StrokeCap.Round, join = StrokeJoin.Round))
+
+                // Central glowing energy core circle
+                drawCircle(
+                    color = color,
+                    radius = w * 0.11f,
+                    center = Offset(w * 0.50f, h * 0.60f),
+                    style = if (isSelected) androidx.compose.ui.graphics.drawscope.Fill else Stroke(width = strokePx)
+                )
+            }
+            KmNavTab.LAUNCH -> {
+                // Diagonal supersonic arrow shaft from bottom-left to top-right
+                drawLine(
+                    color = color,
+                    start = Offset(w * 0.22f, h * 0.78f),
+                    end = Offset(w * 0.78f, h * 0.22f),
+                    strokeWidth = strokePx,
+                    cap = StrokeCap.Round
+                )
+                // Arrowhead at top-right
+                val headPath = Path().apply {
+                    moveTo(w * 0.46f, h * 0.22f)
+                    lineTo(w * 0.78f, h * 0.22f)
+                    lineTo(w * 0.78f, h * 0.54f)
+                }
+                drawPath(headPath, color = color, style = Stroke(width = strokePx, cap = StrokeCap.Round, join = StrokeJoin.Round))
+
+                // Speed fin chevron
+                val finPath = Path().apply {
+                    moveTo(w * 0.26f, h * 0.46f)
+                    lineTo(w * 0.54f, h * 0.46f)
+                    lineTo(w * 0.54f, h * 0.74f)
+                }
+                drawPath(finPath, color = color.copy(alpha = if (isSelected) 0.85f else 0.5f), style = Stroke(width = strokePx * 0.9f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+            }
+            KmNavTab.LANDING -> {
+                // Horizontal landing receptor cradle at bottom
+                val cradlePath = Path().apply {
+                    moveTo(w * 0.18f, h * 0.72f)
+                    lineTo(w * 0.18f, h * 0.84f)
+                    lineTo(w * 0.82f, h * 0.84f)
+                    lineTo(w * 0.82f, h * 0.72f)
+                }
+                drawPath(cradlePath, color = color, style = Stroke(width = strokePx, cap = StrokeCap.Round, join = StrokeJoin.Round))
+
+                // Downward central landing vector
+                drawLine(
+                    color = color,
+                    start = Offset(w * 0.50f, h * 0.16f),
+                    end = Offset(w * 0.50f, h * 0.66f),
+                    strokeWidth = strokePx,
+                    cap = StrokeCap.Round
+                )
+                // Downward arrowhead
+                val arrowHead = Path().apply {
+                    moveTo(w * 0.32f, h * 0.48f)
+                    lineTo(w * 0.50f, h * 0.66f)
+                    lineTo(w * 0.68f, h * 0.48f)
+                }
+                drawPath(arrowHead, color = color, style = Stroke(width = strokePx, cap = StrokeCap.Round, join = StrokeJoin.Round))
+            }
+            KmNavTab.LEDGER -> {
+                // Cryptographic ledger document outline
+                val cardPath = Path().apply {
+                    moveTo(w * 0.24f, h * 0.16f)
+                    lineTo(w * 0.76f, h * 0.16f)
+                    lineTo(w * 0.76f, h * 0.84f)
+                    lineTo(w * 0.24f, h * 0.84f)
+                    close()
+                }
+                drawPath(cardPath, color = color, style = Stroke(width = strokePx, cap = StrokeCap.Round, join = StrokeJoin.Round))
+
+                // 3 ledger entry timeline bars
+                drawLine(color = color, start = Offset(w * 0.38f, h * 0.34f), end = Offset(w * 0.64f, h * 0.34f), strokeWidth = strokePx, cap = StrokeCap.Round)
+                drawLine(color = color, start = Offset(w * 0.38f, h * 0.50f), end = Offset(w * 0.64f, h * 0.50f), strokeWidth = strokePx, cap = StrokeCap.Round)
+                drawLine(color = color, start = Offset(w * 0.38f, h * 0.66f), end = Offset(w * 0.54f, h * 0.66f), strokeWidth = strokePx, cap = StrokeCap.Round)
+
+                // Checkpoint verification pip
+                drawCircle(color = if (isSelected) KmOrange else KmTextMuted, radius = w * 0.05f, center = Offset(w * 0.32f, h * 0.50f))
+            }
+            KmNavTab.CONTROL -> {
+                // Precision tuning sliders
+                // Row 1: Line with node at right
+                drawLine(color = color, start = Offset(w * 0.18f, h * 0.30f), end = Offset(w * 0.82f, h * 0.30f), strokeWidth = strokePx, cap = StrokeCap.Round)
+                drawCircle(color = color, radius = w * 0.08f, center = Offset(w * 0.64f, h * 0.30f), style = if (isSelected) androidx.compose.ui.graphics.drawscope.Fill else Stroke(width = strokePx))
+
+                // Row 2: Line with node at left
+                drawLine(color = color, start = Offset(w * 0.18f, h * 0.50f), end = Offset(w * 0.82f, h * 0.50f), strokeWidth = strokePx, cap = StrokeCap.Round)
+                drawCircle(color = color, radius = w * 0.08f, center = Offset(w * 0.36f, h * 0.50f), style = if (isSelected) androidx.compose.ui.graphics.drawscope.Fill else Stroke(width = strokePx))
+
+                // Row 3: Line with node at center
+                drawLine(color = color, start = Offset(w * 0.18f, h * 0.70f), end = Offset(w * 0.82f, h * 0.70f), strokeWidth = strokePx, cap = StrokeCap.Round)
+                drawCircle(color = color, radius = w * 0.08f, center = Offset(w * 0.58f, h * 0.70f), style = if (isSelected) androidx.compose.ui.graphics.drawscope.Fill else Stroke(width = strokePx))
+            }
+        }
     }
 }

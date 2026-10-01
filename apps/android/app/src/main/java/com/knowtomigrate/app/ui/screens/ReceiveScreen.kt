@@ -476,7 +476,7 @@ fun ReceiveScreen(navController: NavController) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Incoming Transfers",
+                        text = "Landing",
                         style = MaterialTheme.typography.headlineMedium,
                         color = KmTextPrimary,
                         fontWeight = FontWeight.Bold
@@ -517,7 +517,7 @@ fun ReceiveScreen(navController: NavController) {
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = if (isDiscoverable) "Incoming Mode Ready" else "Visibility Hidden",
+                                    text = if (isDiscoverable) "Landing Ready" else "Visibility Hidden",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = KmTextPrimary,
                                     fontWeight = FontWeight.Bold
@@ -764,7 +764,7 @@ fun ReceiveScreen(navController: NavController) {
                     device = UiDevice("remote", incomingSender.ifBlank { "Nearby Device" }, "remote", "", "online"),
                     pin = incomingPin,
                     transport = incomingTransport,
-                    files = listOf("Incoming Encrypted Transfer"),
+                    files = listOf("Encrypted Landing Transfer"),
                     onAccept = { showIncomingRequest = false },
                     onDecline = { showIncomingRequest = false }
                 )
@@ -846,7 +846,7 @@ private fun IncomingRequestSheet(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Incoming Transfer Request",
+            text = "Landing Transfer Request",
             style = MaterialTheme.typography.headlineSmall,
             color = KmTextPrimary,
             fontWeight = FontWeight.Bold

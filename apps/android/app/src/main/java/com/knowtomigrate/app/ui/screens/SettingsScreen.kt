@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.knowtomigrate.app.BuildConfig
 import com.knowtomigrate.app.ui.components.KmBadge
 import com.knowtomigrate.app.ui.components.KmSecondaryButton
 import com.knowtomigrate.app.ui.theme.*
@@ -292,7 +293,9 @@ fun SettingsScreen(navController: NavController) {
                     Divider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsInfoRow(label = "Application Version", value = "1.0.0")
                     Divider(color = KmGlassBorder, thickness = 0.5.dp)
-                    SettingsInfoRow(label = "Transfer Engine", value = "Pluto Engine (v2 Direct)")
+                    SettingsInfoRow(label = "Updated On", value = try { BuildConfig.BUILD_DATE } catch (_: Throwable) { "01 October 2026" })
+                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    SettingsInfoRow(label = "Transfer Engine", value = "Pluto Engine")
                     Divider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsInfoRow(label = "Protocol Specification", value = "Pluto v2 Multi-Transport")
                     Divider(color = KmGlassBorder, thickness = 0.5.dp)

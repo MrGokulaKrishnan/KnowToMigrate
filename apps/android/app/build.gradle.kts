@@ -1,3 +1,7 @@
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -15,6 +19,8 @@ android {
         versionCode = 1
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        val buildDateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.ENGLISH))
+        buildConfigField("String", "BUILD_DATE", "\"$buildDateStr\"")
     }
 
     signingConfigs {
@@ -55,6 +61,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
