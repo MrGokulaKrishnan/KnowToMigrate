@@ -123,6 +123,7 @@ namespace KnowToMigrate
         {
             // Save window state on close so we can restore it correctly next launch
             WindowBoundsManager.SaveWindowState(this);
+            Views.IncomingTransferWindow.CancelPending();
             _transferCts?.Cancel();
             KtmManager.Instance.Stop();
         }
@@ -143,7 +144,7 @@ namespace KnowToMigrate
                     else
                     {
                         ShowNotificationBanner(
-                            title: "✓ Transfer Complete",
+                            title: "Transfer Complete",
                             body: $"{info.CurrentFileName} ({KtmFormatting.FormatBytes(info.TotalBytes)}) · Verified",
                             isSuccess: true
                         );
@@ -231,42 +232,15 @@ namespace KnowToMigrate
         private void BtnCloseReceiveModal_Click(object sender, RoutedEventArgs e)
         {
             ModalReceiveCompletion.Visibility = Visibility.Collapsed;
+            PanelCopyFeedback.Visibility = Visibility.Collapsed;
         }
 
-        private TaskCompletionSource<bool>? _incomingTransferTcs;
+        private TaskCompletionSource<bool>? _incomingTransferTcs = null;
 
         public Task<bool> PromptIncomingTransferAsync(KtmHandshake handshake)
         {
-            return Dispatcher.InvokeAsync(() =>
-            {
-                _incomingTransferTcs?.TrySetResult(false);
-                _incomingTransferTcs = new TaskCompletionSource<bool>();
-
-                TxtIncomingDeviceName.Text = string.IsNullOrEmpty(handshake.DeviceName) ? "Nearby Device" : handshake.DeviceName;
-                TxtIncomingPlatform.Text = string.IsNullOrEmpty(handshake.Platform) ? "Android" : handshake.Platform;
-
-                string transportName = KtmTransportCodes.GetDisplayName(handshake.SelectedTransport);
-                TxtIncomingTransport.Text = $"● {transportName} · Verified Connection";
-
-                // Group PIN digits into 354 446 format for readability
-                string rawPin = handshake.Pin ?? "";
-                if (rawPin.Length == 6)
-                {
-                    TxtIncomingPin.Text = $"{rawPin.Substring(0, 3)} {rawPin.Substring(3, 3)}";
-                }
-                else
-                {
-                    TxtIncomingPin.Text = rawPin;
-                }
-
-                // Smooth animated entrance (Section 15)
-                ModalIncomingTransfer.Opacity = 0;
-                ModalIncomingTransfer.Visibility = Visibility.Visible;
-                var anim = new System.Windows.Media.Animation.DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220));
-                ModalIncomingTransfer.BeginAnimation(UIElement.OpacityProperty, anim);
-
-                return _incomingTransferTcs.Task;
-            }).Result;
+            // Dedicated transient IncomingTransferWindow: appears above desktop, flashes taskbar if background, without locking TopMost
+            return Views.IncomingTransferWindow.EnqueueAndPromptAsync(handshake);
         }
 
         private void BtnAcceptTransfer_Click(object sender, RoutedEventArgs e)
@@ -335,14 +309,14 @@ namespace KnowToMigrate
                 {
                     var fileList = new System.Collections.Specialized.StringCollection { _lastReceivedFilePath };
                     Clipboard.SetFileDropList(fileList);
-                    TxtCopyFeedback.Text = "✓ Copied to clipboard";
-                    TxtCopyFeedback.Visibility = Visibility.Visible;
+                    TxtCopyFeedback.Text = "Copied to clipboard";
+                    PanelCopyFeedback.Visibility = Visibility.Visible;
                 }
                 else if (!string.IsNullOrEmpty(_lastReceivedFilePath))
                 {
                     Clipboard.SetText(_lastReceivedFilePath);
-                    TxtCopyFeedback.Text = "✓ Copied path to clipboard";
-                    TxtCopyFeedback.Visibility = Visibility.Visible;
+                    TxtCopyFeedback.Text = "Copied path to clipboard";
+                    PanelCopyFeedback.Visibility = Visibility.Visible;
                 }
             }
             catch (Exception ex)

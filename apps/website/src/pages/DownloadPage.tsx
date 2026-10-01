@@ -15,7 +15,7 @@ const WINDOWS_DOWNLOADS: DownloadEntry[] = [
     filename: 'KnowToMigrate-Setup.exe',
     version: '1.0.0',
     size: '63.0 MB',
-    sha256: '6C6676B908CA6F071B27C3D1DAA435D0CF83890BB83E9767D553A35D32492850',
+    sha256: '153FDC0C8F583A82DF9837574B97557246CB616756BC43DDB06A025F340B2AD5',
     requirements: 'Windows 10 / 11, 64-bit (Official Setup Installer with Start Menu & Desktop Shortcut)',
     downloadUrl: '/download/KnowToMigrate-Setup.exe.bin',
   },
@@ -23,7 +23,7 @@ const WINDOWS_DOWNLOADS: DownloadEntry[] = [
     filename: 'KnowToMigrate-1.0.0-x64.msi',
     version: '1.0.0',
     size: '63.0 MB',
-    sha256: 'D445B4AF9D6A0B7BDE8D30F157D6A099B153D4362D4F7412FA292AE8B6D8EF9E',
+    sha256: '580E23419AD5F4753F9AC8A3FBCFE39E2E198F4367C2E8D6D294C733E5547A09',
     requirements: 'Windows 10 / 11, 64-bit (Standard Enterprise Windows Installer Package)',
     downloadUrl: '/download/KnowToMigrate-1.0.0-x64.msi.bin',
   },
@@ -31,7 +31,7 @@ const WINDOWS_DOWNLOADS: DownloadEntry[] = [
     filename: 'KnowToMigrate.exe',
     version: '1.0.0',
     size: '68.9 MB',
-    sha256: 'E1F502ED86FF9B92446EBAA0FDEB1CCF7EE842D42C0A50D89A7F448F157A7174',
+    sha256: '6293BB1B45259B95F7CB184461E0B451E3431CE5876AD8A56903B771BF0C8BDE',
     requirements: 'Windows 10 / 11, 64-bit (Portable Compressed Standalone Executable)',
     downloadUrl: '/download/KnowToMigrate-1.0.0-x64.exe.bin',
   },
@@ -42,7 +42,7 @@ const ANDROID_DOWNLOADS: DownloadEntry[] = [
     filename: 'KnowToMigrate-1.0.0.apk',
     version: '1.0.0',
     size: '11.0 MB',
-    sha256: '3B426B0691F5FC8FFF834C05D7B924E73EA654CB50864BF1D34F0AD17E1D45EB',
+    sha256: '35909C8904A169C7F09AC0CC0926877F8000366D07F450D3B3CE862686AB37F5',
     requirements: 'Android 8.0+ (API 26+) — Enable "Install from unknown sources" in Settings',
     downloadUrl: '/download/KnowToMigrate-1.0.0.apk.bin',
   },
@@ -222,7 +222,7 @@ function DownloadCard({ entry, icon: Icon }: { entry: DownloadEntry; icon: React
         type="button"
         onClick={handleDownload}
         disabled={status !== 'idle' && status !== 'complete'}
-        className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:brightness-110 active:scale-[0.98] disabled:opacity-90"
+        className="mt-4 flex items-center justify-center gap-2 w-full min-h-[46px] px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:brightness-110 active:scale-[0.98] disabled:opacity-90 leading-snug text-center whitespace-normal break-words"
         style={{
           background: status === 'complete'
             ? 'linear-gradient(135deg, #16A34A, #22C55E)'

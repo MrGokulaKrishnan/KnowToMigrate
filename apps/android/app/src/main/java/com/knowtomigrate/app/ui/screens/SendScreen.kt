@@ -180,24 +180,11 @@ fun SendScreen(navController: NavController, initialUris: List<Uri> = emptyList(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(44.dp)
-                                        .clip(CircleShape)
-                                        .background(KmSuccess.copy(alpha = 0.2f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = null,
-                                        tint = KmSuccess,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
+                                KmSuccessCheckBadge(containerSize = 34.dp, checkSize = 16.dp)
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column {
                                     Text(
-                                        text = "${selectedUris.size} file(s) selected",
+                                        text = if (selectedUris.size == 1) "1 file selected" else "${selectedUris.size} files selected",
                                         style = MaterialTheme.typography.titleSmall,
                                         color = KmTextPrimary,
                                         fontWeight = FontWeight.Bold
@@ -315,50 +302,83 @@ fun SendScreen(navController: NavController, initialUris: List<Uri> = emptyList(
                             )
 
                             // Transport Selection Chips
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                FilterChip(
-                                    selected = isAuto,
-                                    onClick = { userTransportOverride = null },
-                                    label = { Text("Adaptive Route") },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = KmOrange.copy(alpha = 0.25f),
-                                        selectedLabelColor = KmOrange,
-                                        labelColor = KmTextSecondary
-                                    )
-                                )
-                                FilterChip(
-                                    selected = userTransportOverride == "WIFI_LAN",
-                                    onClick = { userTransportOverride = "WIFI_LAN" },
-                                    label = { Text("Wi-Fi") },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = KmOrange.copy(alpha = 0.25f),
-                                        selectedLabelColor = KmOrange,
-                                        labelColor = KmTextSecondary
-                                    )
-                                )
-                                FilterChip(
-                                    selected = userTransportOverride == "WIFI_DIRECT",
-                                    onClick = { userTransportOverride = "WIFI_DIRECT" },
-                                    label = { Text("Wi-Fi Direct") },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = KmInfo.copy(alpha = 0.25f),
-                                        selectedLabelColor = KmInfo,
-                                        labelColor = KmTextSecondary
-                                    )
-                                )
-                                FilterChip(
-                                    selected = userTransportOverride == "BLUETOOTH",
-                                    onClick = { userTransportOverride = "BLUETOOTH" },
-                                    label = { Text("Bluetooth") },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Color(0xFF60A5FA).copy(alpha = 0.25f),
-                                        selectedLabelColor = Color(0xFF60A5FA),
-                                        labelColor = KmTextSecondary
-                                    )
-                                )
+                            // Transport Selection Controls (Responsive: single row on wide/tablet, 2x2 grid on mobile)
+                            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                                if (maxWidth >= 420.dp) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        KmTransportButton(
+                                            label = "Adaptive Route",
+                                            isSelected = isAuto,
+                                            onClick = { userTransportOverride = null },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        KmTransportButton(
+                                            label = "Wi-Fi",
+                                            isSelected = userTransportOverride == "WIFI_LAN",
+                                            onClick = { userTransportOverride = "WIFI_LAN" },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        KmTransportButton(
+                                            label = "Wi-Fi Direct",
+                                            isSelected = userTransportOverride == "WIFI_DIRECT",
+                                            onClick = { userTransportOverride = "WIFI_DIRECT" },
+                                            accentColor = KmInfo,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        KmTransportButton(
+                                            label = "Bluetooth",
+                                            isSelected = userTransportOverride == "BLUETOOTH",
+                                            onClick = { userTransportOverride = "BLUETOOTH" },
+                                            accentColor = Color(0xFF60A5FA),
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                } else {
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            KmTransportButton(
+                                                label = "Adaptive Route",
+                                                isSelected = isAuto,
+                                                onClick = { userTransportOverride = null },
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            KmTransportButton(
+                                                label = "Wi-Fi",
+                                                isSelected = userTransportOverride == "WIFI_LAN",
+                                                onClick = { userTransportOverride = "WIFI_LAN" },
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            KmTransportButton(
+                                                label = "Wi-Fi Direct",
+                                                isSelected = userTransportOverride == "WIFI_DIRECT",
+                                                onClick = { userTransportOverride = "WIFI_DIRECT" },
+                                                accentColor = KmInfo,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            KmTransportButton(
+                                                label = "Bluetooth",
+                                                isSelected = userTransportOverride == "BLUETOOTH",
+                                                onClick = { userTransportOverride = "BLUETOOTH" },
+                                                accentColor = Color(0xFF60A5FA),
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
+                                    }
+                                }
                             }
 
                             Row(
@@ -371,11 +391,16 @@ fun SendScreen(navController: NavController, initialUris: List<Uri> = emptyList(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = KmTextSecondary
                                 )
-                                Text(
-                                    text = "Security: AES-256-GCM + PIN",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = KmSuccess
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    KmCheckIcon(size = 11.dp, tint = KmSuccess, strokeWidth = 2.dp)
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "AES-256-GCM + PIN",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = KmSuccess,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
                             }
                         }
                     }
@@ -672,12 +697,16 @@ private fun SelectedFileCard(uri: Uri, onRemove: () -> Unit) {
                         color = KmTextMuted
                     )
                 }
-                Text(
-                    text = "✓ Ready",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = KmSuccess,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    KmCheckIcon(size = 11.dp, tint = KmSuccess, strokeWidth = 2.dp)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Ready",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = KmSuccess,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
 

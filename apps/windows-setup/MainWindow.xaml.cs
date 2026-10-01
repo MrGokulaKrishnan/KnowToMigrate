@@ -127,7 +127,7 @@ namespace KnowToMigrate.Setup
 
                 ProgressBarInstall.Value = 100;
                 TxtStatus.Text = "Installation completed successfully!";
-                TxtResult.Text = "✓ Ready to use";
+                TxtResult.Text = "Ready to use";
                 TxtResult.Visibility = Visibility.Visible;
 
                 if (launchOnFinish && File.Exists(AppExePath))

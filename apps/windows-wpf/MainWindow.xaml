@@ -42,8 +42,8 @@
                     <!-- Title Bar Brand Icon and Text -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0"
                                 WindowChrome.IsHitTestVisibleInChrome="True">
-                        <Border CornerRadius="4.5" Width="22" Height="22" BorderBrush="#FF5A00" BorderThickness="1" Background="#000000">
-                            <Path Data="M13,2 L3,14 L12,14 L11,22 L21,10 L12,10 Z" Fill="#FF8A00" Width="12" Height="12" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Border CornerRadius="4.5" Width="22" Height="22" BorderBrush="#FF5A00" BorderThickness="1" Background="#000000" SnapsToDevicePixels="True" ClipToBounds="True">
+                            <Image x:Name="ImgTitleBarLogo" Source="Assets/logo.png" Width="16" Height="16" RenderOptions.BitmapScalingMode="HighQuality" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <TextBlock Text="KnowToMigrate" Foreground="#FFFFFF" FontWeight="Bold" FontSize="13" Margin="10,0,0,0" VerticalAlignment="Center" />
                         <TextBlock Text="·" Foreground="#444444" FontSize="13" Margin="6,0,6,0" VerticalAlignment="Center" />
@@ -269,15 +269,15 @@
 
                                 <!-- Compact Transport Cards / Selector Buttons -->
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Button x:Name="BtnTransportAuto" Content="Adaptive Route" Click="TransportSelect_Click" Tag="AUTO" Style="{StaticResource KmPrimaryButton}" Height="32" Padding="14,0" FontSize="11" Margin="0,0,6,0" />
-                                    <Button x:Name="BtnTransportWifi" Content="Wi-Fi" Click="TransportSelect_Click" Tag="WIFI_LAN" Style="{StaticResource KmGlassButton}" Height="32" Padding="12,0" FontSize="11" Margin="0,0,6,0" />
-                                    <Button x:Name="BtnTransportDirect" Content="Direct" Click="TransportSelect_Click" Tag="WIFI_DIRECT" Style="{StaticResource KmGlassButton}" Height="32" Padding="12,0" FontSize="11" Margin="0,0,6,0" />
-                                    <Button x:Name="BtnTransportBt" Click="TransportSelect_Click" Tag="BLUETOOTH" Style="{StaticResource KmGlassButton}" Height="32" Padding="10,0" FontSize="11">
+                                    <Button x:Name="BtnTransportAuto" Content="Adaptive Route" Click="TransportSelect_Click" Tag="AUTO" Style="{StaticResource KmPrimaryButton}" MinHeight="36" Padding="14,6" FontSize="11" Margin="0,0,6,0" />
+                                    <Button x:Name="BtnTransportWifi" Content="Wi-Fi" Click="TransportSelect_Click" Tag="WIFI_LAN" Style="{StaticResource KmGlassButton}" MinHeight="36" Padding="14,6" FontSize="11" Margin="0,0,6,0" />
+                                    <Button x:Name="BtnTransportDirect" Content="Direct" Click="TransportSelect_Click" Tag="WIFI_DIRECT" Style="{StaticResource KmGlassButton}" MinHeight="36" Padding="14,6" FontSize="11" Margin="0,0,6,0" />
+                                    <Button x:Name="BtnTransportBt" Click="TransportSelect_Click" Tag="BLUETOOTH" Style="{StaticResource KmGlassButton}" MinHeight="36" Padding="12,6" FontSize="11">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <Border Width="16" Height="16" CornerRadius="4" Background="#0F172A" BorderBrush="#60A5FA" BorderThickness="1" Margin="0,0,6,0">
                                                 <Path Data="M17.71,7.71L12,2h-1v7.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L11,14.41V22h1l5.71-5.71L13.41,12L17.71,7.71z M13,5.83l1.88,1.88L13,9.59V5.83z M13,18.17v-3.76l1.88,1.88L13,18.17z" Fill="#60A5FA" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
-                                            <TextBlock Text="Bluetooth" Foreground="#60A5FA"/>
+                                            <TextBlock Text="Bluetooth" Foreground="#60A5FA" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>
@@ -383,7 +383,7 @@
                                     <TextBlock x:Name="TxtStatus" Text="Ready to transfer · UDP Discovery Active (Port 54123)" Foreground="#FF8A00" FontWeight="SemiBold" FontSize="13" />
                                     <TextBlock x:Name="TxtFileInfo" Text="0 files staged (0 B) · Select a device on the right" Foreground="#777777" FontSize="12" Margin="0,2,0,0" />
                                 </StackPanel>
-                                <Button x:Name="BtnTransfer" Grid.Column="1" Content="Transfer Files" Click="TransferNow_Click" Style="{StaticResource KmPrimaryButton}" Height="46" Padding="26,0" FontSize="14" />
+                                <Button x:Name="BtnTransfer" Grid.Column="1" Content="Transfer Files" Click="TransferNow_Click" Style="{StaticResource KmPrimaryButton}" MinHeight="46" Padding="26,10" FontSize="14" />
                             </Grid>
                         </Border>
                     </Grid>
@@ -406,7 +406,7 @@
                                     <StackPanel>
                                         <TextBlock Text="Download Directory:" Foreground="#AAAAAA" FontSize="12" FontWeight="SemiBold" />
                                         <TextBlock x:Name="TxtDownloadDir" Text="C:\Users\...\Downloads\KnowToMigrate" Foreground="#FF8A00" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,12" />
-                                        <Button Content="Change Folder" Click="ChangeDownloadFolder_Click" Style="{StaticResource KmGlassButton}" Height="34" HorizontalAlignment="Left" />
+                                        <Button Content="Change Folder" Click="ChangeDownloadFolder_Click" Style="{StaticResource KmGlassButton}" MinHeight="36" Padding="16,8" HorizontalAlignment="Left" />
                                     </StackPanel>
                                 </Border>
 
@@ -533,7 +533,7 @@
                             <Border.Effect>
                                 <DropShadowEffect Color="#22C55E" BlurRadius="24" ShadowDepth="0" Opacity="0.5"/>
                             </Border.Effect>
-                            <Path Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Fill="#22C55E" Width="32" Height="32" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Path Data="{StaticResource KmCheckIconGeometry}" Stroke="#22C55E" StrokeThickness="2.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="32" Height="32" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <TextBlock Text="File Received" Foreground="#FFFFFF" FontWeight="ExtraBold" FontSize="20" HorizontalAlignment="Center" Margin="0,14,0,2" />
                         <TextBlock Text="Verified · End-to-End Encrypted (AES-256-GCM)" Foreground="#22C55E" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" />
@@ -586,13 +586,16 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="Open" Click="BtnOpenReceivedFile_Click" Style="{StaticResource KmPrimaryButton}" Height="40" Margin="0,0,6,0" FontSize="12" FontWeight="SemiBold" />
-                        <Button Grid.Column="1" Content="Show in Folder" Click="BtnShowInFolder_Click" Style="{StaticResource KmGlassButton}" Height="40" Margin="3,0,3,0" FontSize="11" />
-                        <Button Grid.Column="2" Content="Copy" Click="BtnCopyReceivedFile_Click" Style="{StaticResource KmGlassButton}" Height="40" Margin="6,0,0,0" FontSize="11" />
+                        <Button Grid.Column="0" Content="Open" Click="BtnOpenReceivedFile_Click" Style="{StaticResource KmPrimaryButton}" MinHeight="40" Margin="0,0,6,0" FontSize="12" FontWeight="SemiBold" />
+                        <Button Grid.Column="1" Content="Show in Folder" Click="BtnShowInFolder_Click" Style="{StaticResource KmGlassButton}" MinHeight="40" Margin="3,0,3,0" FontSize="11" />
+                        <Button Grid.Column="2" Content="Copy" Click="BtnCopyReceivedFile_Click" Style="{StaticResource KmGlassButton}" MinHeight="40" Margin="6,0,0,0" FontSize="11" />
                     </Grid>
 
                     <!-- Row 5: Feedback label -->
-                    <TextBlock x:Name="TxtCopyFeedback" Grid.Row="5" Text="✓ Copied to clipboard" Foreground="#22C55E" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,10,0,0" Visibility="Collapsed" />
+                    <StackPanel x:Name="PanelCopyFeedback" Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0" Visibility="Collapsed">
+                        <Path Data="{StaticResource KmCheckIconGeometry}" Stroke="#22C55E" StrokeThickness="2.2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBlock x:Name="TxtCopyFeedback" Text="Copied to clipboard" Foreground="#22C55E" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
                 </Grid>
             </Border>
         </Grid>
@@ -621,8 +624,8 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border CornerRadius="5" Width="20" Height="20" Background="#1A0D00" BorderBrush="#FF5A00" BorderThickness="1" Margin="0,0,8,0">
-                                <Path Data="M13,2 L3,14 L12,14 L11,22 L21,10 L12,10 Z" Fill="#FF8A00" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Border CornerRadius="5" Width="22" Height="22" Background="#000000" BorderBrush="#FF5A00" BorderThickness="1" Margin="0,0,8,0" SnapsToDevicePixels="True" ClipToBounds="True">
+                                <Image Source="Assets/logo.png" Width="16" Height="16" RenderOptions.BitmapScalingMode="HighQuality" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <TextBlock Text="KnowToMigrate" Foreground="#FF8A00" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" />
                         </StackPanel>
@@ -676,8 +679,8 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="1.4*" />
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="Decline" Click="BtnDeclineTransfer_Click" Style="{StaticResource KmGlassButton}" Height="44" Margin="0,0,8,0" Foreground="#FF5555" BorderBrush="#442222" FontSize="13" />
-                        <Button Grid.Column="1" Content="Accept Transfer" Click="BtnAcceptTransfer_Click" Style="{StaticResource KmPrimaryButton}" Height="44" Margin="8,0,0,0" FontSize="13" FontWeight="Bold" />
+                        <Button Grid.Column="0" Content="Decline" Click="BtnDeclineTransfer_Click" Style="{StaticResource KmGlassButton}" MinHeight="44" Padding="16,10" Margin="0,0,8,0" Foreground="#FF5555" BorderBrush="#442222" FontSize="13" />
+                        <Button Grid.Column="1" Content="Accept Transfer" Click="BtnAcceptTransfer_Click" Style="{StaticResource KmPrimaryButton}" MinHeight="44" Padding="20,10" Margin="8,0,0,0" FontSize="13" FontWeight="Bold" />
                     </Grid>
                 </Grid>
             </Border>

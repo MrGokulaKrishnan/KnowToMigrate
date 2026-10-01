@@ -1163,3 +1163,133 @@ fun KmNavIcon(
         }
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Unified Precision Vector Check Icon (consistent across Android & Windows)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+fun KmCheckIcon(
+    modifier: Modifier = Modifier,
+    size: Dp = 14.dp,
+    tint: Color = KmSuccess,
+    strokeWidth: Dp = 2.dp
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        val path = Path().apply {
+            moveTo(w * 0.18f, h * 0.52f)
+            lineTo(w * 0.40f, h * 0.74f)
+            lineTo(w * 0.82f, h * 0.28f)
+        }
+        drawPath(
+            path = path,
+            color = tint,
+            style = Stroke(
+                width = strokeWidth.toPx(),
+                cap = StrokeCap.Round,
+                join = StrokeJoin.Round
+            )
+        )
+    }
+}
+
+@Composable
+fun KmSuccessCheckBadge(
+    modifier: Modifier = Modifier,
+    containerSize: Dp = 32.dp,
+    checkSize: Dp = 15.dp,
+    tint: Color = KmSuccess
+) {
+    Box(
+        modifier = modifier
+            .size(containerSize)
+            .clip(RoundedCornerShape(containerSize * 0.35f))
+            .background(Color(0xFF0D2818))
+            .border(1.dp, tint.copy(alpha = 0.8f), RoundedCornerShape(containerSize * 0.35f))
+            .drawBehind {
+                drawCircle(
+                    color = tint.copy(alpha = 0.15f),
+                    radius = size.minDimension * 0.65f
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        KmCheckIcon(size = checkSize, tint = tint, strokeWidth = 2.2.dp)
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Unified Transport Pipeline Button (Adaptive Route, Wi-Fi, Wi-Fi Direct, Bluetooth)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+fun KmTransportButton(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    enabled: Boolean = true,
+    accentColor: Color = KmOrange
+) {
+    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed && enabled) 0.97f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 500f),
+        label = "transport_btn_scale"
+    )
+
+    Box(
+        modifier = modifier
+            .scale(scale)
+            .height(40.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(
+                if (isSelected) {
+                    Brush.linearGradient(
+                        colors = listOf(
+                            accentColor.copy(alpha = 0.35f),
+                            accentColor.copy(alpha = 0.15f)
+                        )
+                    )
+                } else {
+                    SolidColor(KmGlassBackground)
+                }
+            )
+            .border(
+                width = if (isSelected) 1.5.dp else 1.dp,
+                color = if (isSelected) accentColor else KmGlassBorder,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .clickable(enabled = enabled, interactionSource = interactionSource, indication = null, onClick = onClick)
+            .padding(horizontal = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = if (isSelected) accentColor else KmTextMuted,
+                    modifier = Modifier.size(15.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+            }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = if (isSelected) Color.White else if (enabled) KmTextSecondary else KmTextDisabled,
+                maxLines = 1,
+                softWrap = false
+            )
+        }
+    }
+}
+

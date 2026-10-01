@@ -165,8 +165,8 @@ namespace KnowToMigrate.Services
                     wpfWidth  = Math.Min(wpfWidth,  waRect.Width  / dpiX);
                     wpfHeight = Math.Min(wpfHeight, waRect.Height / dpiY);
 
-                    targetLeft = waRect.Left  / dpiX + (waRect.Width  / dpiX - wpfWidth)  / 2;
-                    targetTop  = waRect.Top   / dpiY + (waRect.Height / dpiY - wpfHeight) / 2;
+                    targetLeft = Math.Max(waRect.Left / dpiX, waRect.Left / dpiX + (waRect.Width / dpiX - wpfWidth) / 2);
+                    targetTop  = Math.Max(waRect.Top  / dpiY, waRect.Top  / dpiY + (waRect.Height / dpiY - wpfHeight) / 2);
 
                     System.Diagnostics.Debug.WriteLine(
                         $"[WBM] Safe center: L={targetLeft} T={targetTop} W={wpfWidth} H={wpfHeight}");
@@ -178,6 +178,7 @@ namespace KnowToMigrate.Services
                 window.Width  = wpfWidth;
                 window.Height = wpfHeight;
                 window.WindowState = WindowState.Normal;
+                window.Activate();
             }
             catch (Exception ex)
             {

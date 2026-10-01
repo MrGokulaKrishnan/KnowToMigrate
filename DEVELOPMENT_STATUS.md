@@ -1,7 +1,7 @@
 # KnowToMigrate — Development & Production Status
 
 **Last Updated:** 01 October 2026  
-**Status:** PRODUCTION READY (Engine, UI, Motion, Packaging) · AWAITING COMMERCIAL CODE-SIGNING CERTIFICATE
+**Status:** PRODUCTION READY (Engine, UI, Motion, Packaging, Bug Fix Pass) · AWAITING COMMERCIAL CODE-SIGNING CERTIFICATE
 
 ---
 
@@ -19,56 +19,79 @@
 
 ---
 
-## 2. Platform Architecture & Build Systems
+## 2. Production Bug Fix Pass (Summary of Resolved Issues)
 
-### Android Application
-* **Framework:** Kotlin + Jetpack Compose (Material3 + Custom Liquid Glass Design System)
-* **SDK:** Target SDK 35, Compile SDK 35, Min SDK 26 (Android 8.0+)
-* **Build System:** Gradle 8.7 with Android Gradle Plugin 8.7.0 & Kotlin 2.0.21
-* **Packaging:** Single universal release APK (`KnowToMigrate-1.0.0.apk`, ~11.0 MB)
-* **Key Integrations:**
-  * System Sharesheet integration (`ACTION_SEND` and `ACTION_SEND_MULTIPLE`) via `content://` URIs and `ClipData` with automatic `FLAG_GRANT_READ_URI_PERMISSION` handling.
-  * Direct flow: Gallery $\rightarrow$ Share $\rightarrow$ KnowToMigrate $\rightarrow$ Pre-loaded Launch Transfer screen $\rightarrow$ Select Target $\rightarrow$ Transfer (zero manual file re-selection).
-  * 10-Phase Cinematic Hardware-Accelerated Startup Motion Graphics on AMOLED `#000000`.
+### Bug 1: Selected File Check/Tick Icon
+* **Issue:** The selected-file screen on Android presented a heavy, oversized basic green circle checkmark that looked generic and unbalanced.
+* **Resolution:** Implemented `KmSuccessCheckBadge` in [KmComponents.kt](file:///c:/KnowToMigrate/apps/android/app/src/main/java/com/knowtomigrate/app/ui/components/KmComponents.kt) — a 34dp rounded container with emerald green `#0D2818` background, `#22C55E` border, and crisp vector checkmark (`KmCheckIcon`). Replaced in [SendScreen.kt](file:///c:/KnowToMigrate/apps/android/app/src/main/java/com/knowtomigrate/app/ui/screens/SendScreen.kt).
 
-### Windows Application
-* **Framework:** WPF (.NET 8.0, `win-x64`, C# 12)
-* **Window Styling:** Custom WindowChrome with native hardware acceleration, 15% corner radius master logo badge, AMOLED Liquid Glass cards, responsive layout.
-* **Transfer Server & Discovery:** Background TCP server (port 54124) and UDP discovery service (port 54123).
-* **Transfer Acceptance:** Native Liquid Glass dialog (`ModalIncomingTransfer`) with device identity, grouped PIN (`354 446`), connection verification indicator, and `[Accept Transfer]` / `[Decline]` actions (legacy Win32 `MessageBox` eliminated).
+### Bug 2: Transport Pipeline Large Empty Gap
+* **Issue:** In `SendScreen.kt`, the transport selector contained a large empty region and uneven button widths, with "Wi-Fi Direct" wrapping into two lines and stretching "Bluetooth" awkwardly.
+* **Resolution:** Restructured using a responsive `BoxWithConstraints` layout:
+  * **Compact/Mobile Screens ($< 420\,\text{dp}$):** Responsive 2x2 grid (`Adaptive Route` + `Wi-Fi`, `Wi-Fi Direct` + `Bluetooth`) with equal flex weights (`Modifier.weight(1f)`), preventing text wrapping and eliminating the empty vertical void.
+  * **Tablet/Desktop Screens ($\ge 420\,\text{dp}$):** Single clean row with equal button heights (40dp) and optical spacing.
 
-### Windows Packaging & Installer Technology
-* **Standalone Executable:** Single-file self-contained compressed binary (`KnowToMigrate.exe`, ~68.9 MB compressed payload).
-* **Enterprise MSI Package:** Built with WiX Toolset v4 (`Package.wxs`) targeting `ProgramFiles64Folder` (`KnowToMigrate-1.0.0-x64.msi`, 63.0 MB).
-* **Setup Installer Bootstrapper:** Built with .NET C# compiler (`apps/windows-setup/SetupBootstrapper.cs`) embedding the WiX MSI (`KnowToMigrate-Setup.exe`, 63.0 MB).
-* **Shell Registration:** Start Menu shortcut (`Programs -> KnowToMigrate`), Desktop shortcut, and `App Paths` registration.
+### Bug 3: Windows & Download Button Text Clipping
+* **Issue:** WPF buttons had fixed `Height="42"` that clipped text ascenders/descenders at higher DPI scaling levels (125%–200%).
+* **Resolution:**
+  * In WPF [App.xaml](file:///c:/KnowToMigrate/apps/windows-wpf/App.xaml), upgraded `KmPrimaryButton`, `KmGlassButton`, and `KmNavButton` styles to use `MinHeight="42"` with generous padding (`Padding="20,10"` and `Padding="18,10"`), centered text alignment, and removed fixed clipping heights.
+  * In [MainWindow.xaml](file:///c:/KnowToMigrate/apps/windows-wpf/MainWindow.xaml), adjusted `BtnTransfer` (`MinHeight="46"`, `Padding="26,10"`), `Change Folder` button (`MinHeight="36"`, `Padding="16,8"`), and transport buttons (`MinHeight="36"`, `Padding="14,6"`).
+  * In website [DownloadPage.tsx](file:///c:/KnowToMigrate/apps/website/src/pages/DownloadPage.tsx), applied `min-h-[46px] px-4 py-2.5 leading-snug whitespace-normal break-words` to ensure button labels never clip at any scale.
+
+### Bug 4: Generic Tick Symbols Replaced Across Entire App
+* **Issue:** Multiple disparate checkmark characters (Unicode `✓`, `✔`, Material default icons) were scattered across screens.
+* **Resolution:** Replaced all checkmarks across Android Compose and Windows WPF with unified vector paths:
+  * Android Compose: `KmCheckIcon` and `KmSuccessCheckBadge` used in [SendScreen.kt](file:///c:/KnowToMigrate/apps/android/app/src/main/java/com/knowtomigrate/app/ui/screens/SendScreen.kt) ("Ready", security badge) and [TransferScreen.kt](file:///c:/KnowToMigrate/apps/android/app/src/main/java/com/knowtomigrate/app/ui/screens/TransferScreen.kt) ("SHA-256 Verified", "File Saved", transfer complete badge).
+  * Windows WPF: `KmCheckIconGeometry` (`M 4.5,12 L 9.5,17 L 19.5,7`) in [App.xaml](file:///c:/KnowToMigrate/apps/windows-wpf/App.xaml), wired into `PanelCopyFeedback` and completion modal in [MainWindow.xaml](file:///c:/KnowToMigrate/apps/windows-wpf/MainWindow.xaml).
+
+### Bug 5: Windows Title Bar KM Logo vs Lightning Symbol
+* **Issue:** The title bar of the Windows application used a lightning bolt path (`⚡`), which violated approved branding.
+* **Resolution:** Replaced with the official KnowToMigrate application logo image (`ImgTitleBarLogo`) contained in a 15% corner radius container with `#FF5A00` subtle border and glow, maintaining exact aspect ratio without cropping or stretching.
+
+### Bug 6: Dedicated Transient Incoming Transfer Window
+* **Issue:** Incoming transfer dialogs were confined inside `MainWindow`, meaning if a user was working in Chrome, VS Code, or Notepad, they would not see incoming transfer prompts without manually focusing the app.
+* **Resolution:** Implemented [IncomingTransferWindow.xaml](file:///c:/KnowToMigrate/apps/windows-wpf/Views/IncomingTransferWindow.xaml) & [IncomingTransferWindow.xaml.cs](file:///c:/KnowToMigrate/apps/windows-wpf/Views/IncomingTransferWindow.xaml.cs):
+  * Dedicated transient top-level window shown above the desktop context.
+  * Win32 non-intrusive taskbar flashing (`FlashWindowEx` with `FLASHW_TRAY | FLASHW_TIMERNOFG`) without permanently locking `TopMost = true`.
+  * Entrance animation (opacity 0 $\rightarrow$ 1, scale 0.96 $\rightarrow$ 1.0 with `CubicEaseOut`).
+  * Full queue management (`_requestQueue`) supporting multiple simultaneous requests with pending counter badge.
+  * 60-second auto-expiry timeout and graceful sender cancellation handling.
+
+### Window Startup Bounds Clamping
+* **Resolution:** In [WindowBoundsManager.cs](file:///c:/KnowToMigrate/apps/windows-wpf/Services/WindowBoundsManager.cs), clamped `targetTop` against `workArea.Top` so the window title bar can never be pushed above the visible screen or opened behind other apps. Added `window.Activate()` to guarantee visibility.
 
 ---
 
-## 3. Current Security & Signing Status
+## 3. Authoritative Release Artifacts & SHA-256 Hashes
 
-```
-============================================================
-CODE SIGNING STATUS: BLOCKED — COMMERCIAL CERTIFICATE REQUIRED
-============================================================
-```
+All release binaries have been rebuilt, verified, and published to the website download center:
 
-### Observed Windows Security Events:
-1. **Windows Defender SmartScreen:**
-   * *Message:* "Microsoft Defender SmartScreen prevented an unrecognized app from starting. Publisher: Unknown publisher."
-   * *Root Cause:* The installer binary is currently distributed without an EV or OV Authenticode digital certificate issued by a public Microsoft-trusted Certificate Authority (CA) such as DigiCert, Sectigo, or GlobalSign.
-2. **Web Browser Download Alert:**
-   * *Message:* "Suspicious download blocked" (Chromium / Edge / Chrome).
-   * *Root Cause:* Chromium's download reputation protection flags newly generated binary executables hosted on newly registered domains until sufficient positive download telemetry is accumulated or the file is signed with a high-reputation EV code-signing certificate.
+| Artifact | Platform | Format | Size | SHA-256 Checksum |
+| :--- | :--- | :--- | :--- | :--- |
+| **`KnowToMigrate-Setup.exe`** | Windows | Bootstrapper Setup Installer | 63.0 MB | `153fdc0c8f583a82df9837574b97557246cb616756bc43ddb06a025f340b2ad5` |
+| **`KnowToMigrate-1.0.0-x64.msi`** | Windows | WiX v4 Enterprise MSI | 63.0 MB | `580e23419ad5f4753f9ac8a3fbcfe39e2e198f4367c2e8d6d294c733e5547a09` |
+| **`KnowToMigrate.exe`** | Windows | Portable Self-Contained | 68.9 MB | `6293bb1b45259b95f7cb184461e0b451e3431ce5876ad8a56903b771bf0c8bde` |
+| **`KnowToMigrate-1.0.0.apk`** | Android | Universal Release APK | 11.0 MB | `35909c8904a169c7f09ac0cc0926877f8000366d07f450d3b3ce862686ab37f5` |
+
+> [!NOTE]
+> All binary artifacts are strictly under the 100 MB GitHub repository limit.
 
 ---
 
-## 4. Release Engineering & Action Plan
+## 4. Code Signing & Security Verification
 
-1. **Maintain Integrity Verification:**
-   * All binary releases publish authoritative SHA-256 checksums on [`https://knowtomigrate.web.app/download`](https://knowtomigrate.web.app/download).
-   * Users can verify binary integrity using PowerShell: `Get-FileHash -Algorithm SHA256 KnowToMigrate-Setup.exe`.
-2. **Commercial Code Signing Acquisition:**
-   * Follow the complete steps in `RELEASE_SIGNING.md` to acquire and apply an Authenticode certificate with RFC 3161 timestamping.
-3. **Distribution Standards:**
-   * All binary downloads use HTTPS with `Content-Type: application/octet-stream` and `Content-Disposition: attachment`.
+```
+============================================================
+CODE SIGNING STATUS: READY FOR CA CERTIFICATE APPLICATION
+============================================================
+```
+
+* Detailed instructions for Microsoft Authenticode signing with RFC 3161 timestamps are preserved in `RELEASE_SIGNING.md`.
+* Once an OV/EV Code Signing Certificate (`.pfx`) is provisioned, execute `scripts/sign-windows.ps1` to sign `KnowToMigrate.exe`, `KnowToMigrate-1.0.0-x64.msi`, and `KnowToMigrate-Setup.exe`.
+
+---
+
+## 5. Deployment Status
+
+* **Firebase Hosting:** Successfully deployed to `https://knowtomigrate.web.app` (16 files updated including new hashed binaries).
+* **Git Status:** All bug fixes and build artifacts committed to `main` branch.

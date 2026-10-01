@@ -22,6 +22,8 @@ apps/windows/bin/
 apps/windows/obj/
 apps/windows-wpf/bin/
 apps/windows-wpf/obj/
+apps/windows-setup/bin/
+apps/windows-setup/obj/
 test_wpf/
 *.wixpdb
 *.cab

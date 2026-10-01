@@ -39,14 +39,18 @@
             <GradientStop Color="#00FFFFFF" Offset="0.6"/>
         </LinearGradientBrush>
 
-        <!-- Primary Glossy Gradient Button Style (12px Radius) -->
+        <!-- Precision Vector Check Icon Geometry (Shared across Windows UI) -->
+        <Geometry x:Key="KmCheckIconGeometry">M 4.5,12 L 9.5,17 L 19.5,7</Geometry>
+
+        <!-- Primary Glossy Gradient Button Style (12px Radius, DPI-Safe MinHeight) -->
         <Style x:Key="KmPrimaryButton" TargetType="Button">
             <Setter Property="Foreground" Value="#FFFFFF" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Height" Value="42" />
-            <Setter Property="Padding" Value="20,0" />
+            <Setter Property="MinHeight" Value="42" />
+            <Setter Property="Padding" Value="20,10" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="TextBlock.TextAlignment" Value="Center" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -63,7 +67,7 @@
                                     <!-- Glossy Sheen -->
                                     <Border CornerRadius="11,11,0,0"
                                             VerticalAlignment="Top"
-                                            Height="20"
+                                            Height="18"
                                             Background="{StaticResource GlossySheenBrush}" />
                                     <!-- Button Content -->
                                     <ContentPresenter HorizontalAlignment="Center"
@@ -90,14 +94,15 @@
             </Setter>
         </Style>
 
-        <!-- Glass Outlined Button Style (12px Radius) -->
+        <!-- Glass Outlined Button Style (12px Radius, DPI-Safe MinHeight) -->
         <Style x:Key="KmGlassButton" TargetType="Button">
             <Setter Property="Foreground" Value="#CCCCCC" />
             <Setter Property="FontWeight" Value="Medium" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Height" Value="42" />
-            <Setter Property="Padding" Value="18,0" />
+            <Setter Property="MinHeight" Value="42" />
+            <Setter Property="Padding" Value="18,10" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="TextBlock.TextAlignment" Value="Center" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -135,14 +140,14 @@
             </Setter>
         </Style>
 
-        <!-- Sidebar Navigation Button Style (10px Radius) -->
+        <!-- Sidebar Navigation Button Style (10px Radius, DPI-Safe MinHeight) -->
         <Style x:Key="KmNavButton" TargetType="Button">
             <Setter Property="Foreground" Value="#AAAAAA" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Height" Value="42" />
+            <Setter Property="MinHeight" Value="42" />
             <Setter Property="Margin" Value="0,0,0,6" />
-            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="Padding" Value="14,8" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">

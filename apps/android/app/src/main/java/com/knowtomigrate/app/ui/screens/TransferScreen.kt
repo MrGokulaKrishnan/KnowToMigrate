@@ -256,21 +256,7 @@ fun TransferScreen(navController: NavController, sessionId: String) {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(52.dp)
-                                .clip(androidx.compose.foundation.shape.CircleShape)
-                                .background(KmSuccess.copy(alpha = 0.2f))
-                                .border(1.5.dp, KmSuccess, androidx.compose.foundation.shape.CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = null,
-                                tint = KmSuccess,
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
+                        KmSuccessCheckBadge(containerSize = 54.dp, checkSize = 24.dp)
                         Text(
                             text = "Transfer Complete",
                             style = MaterialTheme.typography.titleLarge,
@@ -278,21 +264,29 @@ fun TransferScreen(navController: NavController, sessionId: String) {
                             fontWeight = FontWeight.Bold
                         )
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "✓ SHA-256 Verified",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = KmSuccess,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = "✓ File Saved",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = KmSuccess,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                KmCheckIcon(size = 12.dp, tint = KmSuccess, strokeWidth = 2.dp)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "SHA-256 Verified",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = KmSuccess,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                KmCheckIcon(size = 12.dp, tint = KmSuccess, strokeWidth = 2.dp)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "File Saved",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = KmSuccess,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         KmPrimaryButton(
