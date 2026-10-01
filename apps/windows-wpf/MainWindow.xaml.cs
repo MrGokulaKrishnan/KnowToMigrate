@@ -107,13 +107,13 @@ namespace KnowToMigrate
                 else if (count == 1)
                 {
                     DotDiscoveryStatus.Fill = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
-                    TxtDiscoveryStatus.Text = "1 Target Found";
+                    TxtDiscoveryStatus.Text = "1 Target";
                     TxtDiscoveryStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
                 }
                 else
                 {
                     DotDiscoveryStatus.Fill = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
-                    TxtDiscoveryStatus.Text = $"{count} Targets Found";
+                    TxtDiscoveryStatus.Text = $"{count} Targets";
                     TxtDiscoveryStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
                 }
             });

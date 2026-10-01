@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,7 +45,7 @@ data class UiDevice(
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. KmPrimaryButton — orange gradient glossy button
+// 1. KmPrimaryButton — orange gradient glossy button with spring micro-interaction
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -54,9 +55,18 @@ fun KmPrimaryButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
+    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed && enabled) 0.965f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 500f),
+        label = "btn_press_scale"
+    )
+
     Button(
         onClick = onClick,
         enabled = enabled,
+        interactionSource = interactionSource,
         shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,
@@ -66,22 +76,33 @@ fun KmPrimaryButton(
         ),
         contentPadding = PaddingValues(0.dp),
         modifier = modifier
+            .scale(scale)
             .height(52.dp)
             .drawBehind {
                 if (enabled) {
+                    // Soft orange outer glow
+                    drawRoundRect(
+                        brush = Brush.radialGradient(
+                            colors = listOf(KmOrangeGlowStrong, Color.Transparent),
+                            center = Offset(size.width / 2f, size.height / 2f),
+                            radius = size.width * 0.6f
+                        ),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(16.dp.toPx()),
+                    )
+                    // Full spectrum brand gradient: #FF4D00 -> #FF6500 -> #FF8A00
                     drawRoundRect(
                         brush = Brush.linearGradient(
-                            colors = listOf(KmOrangeLight, KmOrange, KmOrangeDark),
+                            colors = listOf(KmOrangeDark, KmOrangeMid, KmOrangeLight),
                             start = Offset(0f, 0f),
                             end = Offset(size.width, size.height)
                         ),
                         cornerRadius = androidx.compose.ui.geometry.CornerRadius(14.dp.toPx()),
                     )
-                    // Top gloss highlight
+                    // Specular glossy top sheen
                     drawRoundRect(
                         brush = Brush.verticalGradient(
-                            colors = listOf(Color(0x33FFFFFF), Color.Transparent),
-                            endY = size.height / 2f
+                            colors = listOf(Color(0x45FFFFFF), Color(0x10FFFFFF), Color.Transparent),
+                            endY = size.height * 0.58f
                         ),
                         cornerRadius = androidx.compose.ui.geometry.CornerRadius(14.dp.toPx()),
                     )
@@ -103,7 +124,7 @@ fun KmPrimaryButton(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. KmSecondaryButton — glass button
+// 2. KmSecondaryButton — glass button with spring micro-interaction
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -112,26 +133,49 @@ fun KmSecondaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 500f),
+        label = "btn_sec_scale"
+    )
+
     OutlinedButton(
         onClick = onClick,
+        interactionSource = interactionSource,
         shape = RoundedCornerShape(14.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, KmGlassBorder),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = KmGlassBackground,
+            containerColor = KmGlassSurfaceSecondary,
             contentColor = KmTextPrimary
         ),
-        modifier = modifier.height(52.dp)
+        modifier = modifier
+            .scale(scale)
+            .height(52.dp)
+            .drawBehind {
+                // Subtle top gloss highlight
+                drawLine(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color.Transparent, Color(0x22FFFFFF), Color.Transparent)
+                    ),
+                    start = Offset(14.dp.toPx(), 1.dp.toPx()),
+                    end = Offset(size.width - 14.dp.toPx(), 1.dp.toPx()),
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
     ) {
         Text(
             text = text,
             style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. KmGlassCard — frosted glass container card
+// 3. KmGlassCard — Liquid Glass frosted surface with top specular highlight
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -141,10 +185,28 @@ fun KmGlassCard(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(KmGlassBackground)
-            .border(1.dp, KmGlassBorder, RoundedCornerShape(16.dp))
-            .padding(16.dp),
+            .clip(RoundedCornerShape(18.dp))
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        KmGlassSurfaceSecondary,
+                        KmGlassBackground
+                    )
+                )
+            )
+            .border(1.dp, KmGlassBorder, RoundedCornerShape(18.dp))
+            .drawBehind {
+                // Subtle specular line at top border
+                drawLine(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color.Transparent, Color(0x25FFFFFF), Color.Transparent)
+                    ),
+                    start = Offset(18.dp.toPx(), 1.dp.toPx()),
+                    end = Offset(size.width - 18.dp.toPx(), 1.dp.toPx()),
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
+            .padding(18.dp),
         content = content
     )
 }
@@ -693,17 +755,24 @@ fun KmDiscoveryRadar(
 // 8. KmTransferAnimation — animated lightning bolt between two device icons
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 8. KmTransferAnimation — animated directional lightning energy stream between devices
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
-fun KmTransferAnimation(modifier: Modifier = Modifier) {
+fun KmTransferAnimation(
+    modifier: Modifier = Modifier,
+    isSender: Boolean = true
+) {
     val infiniteTransition = rememberInfiniteTransition(label = "transfer")
     val boltAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f, targetValue = 1f,
+        initialValue = 0.35f, targetValue = 1f,
         animationSpec = infiniteRepeatable(tween(600, easing = FastOutSlowInEasing), RepeatMode.Reverse),
         label = "boltAlpha"
     )
     val particleProgress by infiniteTransition.animateFloat(
         initialValue = 0f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1200, easing = LinearEasing)),
+        animationSpec = infiniteRepeatable(tween(1100, easing = LinearEasing)),
         label = "particle"
     )
 
@@ -714,24 +783,28 @@ fun KmTransferAnimation(modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Source device icon
+        // Source device icon (Left)
         Box(
             modifier = Modifier
                 .size(56.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(KmBlackElevated)
-                .border(1.dp, KmGlassBorder, RoundedCornerShape(12.dp)),
+                .clip(RoundedCornerShape(14.dp))
+                .background(if (isSender) KmBlackElevated else KmOrangeGlow)
+                .border(
+                    width = 1.dp,
+                    color = if (isSender) KmGlassBorder else KmOrange.copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(14.dp)
+                ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Smartphone,
-                contentDescription = "Source device",
-                tint = KmTextSecondary,
-                modifier = Modifier.size(32.dp)
+                contentDescription = if (isSender) "Local Device (Sender)" else "Remote Device (Sender)",
+                tint = if (isSender) KmTextSecondary else KmOrange,
+                modifier = Modifier.size(30.dp)
             )
         }
 
-        // Lightning bolt path canvas
+        // Directional energy stream canvas
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -743,28 +816,43 @@ fun KmTransferAnimation(modifier: Modifier = Modifier) {
                 val h = size.height
                 val midY = h / 2f
 
-                // Draw data particle dot along the line
-                val particleX = w * particleProgress
+                // Directional energy stream particle (left -> right if sender, right -> left if receiver)
+                val particleX = if (isSender) w * particleProgress else w * (1f - particleProgress)
+
+                // Particle glow
                 drawCircle(
-                    color = KmOrange,
-                    radius = 4.dp.toPx(),
+                    brush = Brush.radialGradient(
+                        colors = listOf(KmOrangeLight, KmOrange.copy(alpha = 0.35f), Color.Transparent),
+                        center = Offset(particleX, midY),
+                        radius = 12.dp.toPx()
+                    ),
+                    radius = 12.dp.toPx(),
                     center = Offset(particleX, midY)
                 )
-                // Glow behind particle
+                // Solid energy particle
                 drawCircle(
-                    color = KmOrange.copy(alpha = 0.3f),
-                    radius = 10.dp.toPx(),
+                    color = Color.White,
+                    radius = 3.5.dp.toPx(),
                     center = Offset(particleX, midY)
                 )
 
-                // Zigzag lightning bolt
+                // Dynamic lightning / energy stream path
                 val path = Path().apply {
-                    moveTo(0f, midY)
-                    lineTo(w * 0.35f, midY - 12.dp.toPx())
-                    lineTo(w * 0.5f, midY + 8.dp.toPx())
-                    lineTo(w * 0.65f, midY - 12.dp.toPx())
-                    lineTo(w, midY)
+                    if (isSender) {
+                        moveTo(0f, midY)
+                        lineTo(w * 0.35f, midY - 10.dp.toPx())
+                        lineTo(w * 0.50f, midY + 8.dp.toPx())
+                        lineTo(w * 0.65f, midY - 10.dp.toPx())
+                        lineTo(w, midY)
+                    } else {
+                        moveTo(w, midY)
+                        lineTo(w * 0.65f, midY - 10.dp.toPx())
+                        lineTo(w * 0.50f, midY + 8.dp.toPx())
+                        lineTo(w * 0.35f, midY - 10.dp.toPx())
+                        lineTo(0f, midY)
+                    }
                 }
+
                 drawPath(
                     path = path,
                     brush = Brush.horizontalGradient(
@@ -779,20 +867,24 @@ fun KmTransferAnimation(modifier: Modifier = Modifier) {
             }
         }
 
-        // Target device icon
+        // Target device icon (Right)
         Box(
             modifier = Modifier
                 .size(56.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(KmBlackElevated)
-                .border(1.dp, KmOrange.copy(alpha = 0.5f), RoundedCornerShape(12.dp)),
+                .clip(RoundedCornerShape(14.dp))
+                .background(if (isSender) KmOrangeGlow else KmBlackElevated)
+                .border(
+                    width = 1.dp,
+                    color = if (isSender) KmOrange.copy(alpha = 0.6f) else KmGlassBorder,
+                    shape = RoundedCornerShape(14.dp)
+                ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Smartphone,
-                contentDescription = "Target device",
-                tint = KmOrange,
-                modifier = Modifier.size(32.dp)
+                contentDescription = if (isSender) "Remote Device (Receiver)" else "Local Device (Receiver)",
+                tint = if (isSender) KmOrange else KmTextSecondary,
+                modifier = Modifier.size(30.dp)
             )
         }
     }
@@ -886,10 +978,10 @@ fun KmInlineRadarStatus(
     modifier: Modifier = Modifier
 ) {
     val (statusText, statusColor) = when {
-        deviceCount == 1 -> "1 Target Found" to KmSuccess
-        deviceCount > 1  -> "$deviceCount Targets Found" to KmSuccess
+        deviceCount == 1 -> "1 Target" to KmSuccess
+        deviceCount > 1  -> "$deviceCount Targets" to KmSuccess
         isScanning       -> "Scanning" to KmOrange
-        else             -> "No Targets" to KmTextMuted
+        else             -> "Ready" to KmSuccess
     }
 
     val infiniteTransition = rememberInfiniteTransition(label = "inline_radar_pulse")

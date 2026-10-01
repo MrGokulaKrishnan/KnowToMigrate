@@ -1,6 +1,10 @@
 package com.knowtomigrate.app.ui.navigation
 
 import android.net.Uri
+import androidx.compose.animation.*
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.navigation.*
 import androidx.navigation.compose.*
@@ -22,9 +26,30 @@ sealed class Screen(val route: String) {
 @Composable
 fun KtmNavGraph(sharedUris: List<Uri> = emptyList()) {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = Screen.Splash.route) {
-        composable(Screen.Splash.route) { SplashScreen(navController) }
-        composable(Screen.Home.route) { HomeScreen(navController, sharedUris) }
+    NavHost(
+        navController = navController,
+        startDestination = Screen.Splash.route
+    ) {
+        composable(
+            route = Screen.Splash.route,
+            exitTransition = {
+                fadeOut(animationSpec = tween(220, easing = FastOutSlowInEasing))
+            }
+        ) {
+            SplashScreen(navController)
+        }
+        composable(
+            route = Screen.Home.route,
+            enterTransition = {
+                fadeIn(animationSpec = tween(280, easing = FastOutSlowInEasing)) +
+                slideInVertically(
+                    initialOffsetY = { 40 },
+                    animationSpec = tween(280, easing = EaseOutCubic)
+                )
+            }
+        ) {
+            HomeScreen(navController, sharedUris)
+        }
         composable(Screen.Send.route) { SendScreen(navController) }
         composable(Screen.Receive.route) { ReceiveScreen(navController) }
         composable(Screen.Transfer.route) { backStackEntry ->

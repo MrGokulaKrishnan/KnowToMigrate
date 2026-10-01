@@ -16,7 +16,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -436,73 +438,92 @@ private fun MigrationCtaCard(navController: NavController) {
 fun KmBottomBar(selectedIndex: Int, onSelect: (Int) -> Unit) {
     val tabs = remember { KmNavTab.values() }
 
-    Surface(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .border(
-                width = 1.dp,
-                color = KmGlassBorder,
-                shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
-            ),
-        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
-        color = KmBlackCard,
-        shadowElevation = 8.dp
+            .navigationBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Row(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 6.dp, vertical = 6.dp)
-                .navigationBarsPadding(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+                .clip(RoundedCornerShape(26.dp))
+                .border(
+                    width = 1.dp,
+                    color = KmGlassBorder,
+                    shape = RoundedCornerShape(26.dp)
+                )
+                .drawBehind {
+                    // Top subtle specular gloss line
+                    drawLine(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(Color.Transparent, Color(0x30FFFFFF), Color.Transparent)
+                        ),
+                        start = Offset(26.dp.toPx(), 1.dp.toPx()),
+                        end = Offset(this.size.width - 26.dp.toPx(), 1.dp.toPx()),
+                        strokeWidth = 1.dp.toPx()
+                    )
+                },
+            shape = RoundedCornerShape(26.dp),
+            color = Color(0xF2080808),
+            shadowElevation = 14.dp
         ) {
-            tabs.forEachIndexed { idx, tab ->
-                val isSelected = selectedIndex == idx
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                tabs.forEachIndexed { idx, tab ->
+                    val isSelected = selectedIndex == idx
 
-                val scale by animateFloatAsState(
-                    targetValue = if (isSelected) 1.05f else 1.0f,
-                    animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
-                    label = "tab_scale_$idx"
-                )
-                val capsuleAlpha by animateFloatAsState(
-                    targetValue = if (isSelected) 1.0f else 0.0f,
-                    animationSpec = tween(200, easing = FastOutSlowInEasing),
-                    label = "tab_capsule_$idx"
-                )
+                    val scale by animateFloatAsState(
+                        targetValue = if (isSelected) 1.06f else 1.0f,
+                        animationSpec = spring(dampingRatio = 0.65f, stiffness = 450f),
+                        label = "tab_scale_$idx"
+                    )
+                    val capsuleAlpha by animateFloatAsState(
+                        targetValue = if (isSelected) 1.0f else 0.0f,
+                        animationSpec = tween(220, easing = FastOutSlowInEasing),
+                        label = "tab_capsule_$idx"
+                    )
 
-                Box(
-                    modifier = Modifier
-                        .scale(scale)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(KmOrangeGlow.copy(alpha = KmOrangeGlow.alpha * capsuleAlpha))
-                        .then(
-                            if (isSelected) Modifier.border(
-                                width = 1.dp,
-                                color = KmOrange.copy(alpha = 0.35f * capsuleAlpha),
-                                shape = RoundedCornerShape(12.dp)
-                            ) else Modifier
-                        )
-                        .clickable { onSelect(idx) }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                    Box(
+                        modifier = Modifier
+                            .scale(scale)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(KmOrangeGlowStrong.copy(alpha = KmOrangeGlowStrong.alpha * capsuleAlpha))
+                            .then(
+                                if (isSelected) Modifier.border(
+                                    width = 1.dp,
+                                    color = KmOrange.copy(alpha = 0.45f * capsuleAlpha),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) else Modifier
+                            )
+                            .clickable { onSelect(idx) }
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        KmNavIcon(
-                            tab = tab,
-                            isSelected = isSelected,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Text(
-                            text = tab.label,
-                            fontSize = 11.sp,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) KmOrange else KmTextMuted,
-                            maxLines = 1,
-                            softWrap = false
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            KmNavIcon(
+                                tab = tab,
+                                isSelected = isSelected,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Text(
+                                text = tab.label,
+                                fontSize = 11.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) KmOrange else KmTextMuted,
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                        }
                     }
                 }
             }

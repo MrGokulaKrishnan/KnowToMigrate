@@ -15,7 +15,7 @@ const WINDOWS_DOWNLOADS: DownloadEntry[] = [
     filename: 'KnowToMigrate-Setup.exe',
     version: '1.0.0',
     size: '63.0 MB',
-    sha256: '6D337F8FEDA790E65AFAE152E824AEB23BA55ABC7C0F38F68FED424AB5D4E701',
+    sha256: 'A3ABD30FC55160A208BDE3102CEDAE192E153ED19B42B0B102F6CAF764D034D4',
     requirements: 'Windows 10 / 11, 64-bit (Official Setup Installer with Start Menu & Desktop Shortcut)',
     downloadUrl: '/download/KnowToMigrate-Setup.exe.bin',
   },
@@ -23,15 +23,15 @@ const WINDOWS_DOWNLOADS: DownloadEntry[] = [
     filename: 'KnowToMigrate-1.0.0-x64.msi',
     version: '1.0.0',
     size: '63.0 MB',
-    sha256: 'F3886F4BC8ECF174FE6941A9BEDC032C9D127BFA71E43D7A9C599F0F3C4CBCA4',
+    sha256: '52237DF7EB7F3CA4F115586157321FB4389F6BCDD125F9C3847329939B72A798',
     requirements: 'Windows 10 / 11, 64-bit (Standard Enterprise Windows Installer Package)',
     downloadUrl: '/download/KnowToMigrate-1.0.0-x64.msi.bin',
   },
   {
     filename: 'KnowToMigrate.exe',
     version: '1.0.0',
-    size: '68.8 MB',
-    sha256: 'B8B4F64855F1804261C7C6B1750F9DB60DBF62DD57B11CC73DDB0EC544A80887',
+    size: '68.9 MB',
+    sha256: '70B1211C2EA8A9A947C454FA43008D0746D40D01C2BDDE35BC94B75ABA7F4BDF',
     requirements: 'Windows 10 / 11, 64-bit (Portable Compressed Standalone Executable)',
     downloadUrl: '/download/KnowToMigrate-1.0.0-x64.exe.bin',
   },
@@ -41,8 +41,8 @@ const ANDROID_DOWNLOADS: DownloadEntry[] = [
   {
     filename: 'KnowToMigrate-1.0.0.apk',
     version: '1.0.0',
-    size: '10.9 MB',
-    sha256: '5C9F2A480123BB07D25F6A8C79AE8E031E7098B87EAA0685979DFA71C63E24BA',
+    size: '11.0 MB',
+    sha256: '72DE16D0EE7B9506327D69BB0BA9F361A89E86F4898AF4C7A9D9638D2BA12EE1',
     requirements: 'Android 8.0+ (API 26+) — Enable "Install from unknown sources" in Settings',
     downloadUrl: '/download/KnowToMigrate-1.0.0.apk.bin',
   },
@@ -105,22 +105,31 @@ function HiddenHash({ hash }: { hash: string }) {
   )
 }
 
+type DownloadStatus = 'idle' | 'connecting' | 'preparing' | 'ready' | 'downloading' | 'complete'
+
 function DownloadCard({ entry, icon: Icon }: { entry: DownloadEntry; icon: React.ElementType }) {
-  const [downloading, setDownloading] = useState(false)
+  const [status, setStatus] = useState<DownloadStatus>('idle')
   const [progress, setProgress] = useState<number | null>(null)
-  const [completed, setCompleted] = useState(false)
 
   const handleDownload = async () => {
-    if (downloading) return
-    setDownloading(true)
+    if (status !== 'idle' && status !== 'complete') return
+    setStatus('connecting')
     setProgress(0)
-    setCompleted(false)
 
     const downloadUrl = entry.downloadUrl
 
     try {
+      await new Promise(r => setTimeout(r, 260))
+      setStatus('preparing')
+
       const response = await fetch(downloadUrl)
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
+
+      await new Promise(r => setTimeout(r, 220))
+      setStatus('ready')
+
+      await new Promise(r => setTimeout(r, 180))
+      setStatus('downloading')
 
       const contentLength = response.headers.get('content-length')
       const total = contentLength ? parseInt(contentLength, 10) : 0
@@ -159,24 +168,36 @@ function DownloadCard({ entry, icon: Icon }: { entry: DownloadEntry; icon: React
       document.body.removeChild(a)
       setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000)
 
-      setCompleted(true)
+      setStatus('complete')
       setProgress(100)
       setTimeout(() => {
-        setDownloading(false)
+        setStatus('idle')
         setProgress(null)
-      }, 2500)
+      }, 3500)
     } catch (_err) {
-      // Fallback: direct same-origin link download
+      // Fallback: direct download link
       const a = document.createElement('a')
       a.href = entry.downloadUrl
       a.download = entry.filename
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
-      setDownloading(false)
-      setProgress(null)
+      setStatus('complete')
+      setTimeout(() => {
+        setStatus('idle')
+        setProgress(null)
+      }, 3500)
     }
   }
+
+  const isWindows = entry.filename.endsWith('.exe') || entry.filename.endsWith('.msi')
+  const defaultButtonLabel = isWindows
+    ? entry.filename.includes('Setup')
+      ? 'Download for Windows (Setup)'
+      : entry.filename.includes('msi')
+      ? 'Download for Windows (MSI)'
+      : 'Download for Windows (Portable)'
+    : 'Download for Android'
 
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 hover:border-[#FF5A00]/30 hover:bg-[#FF5A00]/[0.03] transition-all duration-300">
@@ -196,41 +217,56 @@ function DownloadCard({ entry, icon: Icon }: { entry: DownloadEntry; icon: React
       {/* Password-style Hidden SHA-256 */}
       <HiddenHash hash={entry.sha256} />
 
-      {/* Direct In-Browser Download Button */}
+      {/* Direct In-Browser Download Button with Smooth States */}
       <button
         type="button"
         onClick={handleDownload}
-        disabled={downloading}
-        className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:brightness-110 active:scale-[0.98] disabled:opacity-85"
+        disabled={status !== 'idle' && status !== 'complete'}
+        className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:brightness-110 active:scale-[0.98] disabled:opacity-90"
         style={{
-          background: completed
+          background: status === 'complete'
             ? 'linear-gradient(135deg, #16A34A, #22C55E)'
-            : 'linear-gradient(135deg, #FF4D00, #FF8A00)',
+            : 'linear-gradient(135deg, #FF4D00, #FF6500, #FF8A00)',
           color: '#fff',
         }}
       >
-        {downloading ? (
+        {status === 'connecting' ? (
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <span>Connecting to KnowToMigrate</span>
+          </div>
+        ) : status === 'preparing' ? (
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <span>Preparing Download...</span>
+          </div>
+        ) : status === 'ready' ? (
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <span>Download Ready</span>
+          </div>
+        ) : status === 'downloading' ? (
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             <span>
-              {progress !== null && progress > 0 ? `Downloading ${progress}%...` : 'Connecting to knowtomigrate.web.app...'}
+              {progress !== null && progress > 0 ? `Downloading... ${progress}%` : 'Downloading...'}
             </span>
           </div>
-        ) : completed ? (
+        ) : status === 'complete' ? (
           <div className="flex items-center gap-2">
             <Check className="w-4 h-4 text-white" />
-            <span>Downloaded from knowtomigrate.web.app</span>
+            <span>Download Complete</span>
           </div>
         ) : (
           <>
             <Download className="w-4 h-4" />
-            <span>Direct Download {entry.filename.split('.').pop()?.toUpperCase()}</span>
+            <span>{defaultButtonLabel}</span>
           </>
         )}
       </button>
 
       {/* Download Progress Bar */}
-      {downloading && progress !== null && (
+      {status === 'downloading' && progress !== null && (
         <div className="mt-2 w-full bg-white/[0.08] rounded-full h-1.5 overflow-hidden">
           <div
             className="bg-gradient-to-r from-[#FF4D00] to-[#FF8A00] h-full transition-all duration-150"

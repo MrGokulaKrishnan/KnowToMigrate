@@ -119,16 +119,23 @@ fun TransferScreen(navController: NavController, sessionId: String) {
                 )
             }
 
-            // Animated Transfer / Verification indicator
-            KmTransferAnimation(modifier = Modifier.fillMaxWidth())
+            // Animated Transfer Directional Stream (Left -> Right for Sender, Right -> Left for Receiver)
+            KmTransferAnimation(modifier = Modifier.fillMaxWidth(), isSender = isSender)
+
+            // Smooth visual progress interpolation (preserves exact underlying Pluto Engine byte values)
+            val animatedProgress by animateFloatAsState(
+                targetValue = progressFraction,
+                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+                label = "transfer_progress_anim"
+            )
 
             // Current file & progress card (Part 1, Section 7 format)
             KmGlassCard(modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .size(42.dp)
+                            .clip(RoundedCornerShape(10.dp))
                             .background(KmOrangeGlow),
                         contentAlignment = Alignment.Center
                     ) {
@@ -163,17 +170,17 @@ fun TransferScreen(navController: NavController, sessionId: String) {
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
-                KmProgressBar(progress = progressFraction, modifier = Modifier.fillMaxWidth())
+                KmProgressBar(progress = animatedProgress, modifier = Modifier.fillMaxWidth())
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Stats row: Percentage, Speed, ETA, Elapsed
+                // Stats row: Percentage, Speed, Real ETA
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${(progressFraction * 100).toInt()}%",
+                        text = "${(animatedProgress * 100).toInt()}%",
                         style = MaterialTheme.typography.titleLarge,
                         color = KmOrange,
                         fontWeight = FontWeight.ExtraBold
@@ -184,8 +191,13 @@ fun TransferScreen(navController: NavController, sessionId: String) {
                         color = KmTextPrimary,
                         fontWeight = FontWeight.SemiBold
                     )
+                    val etaFormatted = if (speedMBps <= 0.05 && progressFraction < 1.0f) {
+                        "ETA Calculating..."
+                    } else {
+                        activeProg.getFormattedEta()
+                    }
                     Text(
-                        text = activeProg.getFormattedEta(),
+                        text = etaFormatted,
                         style = MaterialTheme.typography.bodyMedium,
                         color = KmTextSecondary,
                         fontWeight = FontWeight.Medium
@@ -205,7 +217,12 @@ fun TransferScreen(navController: NavController, sessionId: String) {
                 )
                 StatCard(
                     label = "Status",
-                    value = activeProg.status.displayName,
+                    value = when {
+                        isComplete -> "Complete"
+                        activeProg.status == com.knowtomigrate.app.network.TransferStatus.VERIFYING -> "Verifying"
+                        progressFraction >= 1.0f -> "Finalizing"
+                        else -> activeProg.status.displayName
+                    },
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
@@ -231,29 +248,59 @@ fun TransferScreen(navController: NavController, sessionId: String) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Action buttons
+            // Action buttons / Verified Completion Card
             if (isComplete) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint = KmSuccess,
-                        modifier = Modifier.size(48.dp)
-                    )
-                    Text(
-                        text = "Transfer Verified & Complete!",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = KmSuccess,
-                        fontWeight = FontWeight.Bold
-                    )
-                    KmPrimaryButton(
-                        text = "Done",
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                KmGlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(KmSuccess.copy(alpha = 0.2f))
+                                .border(1.5.dp, KmSuccess, androidx.compose.foundation.shape.CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = KmSuccess,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                        Text(
+                            text = "Transfer Complete",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "✓ SHA-256 Verified",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = KmSuccess,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "✓ File Saved",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = KmSuccess,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        KmPrimaryButton(
+                            text = "Done",
+                            onClick = { navController.popBackStack() },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             } else {
                 KmSecondaryButton(
