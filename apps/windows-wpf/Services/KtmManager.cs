@@ -58,19 +58,17 @@ namespace KnowToMigrate.Services
             };
 
             // Wire server
+            // Wire server with custom Liquid Glass transfer acceptance modal (replacing legacy MessageBox)
             TransferServer.OnHandshakeReceived += async handshake =>
             {
-                return await Application.Current.Dispatcher.InvokeAsync(() =>
+                return await Application.Current.Dispatcher.InvokeAsync(async () =>
                 {
-                    string transportName = KtmTransportCodes.GetDisplayName(handshake.SelectedTransport);
-                    var result = MessageBox.Show(
-                        $"Incoming transfer request from:\n\nDevice: {handshake.DeviceName} ({handshake.Platform})\nAuthentication PIN: {handshake.Pin}\nNegotiated Transport: {transportName} [Best Verified]\n\nDo you want to accept this transfer?",
-                        "KnowToMigrate - Accept Transfer?",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Question
-                    );
-                    return result == MessageBoxResult.Yes;
-                });
+                    if (Application.Current?.MainWindow is MainWindow mw)
+                    {
+                        return await mw.PromptIncomingTransferAsync(handshake);
+                    }
+                    return false;
+                }).Result;
             };
 
             TransferServer.OnProgress += prog =>

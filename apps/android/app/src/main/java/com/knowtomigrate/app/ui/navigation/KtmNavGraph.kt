@@ -6,6 +6,7 @@ import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.*
 import androidx.navigation.compose.*
 import com.knowtomigrate.app.ui.screens.*
@@ -26,9 +27,22 @@ sealed class Screen(val route: String) {
 @Composable
 fun KtmNavGraph(sharedUris: List<Uri> = emptyList()) {
     val navController = rememberNavController()
+
+    // When launched via Android Sharesheet with shared files, open immediately into Launch Transfer screen
+    val startDest = if (sharedUris.isNotEmpty()) Screen.Send.route else Screen.Splash.route
+
+    // If shared files arrive while app is already running, navigate immediately to Launch Transfer
+    LaunchedEffect(sharedUris) {
+        if (sharedUris.isNotEmpty()) {
+            navController.navigate(Screen.Send.route) {
+                launchSingleTop = true
+            }
+        }
+    }
+
     NavHost(
         navController = navController,
-        startDestination = Screen.Splash.route
+        startDestination = startDest
     ) {
         composable(
             route = Screen.Splash.route,
@@ -50,7 +64,9 @@ fun KtmNavGraph(sharedUris: List<Uri> = emptyList()) {
         ) {
             HomeScreen(navController, sharedUris)
         }
-        composable(Screen.Send.route) { SendScreen(navController) }
+        composable(Screen.Send.route) {
+            SendScreen(navController, initialUris = sharedUris)
+        }
         composable(Screen.Receive.route) { ReceiveScreen(navController) }
         composable(Screen.Transfer.route) { backStackEntry ->
             val sessionId = backStackEntry.arguments?.getString("sessionId") ?: ""

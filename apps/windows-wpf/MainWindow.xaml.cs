@@ -233,6 +233,54 @@ namespace KnowToMigrate
             ModalReceiveCompletion.Visibility = Visibility.Collapsed;
         }
 
+        private TaskCompletionSource<bool>? _incomingTransferTcs;
+
+        public Task<bool> PromptIncomingTransferAsync(KtmHandshake handshake)
+        {
+            return Dispatcher.InvokeAsync(() =>
+            {
+                _incomingTransferTcs?.TrySetResult(false);
+                _incomingTransferTcs = new TaskCompletionSource<bool>();
+
+                TxtIncomingDeviceName.Text = string.IsNullOrEmpty(handshake.DeviceName) ? "Nearby Device" : handshake.DeviceName;
+                TxtIncomingPlatform.Text = string.IsNullOrEmpty(handshake.Platform) ? "Android" : handshake.Platform;
+
+                string transportName = KtmTransportCodes.GetDisplayName(handshake.SelectedTransport);
+                TxtIncomingTransport.Text = $"● {transportName} · Verified Connection";
+
+                // Group PIN digits into 354 446 format for readability
+                string rawPin = handshake.Pin ?? "";
+                if (rawPin.Length == 6)
+                {
+                    TxtIncomingPin.Text = $"{rawPin.Substring(0, 3)} {rawPin.Substring(3, 3)}";
+                }
+                else
+                {
+                    TxtIncomingPin.Text = rawPin;
+                }
+
+                // Smooth animated entrance (Section 15)
+                ModalIncomingTransfer.Opacity = 0;
+                ModalIncomingTransfer.Visibility = Visibility.Visible;
+                var anim = new System.Windows.Media.Animation.DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220));
+                ModalIncomingTransfer.BeginAnimation(UIElement.OpacityProperty, anim);
+
+                return _incomingTransferTcs.Task;
+            }).Result;
+        }
+
+        private void BtnAcceptTransfer_Click(object sender, RoutedEventArgs e)
+        {
+            ModalIncomingTransfer.Visibility = Visibility.Collapsed;
+            _incomingTransferTcs?.TrySetResult(true);
+        }
+
+        private void BtnDeclineTransfer_Click(object sender, RoutedEventArgs e)
+        {
+            ModalIncomingTransfer.Visibility = Visibility.Collapsed;
+            _incomingTransferTcs?.TrySetResult(false);
+        }
+
         private void BtnOpenReceivedFile_Click(object sender, RoutedEventArgs e)
         {
             try
