@@ -1,0 +1,48 @@
+<Window x:Class="KnowToMigrate.Updater.UpdaterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="KnowToMigrate Updater"
+        Width="480" Height="270"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="True"
+        Loaded="Window_Loaded">
+    <Border Background="#080808" BorderBrush="#33FF5A00" BorderThickness="1.5" CornerRadius="18">
+        <Border.Effect>
+            <DropShadowEffect Color="#000000" BlurRadius="30" ShadowDepth="8" Opacity="0.8" />
+        </Border.Effect>
+        <Grid Margin="28,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Width="38" Height="38" CornerRadius="9" Background="#140A00" BorderBrush="#FF5A00" BorderThickness="1" Margin="0,0,14,0">
+                    <TextBlock Text="KM" Foreground="#FF8A00" FontWeight="ExtraBold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="KnowToMigrate" Foreground="#FFFFFF" FontWeight="Bold" FontSize="16" />
+                    <TextBlock Text="Application Update in Progress" Foreground="#888888" FontSize="12" Margin="0,1,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Status Details -->
+            <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0,16,0,16">
+                <TextBlock x:Name="TxtStatus" Text="Preparing update package..." Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="15" />
+                <TextBlock x:Name="TxtSubStatus" Text="Verifying package cryptographic checksum and waiting for application exit..." Foreground="#AAAAAA" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!-- Progress Bar & Footer -->
+            <StackPanel Grid.Row="2">
+                <ProgressBar x:Name="ProgressBarUpdate" Height="6" IsIndeterminate="True" Background="#1A1A1A" Foreground="#FF5A00" BorderThickness="0" Margin="0,0,0,8" />
+                <TextBlock x:Name="TxtFooter" Text="Do not turn off your computer. Your settings and files are fully preserved." Foreground="#666666" FontSize="11" HorizontalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

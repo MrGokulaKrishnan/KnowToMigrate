@@ -129,6 +129,7 @@
                             <Button x:Name="BtnNavReceive" Content="Landing" Click="Nav_Click" Tag="Receive" Style="{StaticResource KmNavButton}" />
                             <Button x:Name="BtnNavMigration" Content="Migration Wizard" Click="Nav_Click" Tag="Migration" Style="{StaticResource KmNavButton}" />
                             <Button x:Name="BtnNavHistory" Content="Migration Ledger" Click="Nav_Click" Tag="History" Style="{StaticResource KmNavButton}" />
+                            <Button x:Name="BtnNavSettings" Content="Update Center &amp; Settings" Click="Nav_Click" Tag="Settings" Style="{StaticResource KmNavButton}" />
                         </StackPanel>
                     </DockPanel>
                 </Border>
@@ -500,6 +501,199 @@
                                 </ListBox>
                             </DockPanel>
                         </Border>
+                    </Grid>
+
+                    <!-- TAB 5: Update Center & Settings (20px Radius) -->
+                    <Grid x:Name="ViewSettings" Visibility="Collapsed">
+                        <StackPanel Margin="0,0,0,32">
+                            <!-- Header -->
+                            <TextBlock Text="Settings &amp; Update Center" Foreground="#FFFFFF" FontWeight="Bold" FontSize="20" Margin="0,0,0,4" />
+                            <TextBlock Text="Manage application updates, security preferences, and transfer storage" Foreground="#888888" FontSize="13" Margin="0,0,0,20" />
+
+                            <!-- Update Center Card -->
+                            <Border Background="#0C0C0C" BorderBrush="#FF5A00" BorderThickness="1.5" CornerRadius="18" Padding="24" Margin="0,0,0,20">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#FF5A00" BlurRadius="24" ShadowDepth="0" Opacity="0.15" />
+                                </Border.Effect>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Top Row: Icon + Status -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Grid.Column="0" Width="44" Height="44" CornerRadius="11" Background="#140A00" BorderBrush="#FF5A00" BorderThickness="1" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <TextBlock Text="KM" Foreground="#FF8A00" FontWeight="ExtraBold" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="KnowToMigrate Update Center" Foreground="#FFFFFF" FontWeight="Bold" FontSize="16" />
+                                                <Border Background="#1C0E00" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="8" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock x:Name="TxtCurrentVersionBadge" Text="v1.0.0 (Current)" Foreground="#FF8A00" FontSize="11" FontWeight="SemiBold" />
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock x:Name="TxtUpdateStatusSummary" Text="Click below to check for the latest release." Foreground="#AAAAAA" FontSize="12" Margin="0,3,0,0" />
+                                        </StackPanel>
+
+                                        <Button x:Name="BtnCheckUpdates" Grid.Column="2" Content="Check for Updates" Click="BtnCheckUpdates_Click" Style="{StaticResource KmPrimaryButton}" MinHeight="38" Padding="16,6" FontSize="12" VerticalAlignment="Center" />
+                                    </Grid>
+
+                                    <!-- Update Details Panel (Shown when an update is available) -->
+                                    <Border x:Name="PanelUpdateAvailable" Grid.Row="1" Background="#121212" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16" Visibility="Collapsed">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock x:Name="TxtAvailableVersionTitle" Text="New Version Available: v1.0.1" Foreground="#FF8A00" FontWeight="Bold" FontSize="14" />
+                                                    <TextBlock x:Name="TxtAvailableVersionSize" Text="Download Size: ~63 MB · Windows x64" Foreground="#888888" FontSize="12" Margin="0,2,0,0" />
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                    <Button x:Name="BtnUpdateNow" Content="Update Now" Click="BtnUpdateNow_Click" Style="{StaticResource KmPrimaryButton}" MinHeight="36" Padding="18,6" FontSize="12" Margin="0,0,8,0" FontWeight="Bold" />
+                                                    <Button x:Name="BtnSkipUpdate" Content="Later" Click="BtnSkipUpdate_Click" Style="{StaticResource KmGlassButton}" MinHeight="36" Padding="14,6" FontSize="12" />
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Active Transfer Warning if needed -->
+                                            <Border x:Name="PanelActiveTransferWarning" Background="#263A00" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,10" Visibility="Collapsed">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="An active file transfer is running. Your transfer must finish before updating." Foreground="#FCD34D" FontSize="12" VerticalAlignment="Center" />
+                                                    <Button x:Name="BtnUpdateAfterTransfer" Grid.Column="1" Content="Update After Transfer" Click="BtnUpdateAfterTransfer_Click" Style="{StaticResource KmGlassButton}" Height="28" Padding="10,0" FontSize="11" Margin="8,0,0,0" />
+                                                </Grid>
+                                            </Border>
+
+                                            <TextBlock Text="What's New in this release:" Foreground="#CCCCCC" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" />
+                                            <TextBlock x:Name="TxtReleaseNotes" Text="• Performance and stability improvements" Foreground="#999999" FontSize="12" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Download Progress Panel -->
+                                    <Border x:Name="PanelUpdateProgress" Grid.Row="2" Background="#121212" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16" Visibility="Collapsed">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock x:Name="TxtDownloadProgressTitle" Text="Downloading KnowToMigrate update..." Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13" />
+                                                <TextBlock x:Name="TxtDownloadSpeedEta" Grid.Column="1" Text="0 MB/s · ETA --:--" Foreground="#FF8A00" FontSize="12" FontWeight="SemiBold" />
+                                            </Grid>
+
+                                            <ProgressBar x:Name="ProgressBarDownload" Height="8" Minimum="0" Maximum="100" Value="0" Background="#1A1A1A" Foreground="#FF5A00" BorderThickness="0" Margin="0,4,0,8" />
+
+                                            <Grid>
+                                                <TextBlock x:Name="TxtDownloadBytesCount" Text="0 MB / 0 MB (0%)" Foreground="#888888" FontSize="11" />
+                                                <Button x:Name="BtnCancelDownload" Content="Cancel Download" Click="BtnCancelDownload_Click" Style="{StaticResource KmGlassButton}" Height="26" Padding="10,0" FontSize="11" HorizontalAlignment="Right" Foreground="#FF5555" BorderBrush="#552222" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Bottom Options -->
+                                    <StackPanel Grid.Row="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <CheckBox x:Name="ChkAutoCheckUpdates" Content="Check for updates automatically on startup" IsChecked="True" Checked="ChkAutoCheckUpdates_Changed" Unchecked="ChkAutoCheckUpdates_Changed" Foreground="#AAAAAA" FontSize="12" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Preferences Card -->
+                            <Border Background="#0C0C0C" BorderBrush="#1F1F1F" BorderThickness="1" CornerRadius="18" Padding="24" Margin="0,0,0,20">
+                                <StackPanel>
+                                    <TextBlock Text="Transfer Preferences" Foreground="#FFFFFF" FontWeight="Bold" FontSize="15" Margin="0,0,0,14" />
+
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Computer Name" Foreground="#FFFFFF" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock Text="Visible to nearby Android and Windows devices during discovery" Foreground="#777777" FontSize="11" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                        <TextBox x:Name="TxtSettingsDeviceName" Grid.Column="1" Width="200" Height="32" Background="#141414" Foreground="#FFFFFF" BorderBrush="#333333" Padding="8,4" FontSize="12" VerticalContentAlignment="Center" LostFocus="TxtSettingsDeviceName_LostFocus" />
+                                    </Grid>
+
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Default Receive Folder" Foreground="#FFFFFF" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock x:Name="TxtSettingsReceiveFolder" Text="Downloads \ KnowToMigrate" Foreground="#777777" FontSize="11" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" MaxWidth="400" />
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Content="Change Folder" Click="BtnSettingsChangeFolder_Click" Style="{StaticResource KmGlassButton}" MinHeight="32" Padding="14,4" FontSize="12" VerticalAlignment="Center" />
+                                    </Grid>
+
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Require Security PIN" Foreground="#FFFFFF" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock Text="Require a 6-digit cryptographic PIN verification for incoming transfers" Foreground="#777777" FontSize="11" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                        <CheckBox x:Name="ChkRequirePin" Grid.Column="1" IsChecked="True" Checked="ChkRequirePin_Changed" Unchecked="ChkRequirePin_Changed" VerticalAlignment="Center" />
+                                    </Grid>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Auto-Accept Trusted Devices" Foreground="#FFFFFF" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock Text="Automatically accept file transfers from paired and trusted devices" Foreground="#777777" FontSize="11" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                        <CheckBox x:Name="ChkAutoAcceptTrusted" Grid.Column="1" IsChecked="False" Checked="ChkAutoAcceptTrusted_Changed" Unchecked="ChkAutoAcceptTrusted_Changed" VerticalAlignment="Center" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- About & Security Card (Prompt 42) -->
+                            <Border Background="#0C0C0C" BorderBrush="#1F1F1F" BorderThickness="1" CornerRadius="18" Padding="24">
+                                <StackPanel>
+                                    <TextBlock Text="About KnowToMigrate" Foreground="#FFFFFF" FontWeight="Bold" FontSize="15" Margin="0,0,0,12" />
+
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="Product Tagline" Foreground="#777777" FontSize="13" />
+                                        <TextBlock Text="Move Anything. Anywhere. Seamlessly." Foreground="#D4D4D4" FontSize="13" HorizontalAlignment="Right" />
+                                    </Grid>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="Application Version" Foreground="#777777" FontSize="13" />
+                                        <TextBlock Text="v1.0.0 (Production Release)" Foreground="#FF8A00" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                                    </Grid>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="Transfer Engine" Foreground="#777777" FontSize="13" />
+                                        <TextBlock Text="Pluto Engine (Pluto v2 Multi-Transport)" Foreground="#D4D4D4" FontSize="13" HorizontalAlignment="Right" />
+                                    </Grid>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="Cryptography" Foreground="#777777" FontSize="13" />
+                                        <TextBlock Text="AES-256-GCM + X25519 + SHA-256" Foreground="#22C55E" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                                    </Grid>
+                                    <Grid>
+                                        <TextBlock Text="Official Website" Foreground="#777777" FontSize="13" />
+                                        <TextBlock Text="https://knowtomigrate.web.app" Foreground="#FF8A00" FontSize="13" Cursor="Hand" HorizontalAlignment="Right" MouseLeftButtonUp="HyperlinkWebsite_Click" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
                     </Grid>
                 </Grid>
             </ScrollViewer>

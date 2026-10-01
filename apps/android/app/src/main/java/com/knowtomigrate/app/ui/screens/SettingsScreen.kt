@@ -30,6 +30,12 @@ import com.knowtomigrate.app.BuildConfig
 import com.knowtomigrate.app.ui.components.KmBadge
 import com.knowtomigrate.app.ui.components.KmSecondaryButton
 import com.knowtomigrate.app.ui.theme.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +43,10 @@ fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
     val manager = remember { com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context) }
     val preferences = manager.preferences
+
+    val coroutineScope = rememberCoroutineScope()
+    var updateCheckState by remember { mutableStateOf("Idle") }
+    var availableVersion by remember { mutableStateOf("") }
 
     val deviceName by preferences.deviceName.collectAsState()
     val folderDisplay by preferences.receiveFolderDisplay.collectAsState()
@@ -242,7 +252,102 @@ fun SettingsScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 5. About Section
+            // 5. Update Center
+            SettingsSectionHeader(title = "Update Center", icon = Icons.Default.SystemUpdate)
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = KmGlassBackground,
+                border = androidx.compose.foundation.BorderStroke(1.dp, KmOrange.copy(alpha = 0.5f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("KnowToMigrate Update Center", color = KmTextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = when (updateCheckState) {
+                                    "Checking" -> "Checking for updates..."
+                                    "UpToDate" -> "You are using the latest version (v1.0.0)"
+                                    "Available" -> "New update available: v$availableVersion"
+                                    "Error" -> "Could not check for updates"
+                                    else -> "Check for the latest release & security patches"
+                                },
+                                color = if (updateCheckState == "Available") KmOrangeLight else KmTextMuted,
+                                fontSize = 12.sp
+                            )
+                        }
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    updateCheckState = "Checking"
+                                    try {
+                                        val result = withContext(Dispatchers.IO) {
+                                            val url = URL("https://knowtomigrate.web.app/update-manifest.json")
+                                            val conn = url.openConnection() as HttpURLConnection
+                                            conn.connectTimeout = 10000
+                                            conn.readTimeout = 10000
+                                            val text = conn.inputStream.bufferedReader().use { it.readText() }
+                                            JSONObject(text)
+                                        }
+                                        val remoteVer = result.optString("version", "1.0.0")
+                                        val androidObj = result.optJSONObject("android")
+                                        val remoteCode = androidObj?.optInt("versionCode", 1) ?: 1
+                                        if (remoteCode > 1 || remoteVer > "1.0.0") {
+                                            availableVersion = remoteVer
+                                            updateCheckState = "Available"
+                                        } else {
+                                            updateCheckState = "UpToDate"
+                                        }
+                                    } catch (_: Exception) {
+                                        updateCheckState = "Error"
+                                    }
+                                }
+                            },
+                            enabled = updateCheckState != "Checking",
+                            colors = ButtonDefaults.buttonColors(containerColor = KmOrange),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                        ) {
+                            Text(if (updateCheckState == "Checking") "Checking..." else "Check", color = Color.White, fontSize = 12.sp)
+                        }
+                    }
+
+                    if (updateCheckState == "Available") {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Download v$availableVersion APK", color = KmTextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                            Button(
+                                onClick = {
+                                    val browserIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://knowtomigrate.web.app/download"))
+                                    context.startActivity(browserIntent)
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = KmSuccess),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+                            ) {
+                                Text("Download", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 6. About Section
             SettingsSectionHeader(title = "About KnowToMigrate", icon = Icons.Default.Info)
             Surface(
                 shape = RoundedCornerShape(16.dp),

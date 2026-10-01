@@ -49,6 +49,13 @@
           </RegistryKey>
         </Component>
 
+        <Component Id="UpdaterExecutable" Bitness="always64" Guid="E5F6A7B8-9C0D-1E2F-3A4B-5C6D7E8F9A0B">
+          <File Id="KnowToMigrateUpdaterEXE"
+                Name="KnowToMigrate.Updater.exe"
+                Source="releases\windows\publish\KnowToMigrate.Updater.exe"
+                KeyPath="yes" />
+        </Component>
+
         <Directory Id="AssetsFolder" Name="Assets">
           <Component Id="AppAssets" Bitness="always64" Guid="D1E2F3A4-B5C6-7D8E-9F0A-1B2C3D4E5F6A">
             <File Id="AppIconFile" Name="KnowToMigrate.ico" Source="apps\windows-wpf\Assets\KnowToMigrate.ico" KeyPath="yes" />
@@ -104,6 +111,7 @@
     <!-- Features -->
     <Feature Id="Main" Title="KnowToMigrate Application" Level="1">
       <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="UpdaterExecutable" />
       <ComponentRef Id="AppAssets" />
       <ComponentRef Id="StartMenuShortcutComponent" />
       <ComponentRef Id="DesktopShortcutComponent" />

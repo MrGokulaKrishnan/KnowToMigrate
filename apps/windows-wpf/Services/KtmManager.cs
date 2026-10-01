@@ -14,7 +14,7 @@ namespace KnowToMigrate.Services
         public static KtmManager Instance => _instance ??= new KtmManager();
 
         public string LocalDeviceId { get; }
-        public string LocalDeviceName { get; }
+        public string LocalDeviceName { get; set; }
         public string DownloadDirectory { get; set; }
 
         public KtmDiscoveryService DiscoveryService { get; }

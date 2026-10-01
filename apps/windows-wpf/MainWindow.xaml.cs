@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace KnowToMigrate
         private readonly List<string> _selectedFiles = new();
         private CancellationTokenSource? _transferCts;
         private string? _forcedTransport = null;
+        private bool _updatePendingAfterTransfer = false;
 
         public MainWindow()
         {
@@ -86,6 +88,48 @@ namespace KnowToMigrate
 
                 KtmManager.Instance.OnProgress += OnTransferProgress;
                 KtmManager.Instance.OnTransferDone += OnTransferCompleted;
+
+                // Enterprise Settings & Auto-Update initialization
+                var settings = UserSettingsManager.LoadSettings();
+                if (!string.IsNullOrEmpty(settings.DownloadDirectory))
+                {
+                    KtmManager.Instance.DownloadDirectory = settings.DownloadDirectory;
+                    TxtSettingsReceiveFolder.Text = settings.DownloadDirectory;
+                    TxtDownloadDir.Text = settings.DownloadDirectory;
+                }
+                else
+                {
+                    TxtSettingsReceiveFolder.Text = KtmManager.Instance.DownloadDirectory;
+                }
+
+                if (!string.IsNullOrEmpty(settings.DeviceName))
+                {
+                    KtmManager.Instance.LocalDeviceName = settings.DeviceName;
+                    TxtSettingsDeviceName.Text = settings.DeviceName;
+                    TxtLocalInfo.Text = $"Device: {settings.DeviceName} ({KtmManager.Instance.LocalDeviceId})";
+                }
+                else
+                {
+                    TxtSettingsDeviceName.Text = KtmManager.Instance.LocalDeviceName;
+                }
+
+                ChkAutoCheckUpdates.IsChecked = settings.AutoCheckForUpdates;
+                ChkRequirePin.IsChecked = settings.RequireSecurityPin;
+                ChkAutoAcceptTrusted.IsChecked = settings.AutoAcceptTrustedDevices;
+
+                // Wire Update Service events
+                KtmUpdateService.Instance.OnCheckStatusChanged += UpdateService_OnCheckStatusChanged;
+                KtmUpdateService.Instance.OnDownloadProgressChanged += UpdateService_OnDownloadProgressChanged;
+                KtmUpdateService.Instance.OnUpdateError += UpdateService_OnUpdateError;
+
+                if (settings.AutoCheckForUpdates)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        await Task.Delay(3000);
+                        await KtmUpdateService.Instance.CheckForUpdatesAsync(false);
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -354,6 +398,14 @@ namespace KnowToMigrate
                         IsCompleted = true
                     });
                 }
+
+                // If user scheduled an update after transfer completed, apply now
+                if (_updatePendingAfterTransfer)
+                {
+                    _updatePendingAfterTransfer = false;
+                    PanelActiveTransferWarning.Visibility = Visibility.Collapsed;
+                    KtmUpdateService.Instance.ApplyUpdateAndRestart();
+                }
             });
         }
 
@@ -365,6 +417,7 @@ namespace KnowToMigrate
                 ViewReceive.Visibility = Visibility.Collapsed;
                 ViewMigration.Visibility = Visibility.Collapsed;
                 ViewHistory.Visibility = Visibility.Collapsed;
+                ViewSettings.Visibility = Visibility.Collapsed;
 
                 switch (tag)
                 {
@@ -384,13 +437,17 @@ namespace KnowToMigrate
                         ViewHistory.Visibility = Visibility.Visible;
                         HighlightNav(BtnNavHistory);
                         break;
+                    case "Settings":
+                        ViewSettings.Visibility = Visibility.Visible;
+                        HighlightNav(BtnNavSettings);
+                        break;
                 }
             }
         }
 
         private void HighlightNav(Button active)
         {
-            Button[] buttons = { BtnNavHome, BtnNavReceive, BtnNavMigration, BtnNavHistory };
+            Button[] buttons = { BtnNavHome, BtnNavReceive, BtnNavMigration, BtnNavHistory, BtnNavSettings };
             foreach (var b in buttons)
             {
                 if (b == active)
@@ -744,5 +801,246 @@ namespace KnowToMigrate
         {
             this.Close();
         }
+
+        #region Update Center & Preferences
+
+        private void UpdateService_OnCheckStatusChanged(UpdateCheckStatus status, UpdateManifest? manifest)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                switch (status)
+                {
+                    case UpdateCheckStatus.Checking:
+                        TxtUpdateStatusSummary.Text = "Checking for updates...";
+                        BtnCheckUpdates.IsEnabled = false;
+                        break;
+
+                    case UpdateCheckStatus.UpToDate:
+                        TxtUpdateStatusSummary.Text = $"You have the latest version of KnowToMigrate installed (v{KtmUpdateService.CurrentVersion}).";
+                        PanelUpdateAvailable.Visibility = Visibility.Collapsed;
+                        BtnCheckUpdates.IsEnabled = true;
+                        break;
+
+                    case UpdateCheckStatus.UpdateAvailable:
+                        TxtUpdateStatusSummary.Text = $"Update available: v{manifest?.Version}. Ready to download.";
+                        TxtAvailableVersionTitle.Text = $"New Version Available: v{manifest?.Version}";
+                        TxtAvailableVersionSize.Text = $"Download Size: {KtmFormatting.FormatBytes(manifest?.Windows?.Size ?? 0)} · Windows x64";
+                        if (manifest?.ReleaseNotes != null && manifest.ReleaseNotes.Length > 0)
+                        {
+                            TxtReleaseNotes.Text = string.Join("\n", manifest.ReleaseNotes);
+                        }
+                        else
+                        {
+                            TxtReleaseNotes.Text = "• Performance and stability improvements";
+                        }
+                        PanelUpdateAvailable.Visibility = Visibility.Visible;
+                        BtnUpdateNow.Content = "Update Now";
+                        BtnCheckUpdates.IsEnabled = true;
+                        break;
+
+                    case UpdateCheckStatus.Offline:
+                        TxtUpdateStatusSummary.Text = "Network unavailable. Connect to the internet to check for updates.";
+                        BtnCheckUpdates.IsEnabled = true;
+                        break;
+
+                    case UpdateCheckStatus.Failed:
+                        TxtUpdateStatusSummary.Text = $"Update check failed: {KtmUpdateService.Instance.LastError}";
+                        BtnCheckUpdates.IsEnabled = true;
+                        break;
+
+                    default:
+                        BtnCheckUpdates.IsEnabled = true;
+                        break;
+                }
+            });
+        }
+
+        private void UpdateService_OnDownloadProgressChanged(UpdateDownloadStatus status, UpdateDownloadProgress? progress)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                switch (status)
+                {
+                    case UpdateDownloadStatus.Connecting:
+                        PanelUpdateAvailable.Visibility = Visibility.Collapsed;
+                        PanelUpdateProgress.Visibility = Visibility.Visible;
+                        TxtDownloadProgressTitle.Text = "Connecting to update server...";
+                        TxtDownloadSpeedEta.Text = "Starting...";
+                        ProgressBarDownload.Value = 0;
+                        break;
+
+                    case UpdateDownloadStatus.Downloading:
+                        PanelUpdateAvailable.Visibility = Visibility.Collapsed;
+                        PanelUpdateProgress.Visibility = Visibility.Visible;
+                        ProgressBarDownload.Value = progress?.Percentage ?? 0;
+                        TxtDownloadProgressTitle.Text = $"Downloading KnowToMigrate update... ({progress?.Percentage:0}%)";
+                        TxtDownloadSpeedEta.Text = $"{progress?.SpeedFormatted} · ETA {progress?.EtaFormatted}";
+                        TxtDownloadBytesCount.Text = $"{KtmFormatting.FormatBytes(progress?.BytesDownloaded ?? 0)} / {KtmFormatting.FormatBytes(progress?.TotalBytes ?? 0)} ({progress?.Percentage:0}%)";
+                        break;
+
+                    case UpdateDownloadStatus.Verifying:
+                        PanelUpdateProgress.Visibility = Visibility.Visible;
+                        ProgressBarDownload.Value = 100;
+                        TxtDownloadProgressTitle.Text = "Verifying cryptographic SHA-256 integrity...";
+                        TxtDownloadSpeedEta.Text = "Validating checksum...";
+                        break;
+
+                    case UpdateDownloadStatus.ReadyToInstall:
+                        PanelUpdateProgress.Visibility = Visibility.Collapsed;
+                        PanelUpdateAvailable.Visibility = Visibility.Visible;
+                        BtnUpdateNow.Content = "Install & Restart";
+                        TxtUpdateStatusSummary.Text = "Update downloaded and SHA-256 verified. Click 'Install & Restart'.";
+                        break;
+
+                    case UpdateDownloadStatus.Cancelled:
+                    case UpdateDownloadStatus.Failed:
+                        PanelUpdateProgress.Visibility = Visibility.Collapsed;
+                        PanelUpdateAvailable.Visibility = Visibility.Visible;
+                        BtnUpdateNow.Content = "Update Now";
+                        break;
+                }
+            });
+        }
+
+        private void UpdateService_OnUpdateError(string error)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                ShowNotificationBanner("Update Notice", error, false);
+            });
+        }
+
+        private async void BtnCheckUpdates_Click(object sender, RoutedEventArgs e)
+        {
+            await KtmUpdateService.Instance.CheckForUpdatesAsync(true);
+        }
+
+        private async void BtnUpdateNow_Click(object sender, RoutedEventArgs e)
+        {
+            if (KtmUpdateService.Instance.DownloadStatus == UpdateDownloadStatus.ReadyToInstall)
+            {
+                if (IsAnyTransferActive())
+                {
+                    PanelActiveTransferWarning.Visibility = Visibility.Visible;
+                    return;
+                }
+                KtmUpdateService.Instance.ApplyUpdateAndRestart();
+                return;
+            }
+
+            PanelActiveTransferWarning.Visibility = Visibility.Collapsed;
+            PanelUpdateAvailable.Visibility = Visibility.Collapsed;
+            PanelUpdateProgress.Visibility = Visibility.Visible;
+
+            bool ok = await KtmUpdateService.Instance.DownloadAndPrepareUpdateAsync();
+            if (ok)
+            {
+                if (IsAnyTransferActive())
+                {
+                    PanelActiveTransferWarning.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    KtmUpdateService.Instance.ApplyUpdateAndRestart();
+                }
+            }
+        }
+
+        private void BtnSkipUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            PanelUpdateAvailable.Visibility = Visibility.Collapsed;
+            var settings = UserSettingsManager.LoadSettings();
+            if (KtmUpdateService.Instance.AvailableManifest != null)
+            {
+                settings.SkippedUpdateVersion = KtmUpdateService.Instance.AvailableManifest.Version;
+                UserSettingsManager.SaveSettings(settings);
+            }
+        }
+
+        private void BtnCancelDownload_Click(object sender, RoutedEventArgs e)
+        {
+            KtmUpdateService.Instance.CancelDownload();
+            PanelUpdateProgress.Visibility = Visibility.Collapsed;
+            PanelUpdateAvailable.Visibility = Visibility.Visible;
+        }
+
+        private void BtnUpdateAfterTransfer_Click(object sender, RoutedEventArgs e)
+        {
+            _updatePendingAfterTransfer = true;
+            ShowNotificationBanner("Update Queued", "KnowToMigrate will install the update and restart once your transfer finishes.", true);
+        }
+
+        private void ChkAutoCheckUpdates_Changed(object sender, RoutedEventArgs e)
+        {
+            var settings = UserSettingsManager.LoadSettings();
+            settings.AutoCheckForUpdates = ChkAutoCheckUpdates.IsChecked == true;
+            UserSettingsManager.SaveSettings(settings);
+        }
+
+        private void TxtSettingsDeviceName_LostFocus(object sender, RoutedEventArgs e)
+        {
+            string newName = TxtSettingsDeviceName.Text.Trim();
+            if (!string.IsNullOrEmpty(newName))
+            {
+                var settings = UserSettingsManager.LoadSettings();
+                settings.DeviceName = newName;
+                UserSettingsManager.SaveSettings(settings);
+                KtmManager.Instance.LocalDeviceName = newName;
+                TxtLocalInfo.Text = $"Device: {newName} ({KtmManager.Instance.LocalDeviceId})";
+            }
+        }
+
+        private void BtnSettingsChangeFolder_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new OpenFolderDialog
+            {
+                Title = "Select Default Download Directory",
+                InitialDirectory = KtmManager.Instance.DownloadDirectory
+            };
+            if (dlg.ShowDialog() == true && !string.IsNullOrWhiteSpace(dlg.FolderName))
+            {
+                string selected = dlg.FolderName;
+                TxtSettingsReceiveFolder.Text = selected;
+                TxtDownloadDir.Text = selected;
+                KtmManager.Instance.DownloadDirectory = selected;
+                var settings = UserSettingsManager.LoadSettings();
+                settings.DownloadDirectory = selected;
+                UserSettingsManager.SaveSettings(settings);
+            }
+        }
+
+        private void ChkRequirePin_Changed(object sender, RoutedEventArgs e)
+        {
+            var settings = UserSettingsManager.LoadSettings();
+            settings.RequireSecurityPin = ChkRequirePin.IsChecked == true;
+            UserSettingsManager.SaveSettings(settings);
+        }
+
+        private void ChkAutoAcceptTrusted_Changed(object sender, RoutedEventArgs e)
+        {
+            var settings = UserSettingsManager.LoadSettings();
+            settings.AutoAcceptTrustedDevices = ChkAutoAcceptTrusted.IsChecked == true;
+            UserSettingsManager.SaveSettings(settings);
+        }
+
+        private void HyperlinkWebsite_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "https://knowtomigrate.web.app",
+                    UseShellExecute = true
+                });
+            }
+            catch { }
+        }
+
+        private bool IsAnyTransferActive()
+        {
+            return PanelProgress.Visibility == Visibility.Visible;
+        }
+
+        #endregion
     }
 }
