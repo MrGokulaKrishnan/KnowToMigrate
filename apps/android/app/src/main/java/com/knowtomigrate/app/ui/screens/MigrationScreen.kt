@@ -1,4 +1,4 @@
-package com.knowtomigrate.app.ui.screens
+﻿package com.knowtomigrate.app.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +19,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import android.os.Build
+import android.provider.MediaStore
+import android.provider.OpenableColumns
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.navigation.NavController
 import com.knowtomigrate.app.ui.components.*
 import com.knowtomigrate.app.ui.navigation.Screen
@@ -36,7 +43,7 @@ private val migrationCategories = listOf(
     MigrationCategory("documents", "Documents", Icons.Default.Description,   "340 MB"),
     MigrationCategory("music",     "Music",     Icons.Default.LibraryMusic,  "5.2 GB"),
     MigrationCategory("downloads", "Downloads", Icons.Default.Download,      "1.8 GB"),
-    MigrationCategory("whatsapp",  "WhatsApp",  Icons.Default.Message,       "3.6 GB"),
+    MigrationCategory("whatsapp",  "WhatsApp",  Icons.AutoMirrored.Filled.Message,       "3.6 GB"),
     MigrationCategory("contacts",  "Contacts",  Icons.Default.Contacts,      "2 MB"),
     MigrationCategory("settings",  "App Settings", Icons.Default.Settings,   "48 MB"),
     MigrationCategory("apps",      "Apps",      Icons.Default.Apps,          "varies"),
@@ -49,6 +56,27 @@ fun MigrationScreen(navController: NavController) {
     val selectedCategories = remember { mutableStateSetOf<String>() }
     var storagePreflight by remember { mutableStateOf<Boolean?>(null) }
     var isStarting by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val dynamicSizes = remember { mutableStateMapOf<String, String>() }
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            queryCategorySize(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)?.let {
+                dynamicSizes["photos"] = it
+            }
+            queryCategorySize(context, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)?.let {
+                dynamicSizes["videos"] = it
+            }
+            queryCategorySize(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)?.let {
+                dynamicSizes["music"] = it
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                queryCategorySize(context, MediaStore.Downloads.EXTERNAL_CONTENT_URI)?.let {
+                    dynamicSizes["downloads"] = it
+                }
+            }
+        }
+    }
 
     Scaffold(
         containerColor = KmBlack,
@@ -73,7 +101,7 @@ fun MigrationScreen(navController: NavController) {
                     IconButton(onClick = {
                         if (currentStep > 1) currentStep-- else navController.popBackStack()
                     }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = KmTextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = KmTextPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = KmBlack)
@@ -104,7 +132,7 @@ fun MigrationScreen(navController: NavController) {
                     itemsIndexed(migrationCategories) { _, category ->
                         val isSelected = category.id in selectedCategories
                         CategoryCheckRow(
-                            category = category,
+                            category = category.copy(estimatedSize = dynamicSizes[category.id] ?: category.estimatedSize),
                             isSelected = isSelected,
                             onToggle = {
                                 if (isSelected) selectedCategories.remove(category.id)
@@ -318,3 +346,33 @@ private fun StoragePreflightCard(onCheck: () -> Unit) {
 // Required for mutableStateSetOf extension
 private fun <T> mutableStateSetOf(vararg elements: T): MutableSet<T> =
     mutableSetOf<T>().apply { addAll(elements) }
+
+private fun queryCategorySize(context: android.content.Context, uri: android.net.Uri): String? {
+    return try {
+        val projection = arrayOf(OpenableColumns.SIZE)
+        var totalBytes = 0L
+        var count = 0
+        context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+            val sizeCol = cursor.getColumnIndex(OpenableColumns.SIZE)
+            while (cursor.moveToNext()) {
+                if (sizeCol != -1 && !cursor.isNull(sizeCol)) {
+                    totalBytes += cursor.getLong(sizeCol)
+                }
+                count++
+            }
+        }
+        if (count > 0) formatDynamicSize(totalBytes, count) else null
+    } catch (_: Exception) {
+        null
+    }
+}
+
+private fun formatDynamicSize(bytes: Long, count: Int): String {
+    val sizeStr = when {
+        bytes >= 1_073_741_824L -> String.format(java.util.Locale.US, "%.1f GB", bytes.toDouble() / 1_073_741_824.0)
+        bytes >= 1_048_576L -> String.format(java.util.Locale.US, "%.1f MB", bytes.toDouble() / 1_048_576.0)
+        bytes >= 1024L -> String.format(java.util.Locale.US, "%.1f KB", bytes.toDouble() / 1024.0)
+        else -> "$bytes B"
+    }
+    return "$sizeStr ($count items)"
+}

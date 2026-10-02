@@ -1,4 +1,4 @@
-package com.knowtomigrate.app.ui.screens
+﻿package com.knowtomigrate.app.ui.screens
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -484,7 +485,7 @@ fun ReceiveScreen(navController: NavController) {
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = KmTextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = KmTextPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = KmBlack)

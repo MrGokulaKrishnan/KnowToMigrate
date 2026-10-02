@@ -1,4 +1,4 @@
-package com.knowtomigrate.app.ui.screens
+﻿package com.knowtomigrate.app.ui.screens
 
 import android.content.Intent
 import android.os.Build
@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -94,7 +95,7 @@ fun SettingsScreen(navController: NavController) {
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = KmTextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = KmTextPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = KmBlack)
@@ -128,9 +129,9 @@ fun SettingsScreen(navController: NavController) {
                             showEditNameDialog = true
                         }
                     )
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsInfoRow(label = "Hardware Model", value = Build.MODEL ?: "Android Device")
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsInfoRow(label = "Device ID", value = manager.localDeviceId.take(18) + "…")
                 }
             }
@@ -154,14 +155,14 @@ fun SettingsScreen(navController: NavController) {
                         subtitle = "Files are indexed to Gallery & Downloads",
                         onClick = { folderPicker.launch(null) }
                     )
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsToggleRow(
                         label = "SHA-256 Verification",
                         description = "Verify cryptographic integrity hash for every transferred chunk",
                         checked = verifySha256,
                         onCheckedChange = { preferences.setVerifySha256(it) }
                     )
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsToggleRow(
                         label = "Automatic Resume",
                         description = "Automatically resume interrupted transfers from last verified chunk",
@@ -190,14 +191,14 @@ fun SettingsScreen(navController: NavController) {
                         checked = isDiscoverable,
                         onCheckedChange = { preferences.setDiscoverable(it) }
                     )
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsToggleRow(
                         label = "Wi-Fi Direct Support",
                         description = "High-speed direct offline connection without local router",
                         checked = wifiDirectEnabled,
                         onCheckedChange = { wifiDirectEnabled = it }
                     )
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsToggleRow(
                         label = "Bluetooth Assistance",
                         description = "Discover nearby devices even when Wi-Fi multicast is restricted",
@@ -226,14 +227,14 @@ fun SettingsScreen(navController: NavController) {
                         checked = requirePin,
                         onCheckedChange = { preferences.setRequirePin(it) }
                     )
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsToggleRow(
                         label = "Auto-Accept Trusted Devices",
                         description = "Allow transfers from previously paired devices without prompt",
                         checked = autoAcceptTrusted,
                         onCheckedChange = { preferences.setAutoAcceptTrusted(it) }
                     )
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -321,7 +322,7 @@ fun SettingsScreen(navController: NavController) {
 
                     if (updateCheckState == "Available") {
                         Spacer(modifier = Modifier.height(12.dp))
-                        Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                        HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -395,17 +396,17 @@ fun SettingsScreen(navController: NavController) {
                             )
                         }
                     }
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsInfoRow(label = "Application Version", value = "1.0.0")
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsInfoRow(label = "Updated On", value = try { BuildConfig.BUILD_DATE } catch (_: Throwable) { "01 October 2026" })
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsInfoRow(label = "Transfer Engine", value = "Pluto Engine")
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsInfoRow(label = "Protocol Specification", value = "Pluto v2 Multi-Transport")
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsInfoRow(label = "Encryption Standard", value = "AES-256-GCM + X25519")
-                    Divider(color = KmGlassBorder, thickness = 0.5.dp)
+                    HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsInfoRow(label = "Official Website", value = "knowtomigrate.web.app")
                 }
             }
