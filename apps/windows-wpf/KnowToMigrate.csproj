@@ -30,10 +30,14 @@
   <ItemGroup>
     <Resource Include="Assets\KnowToMigrate.ico" />
     <Resource Include="Assets\logo.jpg" />
+    <Resource Include="Assets\logo.png" />
     <None Include="Assets\KnowToMigrate.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Assets\logo.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Assets\logo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="ktm_ffi.dll">
