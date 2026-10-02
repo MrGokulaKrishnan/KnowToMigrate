@@ -125,11 +125,11 @@
 
                         <!-- Navigation Buttons (Zero Emojis, 10px Radius) -->
                         <StackPanel DockPanel.Dock="Top">
-                            <Button x:Name="BtnNavHome" Content="Command Center" Click="Nav_Click" Tag="Home" Style="{StaticResource KmNavButton}" Background="#1C0E00" Foreground="#FF8A00" BorderBrush="#FF5A00" FontWeight="Bold" />
+                            <Button x:Name="BtnNavHome" Content="Home" Click="Nav_Click" Tag="Home" Style="{StaticResource KmNavButton}" Background="#1C0E00" Foreground="#FF8A00" BorderBrush="#FF5A00" FontWeight="Bold" />
                             <Button x:Name="BtnNavReceive" Content="Landing" Click="Nav_Click" Tag="Receive" Style="{StaticResource KmNavButton}" />
                             <Button x:Name="BtnNavMigration" Content="Migration Wizard" Click="Nav_Click" Tag="Migration" Style="{StaticResource KmNavButton}" />
                             <Button x:Name="BtnNavHistory" Content="Migration Ledger" Click="Nav_Click" Tag="History" Style="{StaticResource KmNavButton}" />
-                            <Button x:Name="BtnNavSettings" Content="Update Center &amp; Settings" Click="Nav_Click" Tag="Settings" Style="{StaticResource KmNavButton}" />
+                            <Button x:Name="BtnNavSettings" Content="Settings" Click="Nav_Click" Tag="Settings" Style="{StaticResource KmNavButton}" />
                         </StackPanel>
                     </DockPanel>
                 </Border>
@@ -503,11 +503,11 @@
                         </Border>
                     </Grid>
 
-                    <!-- TAB 5: Update Center & Settings (20px Radius) -->
+                    <!-- TAB 5: Settings (20px Radius) -->
                     <Grid x:Name="ViewSettings" Visibility="Collapsed">
                         <StackPanel Margin="0,0,0,32">
                             <!-- Header -->
-                            <TextBlock Text="Settings &amp; Update Center" Foreground="#FFFFFF" FontWeight="Bold" FontSize="20" Margin="0,0,0,4" />
+                            <TextBlock Text="Settings" Foreground="#FFFFFF" FontWeight="Bold" FontSize="20" Margin="0,0,0,4" />
                             <TextBlock Text="Manage application updates, security preferences, and transfer storage" Foreground="#888888" FontSize="13" Margin="0,0,0,20" />
 
                             <!-- Update Center Card -->
@@ -531,8 +531,16 @@
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
 
-                                        <Border Grid.Column="0" Width="44" Height="44" CornerRadius="11" Background="#140A00" BorderBrush="#FF5A00" BorderThickness="1" Margin="0,0,14,0" VerticalAlignment="Center">
-                                            <TextBlock Text="KM" Foreground="#FF8A00" FontWeight="ExtraBold" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <!-- Official KnowToMigrate Logo Badge (15% Radius, Gloss Overlay) -->
+                                        <Border Grid.Column="0" Width="46" Height="46" CornerRadius="7" Background="#000000" BorderBrush="#FF5A00" BorderThickness="1.5" Margin="0,0,14,0" VerticalAlignment="Center" SnapsToDevicePixels="True" ClipToBounds="True">
+                                            <Border.Effect>
+                                                <DropShadowEffect Color="#FF5A00" BlurRadius="12" ShadowDepth="0" Opacity="0.45"/>
+                                            </Border.Effect>
+                                            <Grid>
+                                                <Image Source="Assets/logo.png" Stretch="Uniform" Margin="5" RenderOptions.BitmapScalingMode="HighQuality" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                <!-- Liquid Glossy Sheen Overlay -->
+                                                <Border CornerRadius="6,6,0,0" Height="20" VerticalAlignment="Top" Background="{StaticResource GlossySheenBrush}" Opacity="0.45"/>
+                                            </Grid>
                                         </Border>
 
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">

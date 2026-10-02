@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -129,7 +130,27 @@ namespace KnowToMigrate.Services
         private static KtmUpdateService? _instance;
         public static KtmUpdateService Instance => _instance ??= new KtmUpdateService();
 
-        public const string CurrentVersion = "1.0.0";
+        public static string CurrentVersion
+        {
+            get
+            {
+                try
+                {
+                    var asm = System.Reflection.Assembly.GetExecutingAssembly();
+                    var infoAttr = asm.GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>();
+                    if (infoAttr != null && !string.IsNullOrWhiteSpace(infoAttr.InformationalVersion))
+                    {
+                        string v = infoAttr.InformationalVersion.Split('+')[0].Trim();
+                        if (!string.IsNullOrEmpty(v)) return v;
+                    }
+                    var ver = asm.GetName().Version;
+                    if (ver != null) return $"{ver.Major}.{ver.Minor}.{ver.Build}";
+                }
+                catch { }
+                return "1.0.0";
+            }
+        }
+
         public const string DefaultManifestUrl = "https://knowtomigrate.web.app/update-manifest.json";
 
         private readonly HttpClient _httpClient;
@@ -194,7 +215,10 @@ namespace KnowToMigrate.Services
                 HttpResponseMessage response;
                 try
                 {
-                    response = await _httpClient.GetAsync(DefaultManifestUrl);
+                    string manifestUrlWithCacheBust = $"{DefaultManifestUrl}?_cb={DateTime.UtcNow.Ticks}";
+                    var request = new HttpRequestMessage(HttpMethod.Get, manifestUrlWithCacheBust);
+                    request.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true };
+                    response = await _httpClient.SendAsync(request);
                 }
                 catch (HttpRequestException ex)
                 {
@@ -445,18 +469,48 @@ namespace KnowToMigrate.Services
 
             if (!File.Exists(updaterExe))
             {
-                // Fallback to checking typical paths
-                string alt1 = Path.Combine(currentDir, "..", "publish", "KnowToMigrate.Updater.exe");
-                string alt2 = Path.Combine(@"C:\Program Files\KnowToMigrate", "KnowToMigrate.Updater.exe");
-                if (File.Exists(alt1)) updaterExe = alt1;
-                else if (File.Exists(alt2)) updaterExe = alt2;
+                // Fallback to checking typical release/installed paths
+                string[] candidatePaths = new[]
+                {
+                    Path.Combine(currentDir, "..", "publish", "KnowToMigrate.Updater.exe"),
+                    Path.Combine(currentDir, "..", "..", "releases", "windows", "publish", "KnowToMigrate.Updater.exe"),
+                    Path.Combine(currentDir, "releases", "windows", "publish", "KnowToMigrate.Updater.exe"),
+                    Path.Combine(@"C:\Program Files\KnowToMigrate", "KnowToMigrate.Updater.exe")
+                };
+
+                foreach (var path in candidatePaths)
+                {
+                    if (File.Exists(path))
+                    {
+                        updaterExe = Path.GetFullPath(path);
+                        break;
+                    }
+                }
             }
 
             if (!File.Exists(updaterExe))
             {
-                Log("[ERROR] KnowToMigrate.Updater.exe was not found on system.");
-                OnUpdateError?.Invoke("Updater executable missing. Cannot perform automatic restart.");
-                return false;
+                Log("[WARN] KnowToMigrate.Updater.exe not found. Falling back to launching update package directly.");
+                try
+                {
+                    var directPsi = new ProcessStartInfo
+                    {
+                        FileName = stagedPackage,
+                        UseShellExecute = true
+                    };
+                    Process.Start(directPsi);
+                    Application.Current?.Dispatcher?.Invoke(() =>
+                    {
+                        Application.Current.Shutdown(0);
+                    });
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Log($"[ERROR] Direct update package launch failed: {ex.Message}");
+                    OnUpdateError?.Invoke("Updater executable missing and fallback installer failed.");
+                    return false;
+                }
             }
 
             Log($"[INFO] Spawning standalone updater: '{updaterExe}' for target version {AvailableManifest.Version}");

@@ -222,5 +222,89 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- Liquid Glass AMOLED Unique CheckBox Style (Implicit TargetType) -->
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#DDDDDD" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid Background="Transparent">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Custom CheckBox Container -->
+                            <Border x:Name="CheckBorder"
+                                    Grid.Column="0"
+                                    Width="20"
+                                    Height="20"
+                                    CornerRadius="5.5"
+                                    Background="#0A0A0A"
+                                    BorderBrush="#2A2A2A"
+                                    BorderThickness="1.5"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    SnapsToDevicePixels="True">
+                                <Grid>
+                                    <!-- Glossy Sheen Overlay on Top Half -->
+                                    <Border x:Name="CheckGloss"
+                                            CornerRadius="4,4,0,0"
+                                            Height="9"
+                                            VerticalAlignment="Top"
+                                            Background="{StaticResource GlossySheenBrush}"
+                                            Opacity="0" />
+
+                                    <!-- Unique Optically Centered Vector Checkmark -->
+                                    <Path x:Name="CheckMark"
+                                          Data="M 3.8,10.2 L 7.8,14.2 L 15.6,5.6"
+                                          Stroke="#FFFFFF"
+                                          StrokeThickness="2.2"
+                                          StrokeStartLineCap="Round"
+                                          StrokeEndLineCap="Round"
+                                          StrokeLineJoin="Round"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Opacity="0"
+                                          SnapsToDevicePixels="True" />
+                                </Grid>
+                            </Border>
+
+                            <!-- Label Content -->
+                            <ContentPresenter Grid.Column="1"
+                                              Margin="10,0,0,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              RecognizesAccessKey="True" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CheckBorder" Property="BorderBrush" Value="#FF5A00" />
+                                <Setter TargetName="CheckBorder" Property="Background" Value="#141414" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckBorder" Property="Background" Value="{StaticResource KmBrandGradient}" />
+                                <Setter TargetName="CheckBorder" Property="BorderBrush" Value="#FFA366" />
+                                <Setter TargetName="CheckMark" Property="Opacity" Value="1" />
+                                <Setter TargetName="CheckGloss" Property="Opacity" Value="0.45" />
+                                <Setter TargetName="CheckBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#FF5A00" BlurRadius="10" ShadowDepth="0" Opacity="0.45" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Application.Resources>
 </Application>

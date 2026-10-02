@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 [assembly: AssemblyTitle("KnowToMigrate Setup")]
 [assembly: AssemblyProduct("KnowToMigrate")]
-[assembly: AssemblyCompany("KnowToMigrate")]
+[assembly: AssemblyCompany("KNOWTHETECH")]
 [assembly: AssemblyDescription("KnowToMigrate Windows Installer")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
