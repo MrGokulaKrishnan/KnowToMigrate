@@ -16,11 +16,11 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>KnowToMigrate</AssemblyName>
     <Product>KnowToMigrate</Product>
-    <Company>KnowToMigrate</Company>
+    <Company>KNOWTHETECH</Company>
     <Description>KnowToMigrate</Description>
     <AssemblyTitle>KnowToMigrate</AssemblyTitle>
     <AssemblyProduct>KnowToMigrate</AssemblyProduct>
-    <AssemblyCompany>KnowToMigrate</AssemblyCompany>
+    <AssemblyCompany>KNOWTHETECH</AssemblyCompany>
     <AssemblyDescription>KnowToMigrate</AssemblyDescription>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>

@@ -174,7 +174,7 @@ export function Footer() {
           }}
         >
           <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
-            © {new Date().getFullYear()} KnowToMigrate. MIT License.
+            © {new Date().getFullYear()} KNOWTHETECH. MIT License.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>
             <Shield size={13} />

@@ -1,12 +1,12 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package Name="KnowToMigrate"
-           Manufacturer="KnowToMigrate Team"
+           Manufacturer="KNOWTHETECH"
            Version="1.0.0.0"
            UpgradeCode="C8B72D32-1594-4F77-8E82-7AC4E7D01A4B"
            Scope="perMachine">
     
     <SummaryInformation Description="KnowToMigrate Windows Installer"
-                        Manufacturer="KnowToMigrate Team" />
+                        Manufacturer="KNOWTHETECH" />
 
     <MajorUpgrade AllowSameVersionUpgrades="yes"
                   DowngradeErrorMessage="A newer version of [ProductName] is already installed."
