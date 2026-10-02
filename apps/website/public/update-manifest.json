@@ -4,27 +4,27 @@
     "version":  "1.0.1",
     "minimumSupportedVersion":  "1.0.0",
     "mandatory":  false,
-    "publishedAt":  "2026-10-02T13:08:31Z",
+    "publishedAt":  "2026-10-02T13:56:25Z",
     "windows":  {
                     "architecture":  "x64",
                     "installerType":  "exe",
                     "version":  "1.0.1",
                     "filename":  "KnowToMigrate-Setup.exe",
                     "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-Setup.exe.bin",
-                    "size":  66237952,
-                    "sha256":  "8feed5fffc359a303933be4c8c13d0964de52b9404d95cfb03a982f1cea54143",
+                    "size":  66332672,
+                    "sha256":  "1fa158d923f193464c5e85d3ccb1ea5678f69e7a7105787d7835ec4418922fb5",
                     "signature":  "",
                     "msi":  {
                                 "filename":  "KnowToMigrate-1.0.1-x64.msi",
                                 "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.1-x64.msi.bin",
-                                "size":  66232320,
-                                "sha256":  "023a72b5294f63733f41f5dd864feef1ad484ee633ce69af01a0a2a6439e46b0"
+                                "size":  66285568,
+                                "sha256":  "bc7c8842f2086dbe37497df99efdc59d07f2b3f0983d7ff7f2e1190ce36c2c33"
                             },
                     "standalone":  {
                                        "filename":  "KnowToMigrate.exe",
                                        "url":  "https://knowtomigrate.web.app/download/KnowToMigrate.exe.bin",
-                                       "size":  72535547,
-                                       "sha256":  "8585fa8f1a32519c0a0dc0d29eab51ce6c47402a3c4fb163056baed26afcea49"
+                                       "size":  72416728,
+                                       "sha256":  "31f36382ec423c6c09f86c1bf9df7c9958bca545f4b354b0fe796264c5f930aa"
                                    }
                 },
     "android":  {

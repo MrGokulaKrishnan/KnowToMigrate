@@ -306,5 +306,32 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Liquid Glass Glowing Gradient ProgressBar Style -->
+        <Style x:Key="KmGradientProgressBar" TargetType="ProgressBar">
+            <Setter Property="Height" Value="10" />
+            <Setter Property="Background" Value="#141414" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid SnapsToDevicePixels="True">
+                            <Border CornerRadius="5" Background="{TemplateBinding Background}" BorderBrush="#242424" BorderThickness="1" />
+                            <Border x:Name="PART_Track" CornerRadius="5" ClipToBounds="True">
+                                <Decorator x:Name="PART_Indicator" HorizontalAlignment="Left">
+                                    <Grid>
+                                        <Border CornerRadius="5" Background="{StaticResource KmBrandGradient}">
+                                            <Border.Effect>
+                                                <DropShadowEffect Color="#FF5A00" BlurRadius="12" ShadowDepth="0" Opacity="0.5"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <Border CornerRadius="4,4,0,0" Height="5" VerticalAlignment="Top" Background="{StaticResource GlossySheenBrush}" Opacity="0.45"/>
+                                    </Grid>
+                                </Decorator>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Application.Resources>
 </Application>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,9 +12,11 @@ namespace KnowToMigrate
         private static extern void SetCurrentProcessExplicitAppUserModelID([System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPWStr)] string AppID);
 
         public const string AppUserModelId = "KnowToMigrate.App";
+        public static string[] InitialFilesToStage { get; private set; } = Array.Empty<string>();
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            if (e.Args.Length > 0) { InitialFilesToStage = e.Args; }
             try
             {
                 SetCurrentProcessExplicitAppUserModelID(AppUserModelId);

@@ -1,8 +1,8 @@
 ﻿{
     "product":  "KnowToMigrate",
     "tagline":  "Move Anything. Anywhere. Seamlessly.",
-    "version":  "1.0.1",
-    "versionCode":  10001,
+    "version":  "1.0.2",
+    "versionCode":  10002,
     "channel":  "stable",
     "minimumSupportedVersion":  "1.0.0",
     "publishedAt":  "2026-10-01T12:00:00Z",

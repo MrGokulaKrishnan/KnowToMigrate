@@ -519,7 +519,8 @@ namespace KnowToMigrate.Services
             {
                 FileName = updaterExe,
                 Arguments = $"--package \"{stagedPackage}\" --expected-sha256 \"{winDetails.Sha256}\" --target-dir \"{currentDir.TrimEnd('\\')}\" --main-exe \"{mainExe}\" --parent-pid {Process.GetCurrentProcess().Id} --target-version \"{AvailableManifest.Version}\" --previous-version \"{CurrentVersion}\"",
-                UseShellExecute = true
+                UseShellExecute = true,
+                Verb = "runas"
             };
 
             try
@@ -534,6 +535,12 @@ namespace KnowToMigrate.Services
                     Application.Current.Shutdown(0);
                 });
                 return true;
+            }
+            catch (System.ComponentModel.Win32Exception winEx) when (winEx.NativeErrorCode == 1223)
+            {
+                Log("[WARN] User cancelled UAC elevation prompt for updater.");
+                OnUpdateError?.Invoke("Administrator permission is required to install the update.");
+                return false;
             }
             catch (Exception ex)
             {

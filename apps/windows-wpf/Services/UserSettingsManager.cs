@@ -1,3 +1,5 @@
+using Microsoft.Win32;
+using System.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,6 +27,10 @@ namespace KnowToMigrate.Services
         public bool CheckUpdatesAutomatically { get; set; } = true;
         [JsonIgnore]
         public bool AutoCheckForUpdates { get => CheckUpdatesAutomatically; set => CheckUpdatesAutomatically = value; }
+
+        public bool MinimizeToTray { get; set; } = true;
+        public bool SoundEffectsEnabled { get; set; } = true;
+        public bool ShellContextMenuEnabled { get; set; } = true;
 
         public string UpdateChannel { get; set; } = "stable";
         public DateTime? LastUpdateCheckUtc { get; set; } = null;
@@ -211,6 +217,43 @@ namespace KnowToMigrate.Services
                 }
                 catch { }
             }
+        }
+    
+        public static void SetShellContextMenu(bool enable)
+        {
+            try
+            {
+                string exePath = Process.GetCurrentProcess().MainModule?.FileName ?? "";
+                if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
+                {
+                    exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "KnowToMigrate.exe");
+                }
+
+                string[] targetKeys = {
+                    @"Software\Classes\*\shell\KnowToMigrate",
+                    @"Software\Classes\Directory\shell\KnowToMigrate"
+                };
+
+                foreach (var relKey in targetKeys)
+                {
+                    if (enable)
+                    {
+                        using var key = Registry.CurrentUser.CreateSubKey(relKey);
+                        if (key != null)
+                        {
+                            key.SetValue("", "Send with KnowToMigrate");
+                            key.SetValue("Icon", $"\"{exePath}\"");
+                            using var cmdKey = key.CreateSubKey("command");
+                            cmdKey?.SetValue("", $"\"{exePath}\" \"%1\"");
+                        }
+                    }
+                    else
+                    {
+                        Registry.CurrentUser.DeleteSubKeyTree(relKey, false);
+                    }
+                }
+            }
+            catch { }
         }
     }
 }

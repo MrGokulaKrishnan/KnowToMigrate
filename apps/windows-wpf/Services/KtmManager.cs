@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -53,6 +53,7 @@ namespace KnowToMigrate.Services
                     foreach (var d in devices)
                     {
                         NearbyDevices.Add(d);
+                        OnDeviceFound?.Invoke(d);
                     }
                 });
             };

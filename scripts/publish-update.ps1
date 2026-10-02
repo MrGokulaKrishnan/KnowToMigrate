@@ -52,9 +52,12 @@ if ($LASTEXITCODE -ne 0) { Write-Error "WPF application publish failed with exit
 
 # 4. Compile Standalone Native C# Updater (55 KB zero-dependency WinForms)
 Write-Host "`n[3/7] Compiling Native C# Updater..." -ForegroundColor Green
+$appIcon = Join-Path $RepoRoot "apps\windows-wpf\Assets\KnowToMigrate.ico"
 $updaterSrc = Join-Path $RepoRoot "apps\windows-updater\UpdaterMain.cs"
+$updaterManifest = Join-Path $RepoRoot "apps\windows-updater\app.manifest"
 $updaterOut = Join-Path $publishDir "KnowToMigrate.Updater.exe"
-& $CscExe /target:winexe /platform:x64 /optimize+ /out:$updaterOut $updaterSrc
+$logoPng = Join-Path $RepoRoot "apps\windows-wpf\Assets\logo.png"
+& $CscExe /target:winexe /platform:x64 /optimize+ /win32manifest:$updaterManifest /win32icon:$appIcon /resource:"$logoPng,logo.png" /out:$updaterOut $updaterSrc
 if ($LASTEXITCODE -ne 0) { Write-Error "Updater compilation failed with exit code $LASTEXITCODE" }
 
 # 5. Build WiX MSI Package & Setup Bootstrapper
@@ -64,8 +67,9 @@ $msiOut = Join-Path $RepoRoot "releases\windows\KnowToMigrate-$TargetVersion-x64
 if ($LASTEXITCODE -ne 0) { Write-Error "WiX MSI build failed with exit code $LASTEXITCODE" }
 
 $setupSrc = Join-Path $RepoRoot "apps\windows-setup\SetupBootstrapper.cs"
+$setupManifest = Join-Path $RepoRoot "apps\windows-setup\app.manifest"
 $setupOut = Join-Path $RepoRoot "releases\windows\KnowToMigrate-Setup.exe"
-& $CscExe /target:winexe /platform:x64 /optimize+ /resource:"$msiOut,Payload.msi" /out:$setupOut $setupSrc
+& $CscExe /target:winexe /platform:x64 /optimize+ /win32manifest:$setupManifest /win32icon:$appIcon /resource:"$msiOut,Payload.msi" /out:$setupOut $setupSrc
 if ($LASTEXITCODE -ne 0) { Write-Error "Setup bootstrapper build failed with exit code $LASTEXITCODE" }
 
 # Also keep standalone EXE in releases/windows/

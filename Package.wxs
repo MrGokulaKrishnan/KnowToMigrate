@@ -1,7 +1,7 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package Name="KnowToMigrate"
            Manufacturer="KNOWTHETECH"
-           Version="1.0.1.0"
+           Version="1.0.2.0"
            UpgradeCode="C8B72D32-1594-4F77-8E82-7AC4E7D01A4B"
            Scope="perMachine">
     

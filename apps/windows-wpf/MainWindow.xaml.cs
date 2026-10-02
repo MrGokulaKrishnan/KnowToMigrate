@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -18,6 +18,7 @@ namespace KnowToMigrate
         private CancellationTokenSource? _transferCts;
         private string? _forcedTransport = null;
         private bool _updatePendingAfterTransfer = false;
+        private KtmTrayManager? _trayManager;
 
         public MainWindow()
         {
@@ -116,6 +117,39 @@ namespace KnowToMigrate
                 ChkAutoCheckUpdates.IsChecked = settings.AutoCheckForUpdates;
                 ChkRequirePin.IsChecked = settings.RequireSecurityPin;
                 ChkAutoAcceptTrusted.IsChecked = settings.AutoAcceptTrustedDevices;
+                ChkMinimizeToTray.IsChecked = settings.MinimizeToTray;
+                ChkSoundEffects.IsChecked = settings.SoundEffectsEnabled;
+                ChkShellContextMenu.IsChecked = settings.ShellContextMenuEnabled;
+
+                KtmSoundService.IsEnabled = settings.SoundEffectsEnabled;
+
+                _trayManager = new KtmTrayManager(this);
+                _trayManager.Initialize();
+
+                KtmWebShareServer.Instance.OnFileUploaded += (fileName, bytes) =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        ShowNotificationBanner("Web Share Received", $"{fileName} ({KtmFormatting.FormatBytes(bytes)}) received via browser.", true);
+                        _trayManager?.ShowNotification("File Received via Web Share", $"{fileName} ({KtmFormatting.FormatBytes(bytes)}) saved to Downloads.");
+                    });
+                };
+                KtmWebShareServer.Instance.Start();
+
+                if (App.InitialFilesToStage.Length > 0)
+                {
+                    _selectedFiles.Clear();
+                    foreach (var f in App.InitialFilesToStage)
+                    {
+                        if (File.Exists(f) || Directory.Exists(f))
+                        {
+                            _selectedFiles.Add(f);
+                        }
+                    }
+                    UpdateFileSelectionUI();
+                    KtmWebShareServer.Instance.SetStagedFiles(_selectedFiles);
+                    ShowNotificationBanner("Files Staged", $"{_selectedFiles.Count} item(s) staged from Explorer.", true);
+                }
 
                 // Wire Update Service events
                 KtmUpdateService.Instance.OnCheckStatusChanged += UpdateService_OnCheckStatusChanged;
@@ -170,6 +204,8 @@ namespace KnowToMigrate
             Views.IncomingTransferWindow.CancelPending();
             _transferCts?.Cancel();
             KtmManager.Instance.Stop();
+            _trayManager?.Dispose();
+            KtmWebShareServer.Instance.Stop();
         }
 
         private string? _lastReceivedFilePath;
@@ -417,6 +453,7 @@ namespace KnowToMigrate
                 ViewReceive.Visibility = Visibility.Collapsed;
                 ViewMigration.Visibility = Visibility.Collapsed;
                 ViewHistory.Visibility = Visibility.Collapsed;
+                ViewWebShare.Visibility = Visibility.Collapsed;
                 ViewSettings.Visibility = Visibility.Collapsed;
 
                 switch (tag)
@@ -447,7 +484,7 @@ namespace KnowToMigrate
 
         private void HighlightNav(Button active)
         {
-            Button[] buttons = { BtnNavHome, BtnNavReceive, BtnNavMigration, BtnNavHistory, BtnNavSettings };
+            Button[] buttons = { BtnNavHome, BtnNavReceive, BtnNavWebShare, BtnNavMigration, BtnNavHistory, BtnNavSettings };
             foreach (var b in buttons)
             {
                 if (b == active)
@@ -728,6 +765,7 @@ namespace KnowToMigrate
             ViewMigration.Visibility = Visibility.Collapsed;
             ViewHome.Visibility = Visibility.Visible;
             HighlightNav(BtnNavHome);
+            KtmWebShareServer.Instance.SetStagedFiles(_selectedFiles);
             UpdateFileSelectionUI();
         }
 
@@ -746,6 +784,15 @@ namespace KnowToMigrate
 
         private void MainWindow_StateChanged(object? sender, EventArgs e)
         {
+            if (this.WindowState == WindowState.Minimized)
+            {
+                if (ChkMinimizeToTray?.IsChecked == true)
+                {
+                    _trayManager?.MinimizeToTray();
+                    _trayManager?.ShowNotification("KnowToMigrate", "Running in background notification area. Transfers remain active.");
+                }
+                return;
+            }
             if (this.WindowState == WindowState.Maximized)
             {
                 RootBorder.Margin = new Thickness(7);
@@ -1039,6 +1086,67 @@ namespace KnowToMigrate
         private bool IsAnyTransferActive()
         {
             return PanelProgress.Visibility == Visibility.Visible;
+        }
+
+        #endregion
+    
+        #region Web Share & New Preferences
+
+        private void RefreshWebShareUi()
+        {
+            string url = KtmWebShareServer.Instance.GetShareUrl();
+            TxtWebShareUrl.Text = url;
+            try
+            {
+                ImgWebShareQr.Source = KtmQrCodeGenerator.GenerateQrCode(url, 200);
+            }
+            catch { }
+
+            var staged = KtmWebShareServer.Instance.GetStagedFiles();
+            ListWebShareFiles.ItemsSource = null;
+            ListWebShareFiles.ItemsSource = staged;
+            TxtWebShareFilesCount.Text = $"({staged.Count} files)";
+        }
+
+        private void BtnCopyWebShareUrl_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Clipboard.SetText(TxtWebShareUrl.Text);
+                ShowNotificationBanner("URL Copied", "Web Share URL copied to clipboard.", true);
+            }
+            catch { }
+        }
+
+        private void BtnClearWebShare_Click(object sender, RoutedEventArgs e)
+        {
+            KtmWebShareServer.Instance.ClearStagedFiles();
+            RefreshWebShareUi();
+        }
+
+        private void ChkMinimizeToTray_Changed(object sender, RoutedEventArgs e)
+        {
+            var settings = UserSettingsManager.LoadSettings();
+            settings.MinimizeToTray = ChkMinimizeToTray.IsChecked == true;
+            UserSettingsManager.SaveSettings(settings);
+        }
+
+        private void ChkSoundEffects_Changed(object sender, RoutedEventArgs e)
+        {
+            var settings = UserSettingsManager.LoadSettings();
+            bool enabled = ChkSoundEffects.IsChecked == true;
+            settings.SoundEffectsEnabled = enabled;
+            KtmSoundService.IsEnabled = enabled;
+            UserSettingsManager.SaveSettings(settings);
+        }
+
+        private void ChkShellContextMenu_Changed(object sender, RoutedEventArgs e)
+        {
+            var settings = UserSettingsManager.LoadSettings();
+            bool enable = ChkShellContextMenu.IsChecked == true;
+            settings.ShellContextMenuEnabled = enable;
+            UserSettingsManager.SaveSettings(settings);
+            UserSettingsManager.SetShellContextMenu(enable);
         }
 
         #endregion

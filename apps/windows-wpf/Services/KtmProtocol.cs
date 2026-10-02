@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
@@ -18,6 +18,10 @@ namespace KnowToMigrate.Services
         public const int MaxChunkSize = 1024 * 1024; // 1 MB
         public const int DiscoveryIntervalMs = 2000;
         public const int DeviceTimeoutMs = 7000;
+        public const int WebSharePort = 54125;
+        public const uint EncryptedChunkMagic = 0x4B544D45; // 'KTME'
+        public const int GcmNonceSize = 12;
+        public const int GcmTagSize = 16;
     }
 
     public static class KtmTransportCodes

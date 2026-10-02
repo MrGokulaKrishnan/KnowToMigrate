@@ -1,4 +1,4 @@
-<Window x:Class="KnowToMigrate.MainWindow"
+﻿<Window x:Class="KnowToMigrate.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="KnowToMigrate — Move Anything. Anywhere. Seamlessly."
@@ -127,6 +127,7 @@
                         <StackPanel DockPanel.Dock="Top">
                             <Button x:Name="BtnNavHome" Content="Home" Click="Nav_Click" Tag="Home" Style="{StaticResource KmNavButton}" Background="#1C0E00" Foreground="#FF8A00" BorderBrush="#FF5A00" FontWeight="Bold" />
                             <Button x:Name="BtnNavReceive" Content="Landing" Click="Nav_Click" Tag="Receive" Style="{StaticResource KmNavButton}" />
+                            <Button x:Name="BtnNavWebShare" Content="Web Share" Click="Nav_Click" Tag="WebShare" Style="{StaticResource KmNavButton}" />
                             <Button x:Name="BtnNavMigration" Content="Migration Wizard" Click="Nav_Click" Tag="Migration" Style="{StaticResource KmNavButton}" />
                             <Button x:Name="BtnNavHistory" Content="Migration Ledger" Click="Nav_Click" Tag="History" Style="{StaticResource KmNavButton}" />
                             <Button x:Name="BtnNavSettings" Content="Settings" Click="Nav_Click" Tag="Settings" Style="{StaticResource KmNavButton}" />
@@ -421,6 +422,106 @@
                         </Border>
                     </Grid>
 
+                                        <!-- TAB: Web Share (Zero-Install Cross-Platform Transfers) -->
+                    <Grid x:Name="ViewWebShare" Visibility="Collapsed">
+                        <Border Background="#080808" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="20" Padding="28">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <Grid Grid.Row="0" Margin="0,0,0,24">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Local Web Share" Foreground="#FFFFFF" FontWeight="Bold" FontSize="22" />
+                                        <TextBlock Text="Transfer files instantly with iPhones, iPads, Macs, and Linux PCs via browser · Zero app install" Foreground="#888888" FontSize="13" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Background="#1C0E00" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="8" Padding="10,6">
+                                            <TextBlock x:Name="TxtWebShareStatusBadge" Text="Web Share Active" Foreground="#FF8A00" FontSize="12" FontWeight="Bold" />
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid Grid.Row="1" Margin="0,0,0,20">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="260" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0" Background="#0E0E0E" BorderBrush="#FF5A00" BorderThickness="1.5" CornerRadius="18" Padding="16" Margin="0,0,20,0" HorizontalAlignment="Left">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#FF5A00" BlurRadius="20" ShadowDepth="0" Opacity="0.3"/>
+                                        </Border.Effect>
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <Border Background="#FFFFFF" CornerRadius="12" Padding="10" Margin="0,0,0,12">
+                                                <Image x:Name="ImgWebShareQr" Width="200" Height="200" RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                                            </Border>
+                                            <TextBlock Text="Scan with iPhone / iPad Camera" Foreground="#CCCCCC" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <Border Background="#111111" BorderBrush="#222222" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,0,0,14">
+                                            <StackPanel>
+                                                <TextBlock Text="Direct Web Browser Address:" Foreground="#888888" FontSize="11" FontWeight="SemiBold" />
+                                                <Grid Margin="0,8,0,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBox x:Name="TxtWebShareUrl" IsReadOnly="True" Background="#181818" Foreground="#FF8A00" BorderThickness="0" Padding="12,10" FontSize="14" FontWeight="Bold" />
+                                                    <Button Grid.Column="1" Content="Copy URL" Click="BtnCopyWebShareUrl_Click" Style="{StaticResource KmPrimaryButton}" Margin="10,0,0,0" Padding="16,0" Height="38" />
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Background="#111111" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="14" Padding="16">
+                                            <StackPanel>
+                                                <TextBlock Text="How It Works" Foreground="#FFFFFF" FontSize="13" FontWeight="Bold" Margin="0,0,0,6" />
+                                                <TextBlock Text="1. Make sure your phone/device is connected to the same Wi-Fi.&#x0a;2. Scan the QR code or type the URL in Safari / Chrome.&#x0a;3. Download any files staged on this PC, or tap 'Send to PC' in your browser to upload files directly." Foreground="#AAAAAA" FontSize="12" LineHeight="20" />
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Grid.Row="2" Background="#0C0C0C" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="16" Padding="18">
+                                    <DockPanel>
+                                        <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="Staged Files for Web Download" Foreground="#FFFFFF" FontWeight="Bold" FontSize="14" />
+                                                <TextBlock x:Name="TxtWebShareFilesCount" Text=" (0 files)" Foreground="#888888" FontSize="13" Margin="4,0,0,0" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                <Button Content="Choose Files to Share" Click="ChooseFiles_Click" Style="{StaticResource KmPrimaryButton}" Height="32" Padding="12,0" FontSize="11" Margin="0,0,8,0" />
+                                                <Button Content="Clear All" Click="BtnClearWebShare_Click" Style="{StaticResource KmGlassButton}" Height="32" Padding="12,0" FontSize="11" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <ListBox x:Name="ListWebShareFiles" Background="Transparent" BorderThickness="0" MaxHeight="160">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Margin="0,0,0,4" Background="#141414" BorderBrush="#222222" BorderThickness="1" CornerRadius="8" Padding="10,6">
+                                                        <TextBlock Text="{Binding}" Foreground="#DDDDDD" FontSize="12" TextTrimming="CharacterEllipsis" />
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </DockPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
                     <!-- TAB 3: Migration Wizard (20px Radius, 15% Master Logo Badge) -->
                     <Grid x:Name="ViewMigration" Visibility="Collapsed">
                         <Border Background="#080808" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="20" Padding="28">
@@ -453,9 +554,22 @@
                                     </StackPanel>
                                 </Grid>
 
-                                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
-                                    <Button Content="Scan Selected Items" Click="ScanMigration_Click" Style="{StaticResource KmGlassButton}" Margin="0,0,12,0" />
-                                    <Button Content="Start Migration" Click="StartMigration_Click" Style="{StaticResource KmPrimaryButton}" />
+                                <StackPanel DockPanel.Dock="Bottom" Margin="0,18,0,0">
+                                    <!-- Dynamic PC Migration Scan Live Progress Panel -->
+                                    <Border x:Name="PanelMigrationScan" Background="#0C0C0C" BorderBrush="#FF5A00" BorderThickness="1.2" CornerRadius="12" Padding="14,12" Margin="0,0,0,14" Visibility="Collapsed">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,6">
+                                                <TextBlock x:Name="TxtMigrationScanTitle" Text="Scanning selected folders for migration candidates..." Foreground="#FFFFFF" FontSize="12" FontWeight="SemiBold" />
+                                                <TextBlock x:Name="TxtMigrationScanCount" Text="0 files · 0 B" Foreground="#FF8A00" FontSize="11" FontWeight="Bold" HorizontalAlignment="Right" />
+                                            </Grid>
+                                            <ProgressBar x:Name="ProgressBarMigrationScan" Height="6" IsIndeterminate="True" Style="{StaticResource KmGradientProgressBar}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="Scan Selected Items" Click="ScanMigration_Click" Style="{StaticResource KmGlassButton}" Margin="0,0,12,0" />
+                                        <Button Content="Start Migration" Click="StartMigration_Click" Style="{StaticResource KmPrimaryButton}" />
+                                    </StackPanel>
                                 </StackPanel>
 
                                 <Border Background="#0E0E0E" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="16" Padding="20">
@@ -556,60 +670,94 @@
                                         <Button x:Name="BtnCheckUpdates" Grid.Column="2" Content="Check for Updates" Click="BtnCheckUpdates_Click" Style="{StaticResource KmPrimaryButton}" MinHeight="38" Padding="16,6" FontSize="12" VerticalAlignment="Center" />
                                     </Grid>
 
-                                    <!-- Update Details Panel (Shown when an update is available) -->
-                                    <Border x:Name="PanelUpdateAvailable" Grid.Row="1" Background="#121212" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16" Visibility="Collapsed">
-                                        <StackPanel>
-                                            <Grid Margin="0,0,0,10">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0">
-                                                    <TextBlock x:Name="TxtAvailableVersionTitle" Text="New Version Available: v1.0.1" Foreground="#FF8A00" FontWeight="Bold" FontSize="14" />
-                                                    <TextBlock x:Name="TxtAvailableVersionSize" Text="Download Size: ~63 MB · Windows x64" Foreground="#888888" FontSize="12" Margin="0,2,0,0" />
-                                                </StackPanel>
-                                                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                                    <Button x:Name="BtnUpdateNow" Content="Update Now" Click="BtnUpdateNow_Click" Style="{StaticResource KmPrimaryButton}" MinHeight="36" Padding="18,6" FontSize="12" Margin="0,0,8,0" FontWeight="Bold" />
-                                                    <Button x:Name="BtnSkipUpdate" Content="Later" Click="BtnSkipUpdate_Click" Style="{StaticResource KmGlassButton}" MinHeight="36" Padding="14,6" FontSize="12" />
-                                                </StackPanel>
-                                            </Grid>
-
-                                            <!-- Active Transfer Warning if needed -->
-                                            <Border x:Name="PanelActiveTransferWarning" Background="#263A00" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,10" Visibility="Collapsed">
-                                                <Grid>
+                                    <!-- Update Details Panel (Shown when an update is available) - Liquid Glass UI -->
+                                    <Border x:Name="PanelUpdateAvailable" Grid.Row="1" Background="#0A0A0A" BorderBrush="#FF5A00" BorderThickness="1.5" CornerRadius="16" Padding="20" Margin="0,0,0,16" Visibility="Collapsed">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#FF5A00" BlurRadius="22" ShadowDepth="0" Opacity="0.3"/>
+                                        </Border.Effect>
+                                        <Grid>
+                                            <!-- Top Glossy Sheen Overlay (Navbar-like reflection) -->
+                                            <Border CornerRadius="14.5,14.5,0,0" Height="22" VerticalAlignment="Top" Background="{StaticResource GlossySheenBrush}" Opacity="0.45"/>
+                                            <StackPanel Margin="0,4,0,0">
+                                                <Grid Margin="0,0,0,14">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="An active file transfer is running. Your transfer must finish before updating." Foreground="#FCD34D" FontSize="12" VerticalAlignment="Center" />
-                                                    <Button x:Name="BtnUpdateAfterTransfer" Grid.Column="1" Content="Update After Transfer" Click="BtnUpdateAfterTransfer_Click" Style="{StaticResource KmGlassButton}" Height="28" Padding="10,0" FontSize="11" Margin="8,0,0,0" />
+                                                    <StackPanel Grid.Column="0">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <TextBlock x:Name="TxtAvailableVersionTitle" Text="New Version Available: v1.0.1" Foreground="#FFFFFF" FontWeight="Bold" FontSize="15" />
+                                                            <Border Background="#200E00" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="8" Padding="8,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                                                <TextBlock Text="RECOMMENDED" Foreground="#FF8A00" FontSize="10" FontWeight="Bold" />
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock x:Name="TxtAvailableVersionSize" Text="Download Size: ~63 MB · Windows x64 · Cryptographically Verified" Foreground="#888888" FontSize="12" Margin="0,3,0,0" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Button x:Name="BtnUpdateNow" Content="Update Now" Click="BtnUpdateNow_Click" Style="{StaticResource KmPrimaryButton}" MinHeight="38" Padding="22,8" FontSize="13" Margin="0,0,10,0" FontWeight="Bold" />
+                                                        <Button x:Name="BtnSkipUpdate" Content="Later" Click="BtnSkipUpdate_Click" Style="{StaticResource KmGlassButton}" MinHeight="38" Padding="16,8" FontSize="13" />
+                                                    </StackPanel>
                                                 </Grid>
-                                            </Border>
 
-                                            <TextBlock Text="What's New in this release:" Foreground="#CCCCCC" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" />
-                                            <TextBlock x:Name="TxtReleaseNotes" Text="• Performance and stability improvements" Foreground="#999999" FontSize="12" TextWrapping="Wrap" />
-                                        </StackPanel>
+                                                <!-- Active Transfer Warning if needed -->
+                                                <Border x:Name="PanelActiveTransferWarning" Background="#261A00" BorderBrush="#F59E0B" BorderThickness="1.2" CornerRadius="10" Padding="14,10" Margin="0,0,0,12" Visibility="Collapsed">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="An active file transfer is currently streaming. Update will queue and install when transfer finishes." Foreground="#FCD34D" FontSize="12" VerticalAlignment="Center" />
+                                                        <Button x:Name="BtnUpdateAfterTransfer" Grid.Column="1" Content="Update After Transfer" Click="BtnUpdateAfterTransfer_Click" Style="{StaticResource KmGlassButton}" Height="30" Padding="12,0" FontSize="11" Margin="10,0,0,0" />
+                                                    </Grid>
+                                                </Border>
+
+                                                <!-- Release Notes Card (Liquid Glass Inner Panel) -->
+                                                <Border Background="#060606" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="12" Padding="16,14">
+                                                    <StackPanel>
+                                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                            <Border Width="6" Height="6" CornerRadius="3" Background="#FF5A00" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                            <TextBlock Text="WHAT'S NEW IN THIS RELEASE" Foreground="#FF8A00" FontSize="11" FontWeight="Bold" />
+                                                        </StackPanel>
+                                                        <TextBlock x:Name="TxtReleaseNotes" Text="• Performance and stability improvements" Foreground="#CCCCCC" FontSize="12" LineHeight="20" TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+                                        </Grid>
                                     </Border>
 
-                                    <!-- Download Progress Panel -->
-                                    <Border x:Name="PanelUpdateProgress" Grid.Row="2" Background="#121212" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16" Visibility="Collapsed">
-                                        <StackPanel>
-                                            <Grid Margin="0,0,0,6">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock x:Name="TxtDownloadProgressTitle" Text="Downloading KnowToMigrate update..." Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13" />
-                                                <TextBlock x:Name="TxtDownloadSpeedEta" Grid.Column="1" Text="0 MB/s · ETA --:--" Foreground="#FF8A00" FontSize="12" FontWeight="SemiBold" />
-                                            </Grid>
+                                    <!-- Download Progress Panel - Liquid Glass Glowing UI -->
+                                    <Border x:Name="PanelUpdateProgress" Grid.Row="2" Background="#0A0A0A" BorderBrush="#FF5A00" BorderThickness="1.5" CornerRadius="16" Padding="20" Margin="0,0,0,16" Visibility="Collapsed">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#FF5A00" BlurRadius="24" ShadowDepth="0" Opacity="0.35"/>
+                                        </Border.Effect>
+                                        <Grid>
+                                            <!-- Top Glossy Sheen Overlay (Navbar-like reflection) -->
+                                            <Border CornerRadius="14.5,14.5,0,0" Height="22" VerticalAlignment="Top" Background="{StaticResource GlossySheenBrush}" Opacity="0.45"/>
+                                            <StackPanel Margin="0,4,0,0">
+                                                <Grid Margin="0,0,0,10">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock x:Name="TxtDownloadProgressTitle" Text="Downloading KnowToMigrate Update..." Foreground="#FFFFFF" FontWeight="Bold" FontSize="14" />
+                                                        <TextBlock Text="Streaming verified update package · In-place self-extracting upgrade" Foreground="#777777" FontSize="11" Margin="0,2,0,0" />
+                                                    </StackPanel>
+                                                    <!-- Live Speed & ETA Badges -->
+                                                    <Border Grid.Column="1" Background="#1A0D00" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="8" Padding="10,4" VerticalAlignment="Center">
+                                                        <TextBlock x:Name="TxtDownloadSpeedEta" Text="0 MB/s · ETA --:--" Foreground="#FF8A00" FontSize="12" FontWeight="Bold" />
+                                                    </Border>
+                                                </Grid>
 
-                                            <ProgressBar x:Name="ProgressBarDownload" Height="8" Minimum="0" Maximum="100" Value="0" Background="#1A1A1A" Foreground="#FF5A00" BorderThickness="0" Margin="0,4,0,8" />
+                                                <!-- Custom Liquid Glass Progress Bar -->
+                                                <ProgressBar x:Name="ProgressBarDownload" Height="10" Minimum="0" Maximum="100" Value="0" Style="{StaticResource KmGradientProgressBar}" Margin="0,6,0,10" />
 
-                                            <Grid>
-                                                <TextBlock x:Name="TxtDownloadBytesCount" Text="0 MB / 0 MB (0%)" Foreground="#888888" FontSize="11" />
-                                                <Button x:Name="BtnCancelDownload" Content="Cancel Download" Click="BtnCancelDownload_Click" Style="{StaticResource KmGlassButton}" Height="26" Padding="10,0" FontSize="11" HorizontalAlignment="Right" Foreground="#FF5555" BorderBrush="#552222" />
-                                            </Grid>
-                                        </StackPanel>
+                                                <Grid>
+                                                    <TextBlock x:Name="TxtDownloadBytesCount" Text="0 MB / 0 MB (0%)" Foreground="#888888" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                                    <Button x:Name="BtnCancelDownload" Content="Cancel Download" Click="BtnCancelDownload_Click" Style="{StaticResource KmGlassButton}" Height="30" Padding="14,0" FontSize="11" HorizontalAlignment="Right" Foreground="#EF4444" BorderBrush="#441818" />
+                                                </Grid>
+                                            </StackPanel>
+                                        </Grid>
                                     </Border>
 
                                     <!-- Bottom Options -->
@@ -670,6 +818,42 @@
                                             <TextBlock Text="Automatically accept file transfers from paired and trusted devices" Foreground="#777777" FontSize="11" Margin="0,2,0,0" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkAutoAcceptTrusted" Grid.Column="1" IsChecked="False" Checked="ChkAutoAcceptTrusted_Changed" Unchecked="ChkAutoAcceptTrusted_Changed" VerticalAlignment="Center" />
+                                    </Grid>
+
+                                    <Grid Margin="0,14,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Minimize to System Tray" Foreground="#FFFFFF" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock Text="Keep Pluto Engine running in notification area when the window is minimized" Foreground="#777777" FontSize="11" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                        <CheckBox x:Name="ChkMinimizeToTray" Grid.Column="1" IsChecked="True" Checked="ChkMinimizeToTray_Changed" Unchecked="ChkMinimizeToTray_Changed" VerticalAlignment="Center" />
+                                    </Grid>
+
+                                    <Grid Margin="0,14,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Transfer Audio Chimes" Foreground="#FFFFFF" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock Text="Synthesize gentle harmonic chimes upon transfer start, completion, and failure" Foreground="#777777" FontSize="11" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                        <CheckBox x:Name="ChkSoundEffects" Grid.Column="1" IsChecked="True" Checked="ChkSoundEffects_Changed" Unchecked="ChkSoundEffects_Changed" VerticalAlignment="Center" />
+                                    </Grid>
+
+                                    <Grid Margin="0,14,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Windows Explorer Context Menu" Foreground="#FFFFFF" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock Text="Right-click any file or folder in File Explorer to 'Send with KnowToMigrate'" Foreground="#777777" FontSize="11" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                        <CheckBox x:Name="ChkShellContextMenu" Grid.Column="1" IsChecked="True" Checked="ChkShellContextMenu_Changed" Unchecked="ChkShellContextMenu_Changed" VerticalAlignment="Center" />
                                     </Grid>
                                 </StackPanel>
                             </Border>
