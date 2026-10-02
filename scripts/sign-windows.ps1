@@ -31,7 +31,7 @@ $Targets = @(
 if (-not $CertPath -or -not (Test-Path $CertPath)) {
     Write-Warning "No certificate path supplied via -CertPath or `$env:KTM_CERT_PATH."
     Write-Host "To self-sign for internal testing, generate a test PFX cert:" -ForegroundColor Yellow
-    Write-Host "  New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=KnowToMigrate Team' -CertStoreLocation Cert:\CurrentUser\My"
+    Write-Host "  New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=KNOWTHETECH' -CertStoreLocation Cert:\CurrentUser\My"
     Write-Host "To sign production binaries with a PFX certificate:" -ForegroundColor Yellow
     Write-Host "  .\sign-windows.ps1 -CertPath 'C:\path\to\cert.pfx' -CertPassword 'password'"
     exit 0

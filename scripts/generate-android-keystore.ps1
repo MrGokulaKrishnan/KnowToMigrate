@@ -41,7 +41,7 @@ Write-Host "Please enter secure passwords when prompted." -ForegroundColor Gray
     -keyalg RSA `
     -keysize 2048 `
     -validity $ValidityDays `
-    -dname "CN=KnowToMigrate, OU=Engineering, O=KnowToMigrate Team, L=Global, ST=Global, C=US"
+    -dname "CN=KnowToMigrate, OU=Engineering, O=KNOWTHETECH, L=Global, ST=Global, C=US"
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "`n✓ Release Keystore successfully created at: $KeystorePath" -ForegroundColor Green
