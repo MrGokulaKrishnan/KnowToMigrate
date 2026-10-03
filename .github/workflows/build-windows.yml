@@ -23,25 +23,37 @@ jobs:
         run: dotnet tool install --global wix
 
       - name: Restore NuGet packages
-        run: dotnet restore apps/windows-wpf/KnowToMigrate.csproj
-
-      - name: Build Windows App
-        run: dotnet build apps/windows-wpf/KnowToMigrate.csproj -c Release
-
-      - name: Publish self-contained EXE
         run: |
+          dotnet restore apps/windows-wpf/KnowToMigrate.csproj
+          dotnet restore apps/windows-updater/KnowToMigrate.Updater.csproj
+
+      - name: Build Windows App & Updater
+        run: |
+          dotnet build apps/windows-wpf/KnowToMigrate.csproj -c Release
+          dotnet build apps/windows-updater/KnowToMigrate.Updater.csproj -c Release
+
+      - name: Publish self-contained EXE & Updater
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path releases/windows/publish
           dotnet publish apps/windows-wpf/KnowToMigrate.csproj `
             -c Release -r win-x64 `
             --self-contained true `
             -p:PublishSingleFile=true `
             -p:EnableCompressionInSingleFile=true `
-            -o dist/windows/
+            -o releases/windows/publish/
+
+          dotnet publish apps/windows-updater/KnowToMigrate.Updater.csproj `
+            -c Release -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:EnableCompressionInSingleFile=true `
+            -o releases/windows/publish/
 
       - name: Stage Release EXE
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path releases/windows
-          Copy-Item dist/windows/KnowToMigrate.exe releases/windows/KnowToMigrate-1.0.0-x64.exe -Force
+          Copy-Item releases/windows/publish/KnowToMigrate.exe releases/windows/KnowToMigrate-1.0.0-x64.exe -Force
 
       - name: Build MSI Installer
         run: wix build Package.wxs -o releases/windows/KnowToMigrate-1.0.0-x64.msi
