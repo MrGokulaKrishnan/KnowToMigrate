@@ -33,3 +33,6 @@ test_wpf/
 releases/windows/publish/
 tests/**/bin/
 tests/**/obj/
+
+.kotlin/
+apps/android/.kotlin/
