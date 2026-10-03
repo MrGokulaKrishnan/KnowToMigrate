@@ -126,8 +126,14 @@ class TransferForegroundService : Service() {
         ).apply { acquire(10 * 60 * 60 * 1000L) } // max 10 hours
 
         val wm = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
+        val lockMode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            WifiManager.WIFI_MODE_FULL_LOW_LATENCY
+        } else {
+            @Suppress("DEPRECATION")
+            WifiManager.WIFI_MODE_FULL_HIGH_PERF
+        }
         wifiLock = wm.createWifiLock(
-            WifiManager.WIFI_MODE_FULL_HIGH_PERF,
+            lockMode,
             "KnowToMigrate::TransferWifiLock"
         ).apply { acquire() }
     }

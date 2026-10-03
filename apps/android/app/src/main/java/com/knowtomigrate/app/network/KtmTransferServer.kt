@@ -376,12 +376,7 @@ class KtmTransferServer(
                     Log.i("KtmTransferServer", "[MEDIA_SCAN_DONE] Path=$path, Uri=$uri")
                 }
 
-                try {
-                    val scanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE).apply {
-                        data = Uri.fromFile(if (publicFile.exists()) publicFile else savedFile)
-                    }
-                    context.sendBroadcast(scanIntent)
-                } catch (_: Exception) {}
+
             }
         } catch (e: Exception) {
             Log.w("KtmTransferServer", "Error in exportToPublicDownloadsAndScan", e)
