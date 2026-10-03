@@ -1,4 +1,4 @@
-﻿package com.knowtomigrate.app.ui.screens
+package com.knowtomigrate.app.ui.screens
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -62,7 +62,7 @@ private fun iconForFile(file: File): ImageVector {
         ext in listOf("ppt","pptx","odp")                                -> Icons.Default.Slideshow
         ext in listOf("zip","rar","7z","tar","gz")                       -> Icons.Default.Archive
         ext in listOf("apk")                                             -> Icons.Default.Android
-        else                                                              -> Icons.Default.InsertDriveFile
+        else                                                              -> Icons.AutoMirrored.Filled.InsertDriveFile
     }
 }
 
@@ -220,7 +220,7 @@ private fun TransferCompleteCard(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = if (file != null) iconForFile(file) else Icons.Default.InsertDriveFile,
+                                    imageVector = if (file != null) iconForFile(file) else Icons.AutoMirrored.Filled.InsertDriveFile,
                                     contentDescription = null,
                                     tint = KmOrange,
                                     modifier = Modifier.size(22.dp)
@@ -324,7 +324,7 @@ private fun TransferCompleteCard(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                                     ) {
-                                        Icon(Icons.Default.OpenInNew, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                                        Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                                         Text("Open", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                                     }
                                 }
@@ -888,7 +888,7 @@ private fun IncomingRequestSheet(
         )
         files.forEach { file ->
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(Icons.Default.InsertDriveFile, contentDescription = null, tint = KmTextMuted, modifier = Modifier.size(16.dp))
+                Icon(Icons.AutoMirrored.Filled.InsertDriveFile, contentDescription = null, tint = KmTextMuted, modifier = Modifier.size(16.dp))
                 Text(text = file, style = MaterialTheme.typography.bodySmall, color = KmTextSecondary)
             }
         }
