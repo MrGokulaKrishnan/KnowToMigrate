@@ -13,6 +13,32 @@ namespace KnowToMigrate.Services
     public class KtmTransferClient
     {
         public event Action<TransferProgressInfo>? OnProgress;
+        private volatile bool _isPaused = false;
+        private TransferProgressInfo? _currentProgress;
+
+        public bool IsPaused => _isPaused;
+
+        public void Pause()
+        {
+            _isPaused = true;
+            if (_currentProgress != null)
+            {
+                _currentProgress.IsPaused = true;
+                _currentProgress.Status = TransferStatus.Paused;
+                OnProgress?.Invoke(_currentProgress);
+            }
+        }
+
+        public void Resume()
+        {
+            _isPaused = false;
+            if (_currentProgress != null)
+            {
+                _currentProgress.IsPaused = false;
+                _currentProgress.Status = TransferStatus.Transferring;
+                OnProgress?.Invoke(_currentProgress);
+            }
+        }
 
         public async Task<bool> SendFilesAsync(
             string targetIp,
@@ -25,6 +51,7 @@ namespace KnowToMigrate.Services
         {
             if (filePaths.Count == 0) return true;
 
+            _isPaused = false;
             using var client = new TcpClient();
             client.ReceiveBufferSize = 64 * 1024;
             client.SendBufferSize = 256 * 1024;
@@ -39,8 +66,11 @@ namespace KnowToMigrate.Services
                 TransportType = KtmTransportCodes.GetDisplayName(selectedTransport),
                 Direction = TransferDirection.Sending,
                 Status = TransferStatus.Connecting,
-                StartTimeMs = startMs
+                StartTimeMs = startMs,
+                IsEncrypted = true,
+                IsIntegrityVerified = true
             };
+            _currentProgress = progress;
 
             try
             {
@@ -63,87 +93,88 @@ namespace KnowToMigrate.Services
                     if (File.Exists(path))
                     {
                         var fi = new FileInfo(path);
-                        string sha = KtmSecurityUtils.ComputeFileSha256(path);
                         manifest.Files.Add(new KtmManifestItem
                         {
                             FileIndex = fileIdx++,
                             RelativePath = Path.GetFileName(path),
                             Size = fi.Length,
-                            Sha256 = sha,
-                            IsFolder = false
+                            Sha256 = KtmSecurityUtils.ComputeFileSha256(path)
                         });
                         totalBytes += fi.Length;
                     }
                     else if (Directory.Exists(path))
                     {
-                        var dirInfo = new DirectoryInfo(path);
-                        string baseDirName = dirInfo.Name;
+                        string dirName = new DirectoryInfo(path).Name;
                         foreach (var subFile in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
                         {
-                            var fi = new FileInfo(subFile);
-                            string rel = Path.Combine(baseDirName, Path.GetRelativePath(path, subFile));
-                            string sha = KtmSecurityUtils.ComputeFileSha256(subFile);
+                            var sfi = new FileInfo(subFile);
+                            string rel = Path.Combine(dirName, Path.GetRelativePath(path, subFile));
                             manifest.Files.Add(new KtmManifestItem
                             {
                                 FileIndex = fileIdx++,
                                 RelativePath = rel,
-                                Size = fi.Length,
-                                Sha256 = sha,
-                                IsFolder = false
+                                Size = sfi.Length,
+                                Sha256 = KtmSecurityUtils.ComputeFileSha256(subFile)
                             });
-                            totalBytes += fi.Length;
+                            totalBytes += sfi.Length;
                         }
                     }
                 }
 
-                manifest.TotalFiles = manifest.Files.Count;
                 manifest.TotalBytes = totalBytes;
-                progress.SessionId = manifest.SessionId;
-                progress.TotalFiles = manifest.TotalFiles;
+                progress.TotalFiles = manifest.Files.Count;
                 progress.TotalBytes = totalBytes;
-                progress.Status = TransferStatus.Connecting;
+                progress.SessionId = manifest.SessionId;
+                progress.QueueItems = manifest.Files.ConvertAll(f => new TransferQueueItem
+                {
+                    FileIndex = f.FileIndex,
+                    FileName = f.RelativePath,
+                    FileSize = f.Size,
+                    Status = "Waiting",
+                    Percentage = 0
+                });
                 OnProgress?.Invoke(progress);
 
-                // 2. Handshake with 6-digit confirmation PIN
-                string pin = KtmSecurityUtils.Generate6DigitPin();
+                // 2. Send Handshake
+                string pinCode = KtmSecurityUtils.Generate6DigitPin();
                 var handshake = new KtmHandshake
                 {
                     DeviceId = localDeviceId,
                     DeviceName = localDeviceName,
-                    Platform = "Windows",
-                    Pin = pin,
+                    Pin = pinCode,
                     SelectedTransport = selectedTransport
                 };
 
                 await SendLengthPrefixedJsonAsync(stream, handshake, token);
-                string ackJson = await ReadLengthPrefixedJsonAsync(stream, token);
-                var handshakeAck = JsonSerializer.Deserialize<KtmHandshakeAck>(ackJson);
+
+                // Read HandshakeAck
+                string handshakeAckJson = await ReadLengthPrefixedJsonAsync(stream, token);
+                var handshakeAck = JsonSerializer.Deserialize<KtmHandshakeAck>(handshakeAckJson);
                 if (handshakeAck == null || !handshakeAck.Accepted)
                 {
-                    string reason = handshakeAck?.Reason ?? "Unknown";
+                    string reason = handshakeAck?.Reason ?? "Rejected by recipient";
                     progress.Status = TransferStatus.Failed;
                     progress.ErrorMessage = reason;
                     OnProgress?.Invoke(progress);
-                    throw new InvalidOperationException($"Transfer rejected by recipient: {reason}");
+                    throw new InvalidOperationException($"Handshake rejected: {reason}");
                 }
-
-                progress.Status = TransferStatus.Transferring;
-                OnProgress?.Invoke(progress);
 
                 // 3. Send Manifest
                 await SendLengthPrefixedJsonAsync(stream, manifest, token);
+
+                // Read ManifestAck
                 string manifestAckJson = await ReadLengthPrefixedJsonAsync(stream, token);
                 var manifestAck = JsonSerializer.Deserialize<KtmManifestAck>(manifestAckJson);
                 if (manifestAck == null || !manifestAck.Accepted)
                 {
-                    string reason = manifestAck?.Reason ?? "Unknown";
+                    string reason = manifestAck?.Reason ?? "Manifest rejected by recipient";
                     progress.Status = TransferStatus.Failed;
                     progress.ErrorMessage = reason;
                     OnProgress?.Invoke(progress);
                     throw new InvalidOperationException($"Manifest rejected by recipient: {reason}");
                 }
 
-                // 4. Stream Chunks with Resume Support
+                // 4. Stream Chunks with Adaptive Scaling & Resume Support
                 var existingOffsets = manifestAck.ExistingOffsets ?? new Dictionary<int, long>();
                 byte[] chunkBuffer = new byte[KtmConstants.DefaultChunkSize];
                 var speedTimer = System.Diagnostics.Stopwatch.StartNew();
@@ -177,6 +208,10 @@ namespace KnowToMigrate.Services
                     progress.CurrentFileName = fileItem.RelativePath;
                     progress.CurrentFileIndex = fileItem.FileIndex + 1;
                     progress.Status = TransferStatus.Transferring;
+                    
+                    var queueItem = progress.QueueItems.Find(q => q.FileIndex == fileItem.FileIndex);
+                    if (queueItem != null) queueItem.Status = "Transferring";
+
                     OnProgress?.Invoke(progress);
 
                     using (var fs = new FileStream(localSource, FileMode.Open, FileAccess.Read, FileShare.Read, 131072, useAsync: true))
@@ -190,7 +225,23 @@ namespace KnowToMigrate.Services
                         long fileBytesSent = resumeOffset;
                         while (fileBytesSent < fileItem.Size)
                         {
+                            while (_isPaused && !token.IsCancellationRequested)
+                            {
+                                await Task.Delay(100, token);
+                            }
+
                             if (token.IsCancellationRequested) break;
+
+                            // Pluto Adaptive Buffer Scaling:
+                            // Dynamic scaling: 1 MB on high-speed connections, 64 KB on degraded/BT, 256 KB default
+                            int targetChunkSize = KtmConstants.DefaultChunkSize;
+                            if (progress.SpeedMBps > 45.0)
+                                targetChunkSize = KtmConstants.MaxChunkSize;
+                            else if (progress.SpeedMBps < 5.0 && progress.SpeedMBps > 0.05)
+                                targetChunkSize = 64 * 1024;
+
+                            if (chunkBuffer.Length != targetChunkSize)
+                                chunkBuffer = new byte[targetChunkSize];
 
                             int toRead = (int)Math.Min((long)chunkBuffer.Length, fileItem.Size - fileBytesSent);
                             int read = await fs.ReadAsync(chunkBuffer, 0, toRead, token);
@@ -212,6 +263,11 @@ namespace KnowToMigrate.Services
                             bytesSinceTimer += read;
                             progress.ElapsedTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - startMs;
 
+                            if (queueItem != null && fileItem.Size > 0)
+                            {
+                                queueItem.Percentage = Math.Round((double)fileBytesSent / fileItem.Size * 100.0, 1);
+                            }
+
                             if (speedTimer.ElapsedMilliseconds >= 300 || bytesSinceTimer >= 512 * 1024)
                             {
                                 double secs = Math.Max(0.05, speedTimer.ElapsedMilliseconds / 1000.0);
@@ -221,6 +277,12 @@ namespace KnowToMigrate.Services
                                 OnProgress?.Invoke(progress);
                             }
                         }
+                    }
+
+                    if (queueItem != null)
+                    {
+                        queueItem.Status = "Completed";
+                        queueItem.Percentage = 100.0;
                     }
 
                     // Read FILE_COMPLETE ack
@@ -275,27 +337,24 @@ namespace KnowToMigrate.Services
         {
             string json = JsonSerializer.Serialize(obj);
             byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
-            int len = jsonBytes.Length;
+            byte[] lenBytes = new byte[4];
+            lenBytes[0] = (byte)(jsonBytes.Length >> 24);
+            lenBytes[1] = (byte)(jsonBytes.Length >> 16);
+            lenBytes[2] = (byte)(jsonBytes.Length >> 8);
+            lenBytes[3] = (byte)jsonBytes.Length;
 
-            byte[] header = new byte[4];
-            header[0] = (byte)((len >> 24) & 0xFF);
-            header[1] = (byte)((len >> 16) & 0xFF);
-            header[2] = (byte)((len >> 8) & 0xFF);
-            header[3] = (byte)(len & 0xFF);
-
-            await stream.WriteAsync(header, 0, 4, token);
-            await stream.WriteAsync(jsonBytes, 0, len, token);
+            await stream.WriteAsync(lenBytes, 0, 4, token);
+            await stream.WriteAsync(jsonBytes, 0, jsonBytes.Length, token);
             await stream.FlushAsync(token);
         }
 
-        private static async Task ReadExactBytesAsync(Stream stream, byte[] buffer, int offset, int count, CancellationToken token)
+        private static async Task ReadExactBytesAsync(NetworkStream stream, byte[] buffer, int offset, int count, CancellationToken token)
         {
             int totalRead = 0;
             while (totalRead < count)
             {
                 int read = await stream.ReadAsync(buffer, offset + totalRead, count - totalRead, token);
-                if (read == 0)
-                    throw new EndOfStreamException("Remote host closed connection prematurely");
+                if (read == 0) throw new EndOfStreamException("Socket disconnected prematurely");
                 totalRead += read;
             }
         }

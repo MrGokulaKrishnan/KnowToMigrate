@@ -31,6 +31,9 @@ namespace KnowToMigrate.Services
         public bool MinimizeToTray { get; set; } = true;
         public bool SoundEffectsEnabled { get; set; } = true;
         public bool ShellContextMenuEnabled { get; set; } = true;
+        public DuplicateResolutionMode DuplicateHandling { get; set; } = DuplicateResolutionMode.KeepBoth;
+        public bool TemporaryReceiveEnabled { get; set; } = false;
+        public int TemporaryReceiveMinutes { get; set; } = 10;
 
         public string UpdateChannel { get; set; } = "stable";
         public DateTime? LastUpdateCheckUtc { get; set; } = null;

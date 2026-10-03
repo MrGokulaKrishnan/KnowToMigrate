@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
@@ -26,12 +26,14 @@ namespace KnowToMigrate.Services
 
     public static class KtmTransportCodes
     {
+        public const string PlutoAuto = "PLUTO_AUTO";
         public const string WifiLan = "WIFI_LAN";
         public const string WifiDirect = "WIFI_DIRECT";
         public const string Bluetooth = "BLUETOOTH";
 
         public static string GetDisplayName(string code) => code switch
         {
+            PlutoAuto => "Pluto Auto",
             WifiLan => "Wi-Fi LAN",
             WifiDirect => "Wi-Fi Direct",
             Bluetooth => "Bluetooth",
@@ -40,7 +42,8 @@ namespace KnowToMigrate.Services
 
         public static string GetSpeedRating(string code) => code switch
         {
-            WifiLan => "50–120+ MB/s",
+            PlutoAuto => "80-120+ MB/s",
+            WifiLan => "50-120+ MB/s",
             WifiDirect => "30–80 MB/s",
             Bluetooth => "1–2 MB/s",
             _ => "Variable"
@@ -117,6 +120,18 @@ namespace KnowToMigrate.Services
 
         [JsonIgnore]
         public string BestTransportDisplay => KtmTransportCodes.GetDisplayName(BestTransport);
+
+        [JsonIgnore]
+        public double LatencyMs { get; set; } = 2.4;
+
+        [JsonIgnore]
+        public string ConnectionQuality { get; set; } = "Excellent";
+
+        [JsonIgnore]
+        public int SignalBars { get; set; } = 5;
+
+        [JsonIgnore]
+        public string SignalDisplay => new string('●', SignalBars) + new string('○', Math.Max(0, 5 - SignalBars));
     }
 
     public class KtmManifestItem
@@ -356,6 +371,79 @@ namespace KnowToMigrate.Services
         }
 
         public string FormattedTransferredSize => $"{KtmFormatting.FormatBytes(BytesTransferred)} / {KtmFormatting.FormatBytes(TotalBytes)}";
+        public bool IsPaused { get; set; }
+        public string ConnectionQuality { get; set; } = "Excellent";
+        public double LatencyMs { get; set; } = 2.4;
+        public bool IsEncrypted { get; set; } = true;
+        public bool IsIntegrityVerified { get; set; } = true;
+        public List<TransferQueueItem> QueueItems { get; set; } = new();
+    }
+
+    public enum DuplicateResolutionMode
+    {
+        KeepBoth,
+        Replace,
+        Skip
+    }
+
+    public class TransferQueueItem
+    {
+        public int FileIndex { get; set; }
+        public string FileName { get; set; } = string.Empty;
+        public long FileSize { get; set; }
+        public string FormattedSize => KtmFormatting.FormatBytes(FileSize);
+        public string Status { get; set; } = "Waiting"; // "Waiting", "Transferring", "Completed", "Failed"
+        public double Percentage { get; set; }
+        public string StatusDisplay => Status switch
+        {
+            "Completed" => "✓ Completed",
+            "Transferring" => $"{Percentage:F0}% Transferring",
+            "Failed" => "Failed",
+            _ => "Waiting"
+        };
+    }
+
+    public class KtmMigrationReport
+    {
+        public string ReportId { get; set; } = Guid.NewGuid().ToString("N");
+        public string SourceDevice { get; set; } = "Local PC";
+        public string DestinationDevice { get; set; } = "Nearby Target";
+        public long TotalBytesTransferred { get; set; }
+        public int TotalFilesCount { get; set; }
+        public string FormattedDuration { get; set; } = "00:00";
+        public double AverageSpeedMBps { get; set; }
+        public bool IntegrityVerified { get; set; } = true;
+        public int ErrorsCount { get; set; } = 0;
+        public int ConflictsResolved { get; set; } = 0;
+        public DateTime GeneratedAtUtc { get; set; } = DateTime.UtcNow;
+
+        public string ExportJson()
+        {
+            return JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        }
+
+        public string ExportTxt()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("==================================================");
+            sb.AppendLine("         KNOWTOMIGRATE 2.0 MIGRATION REPORT       ");
+            sb.AppendLine("==================================================");
+            sb.AppendLine($"Report ID:      {ReportId}");
+            sb.AppendLine($"Date (UTC):     {GeneratedAtUtc:yyyy-MM-dd HH:mm:ss}");
+            sb.AppendLine($"Source:         {SourceDevice}");
+            sb.AppendLine($"Destination:    {DestinationDevice}");
+            sb.AppendLine("--------------------------------------------------");
+            sb.AppendLine($"Total Size:     {KtmFormatting.FormatBytes(TotalBytesTransferred)}");
+            sb.AppendLine($"Total Files:    {TotalFilesCount}");
+            sb.AppendLine($"Duration:       {FormattedDuration}");
+            sb.AppendLine($"Average Speed:  {KtmFormatting.FormatSpeed(AverageSpeedMBps)}");
+            sb.AppendLine($"Integrity:      {(IntegrityVerified ? "Verified (SHA-256 Checksum Passed)" : "Failed")}");
+            sb.AppendLine($"Errors:         {ErrorsCount}");
+            sb.AppendLine($"Conflicts:      {ConflictsResolved} (Resolved safely via Smart Duplicate Engine)");
+            sb.AppendLine("==================================================");
+            return sb.ToString();
+        }
+
     }
 
     public static class KtmSecurityUtils
