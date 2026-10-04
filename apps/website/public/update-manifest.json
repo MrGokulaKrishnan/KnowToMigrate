@@ -1,30 +1,30 @@
 ﻿{
     "product":  "KnowToMigrate",
     "channel":  "stable",
-    "version":  "1.0.2",
+    "version":  "1.0.3",
     "minimumSupportedVersion":  "1.0.0",
     "mandatory":  false,
-    "publishedAt":  "2026-10-04T07:04:07Z",
+    "publishedAt":  "2026-10-04T15:19:08Z",
     "windows":  {
                     "architecture":  "x64",
                     "installerType":  "exe",
-                    "version":  "1.0.2",
+                    "version":  "1.0.3",
                     "filename":  "KnowToMigrate-Setup.exe",
                     "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-Setup.exe.bin",
-                    "size":  66521088,
-                    "sha256":  "89326cec4d19b6d031dee17940682ab9e5742f7687f062bb16198a35a0120670",
+                    "size":  66525184,
+                    "sha256":  "d194ba4fd36e41238fa1a05c4e8607d66521bde68e27f57bb99cf5d47ad11824",
                     "signature":  "",
                     "msi":  {
-                                "filename":  "KnowToMigrate-1.0.2-x64.msi",
-                                "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.2-x64.msi.bin",
-                                "size":  66473984,
-                                "sha256":  "29205e5fdfe9cda19afa93f6ac84d99c1e9d7822e2111e8f1e8152d41701cfcd"
+                                "filename":  "KnowToMigrate-1.0.3-x64.msi",
+                                "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.3-x64.msi.bin",
+                                "size":  66478080,
+                                "sha256":  "09e75f5a143c26dfac2b540cca75c936b060cd7dedcb98330419db7efad4ddd3"
                             },
                     "standalone":  {
                                        "filename":  "KnowToMigrate.exe",
                                        "url":  "https://knowtomigrate.web.app/download/KnowToMigrate.exe.bin",
-                                       "size":  72436137,
-                                       "sha256":  "9724ca428b1793a09c5949470e121614b0b208fd9b792876e8333fe75701a40c"
+                                       "size":  72439014,
+                                       "sha256":  "b5475d9a261438a4fe96bbaf6eb1d134372fe0c4973c2d624be8891f83daac9b"
                                    }
                 },
     "android":  {
@@ -36,10 +36,11 @@
                     "sha256":  "35909c8904a169c7f09ac0cc0926877f8000366d07f450d3b3ce862686ab37f5"
                 },
     "releaseNotes":  [
+                         "Universal Clipboard Sharing (Android to Windows bidirectional sync)",
+                         "Smart Duplicate Resolution Manager (Keep Both, Replace, Skip)",
+                         "Dynamic Migration Mission Target Picker with real-time Radar discovery",
                          "Liquid Glass AMOLED custom CheckBox unique UI upgrade",
-                         "Official KnowToMigrate brand logo integration in Settings",
-                         "Streamlined navigation (Home \u0026 Settings)",
-                         "Seamless background auto-update pipeline with instant cache busting",
-                         "Hardware-accelerated Pluto Engine AES-256-GCM transfer verified"
+                         "Pluto Engine AES-256-GCM hardware-accelerated transfer with Merkle verification",
+                         "Seamless background auto-update pipeline with instant cache busting"
                      ]
 }

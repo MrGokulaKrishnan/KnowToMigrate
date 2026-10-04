@@ -33,6 +33,7 @@ import com.knowtomigrate.app.data.TransferRecordStatus
 import com.knowtomigrate.app.ui.components.*
 import com.knowtomigrate.app.ui.navigation.Screen
 import com.knowtomigrate.app.ui.theme.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
@@ -270,6 +271,14 @@ fun HomeScreen(
                 }
             }
 
+            // Universal Clipboard Card
+            item {
+                UniversalClipboardCard(
+                    discoveredDevices = discoveredDevices,
+                    manager = manager
+                )
+            }
+
             // Full device migration CTA
             item {
                 MigrationCtaCard(navController)
@@ -432,6 +441,183 @@ private fun MigrationCtaCard(navController: NavController) {
             tint = Color.White,
             modifier = Modifier.size(28.dp)
         )
+    }
+}
+
+@Composable
+private fun UniversalClipboardCard(
+    discoveredDevices: List<com.knowtomigrate.app.network.DiscoveredDevice>,
+    manager: com.knowtomigrate.app.network.KtmAndroidManager
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val clipboardManager = remember {
+        context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
+    }
+
+    var clipboardInput by remember { mutableStateOf("") }
+    var statusMessage by remember { mutableStateOf<String?>(null) }
+    var isSuccess by remember { mutableStateOf(true) }
+    var isWorking by remember { mutableStateOf(false) }
+
+    val targetDevice = discoveredDevices.firstOrNull { it.isOnline && it.ipAddress.isNotBlank() }
+
+    KmGlassCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.ContentPaste,
+                        contentDescription = null,
+                        tint = KmOrange,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Universal Clipboard",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = KmTextPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                KmBadge(
+                    text = if (targetDevice != null) targetDevice.deviceName.take(14) else "No Device",
+                    color = if (targetDevice != null) KmSuccess else KmTextMuted
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Sync clipboard text, URLs, or notes between Android and your PC instantly.",
+                style = MaterialTheme.typography.bodySmall,
+                color = KmTextMuted
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = clipboardInput,
+                onValueChange = { clipboardInput = it },
+                placeholder = {
+                    Text(
+                        text = "Paste or type text to sync with PC…",
+                        color = KmTextDisabled,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 80.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = KmOrange,
+                    unfocusedBorderColor = KmGlassBorder,
+                    focusedTextColor = KmTextPrimary,
+                    unfocusedTextColor = KmTextPrimary,
+                    cursorColor = KmOrange
+                )
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Paste from Android button
+                KmSecondaryButton(
+                    text = "Paste Local",
+                    onClick = {
+                        val clip = clipboardManager?.primaryClip
+                        if (clip != null && clip.itemCount > 0) {
+                            clipboardInput = clip.getItemAt(0).coerceToText(context).toString()
+                            statusMessage = "Pasted from Android clipboard"
+                            isSuccess = true
+                        } else {
+                            statusMessage = "Android clipboard is empty"
+                            isSuccess = false
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+
+                // Send to PC button
+                KmPrimaryButton(
+                    text = if (isWorking) "Syncing…" else "Send to PC",
+                    onClick = {
+                        if (targetDevice == null) {
+                            statusMessage = "No PC connected on network"
+                            isSuccess = false
+                            return@KmPrimaryButton
+                        }
+                        if (clipboardInput.isBlank()) {
+                            statusMessage = "Enter or paste text first"
+                            isSuccess = false
+                            return@KmPrimaryButton
+                        }
+                        isWorking = true
+                        scope.launch {
+                            val ok = manager.sendClipboardText(targetDevice.ipAddress, clipboardInput)
+                            isWorking = false
+                            if (ok) {
+                                statusMessage = "✓ Sent to ${targetDevice.deviceName} clipboard!"
+                                isSuccess = true
+                            } else {
+                                statusMessage = "Failed to sync to PC (port 54125 unreachable)"
+                                isSuccess = false
+                            }
+                        }
+                    },
+                    enabled = !isWorking && targetDevice != null,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Fetch PC Clipboard button
+            KmSecondaryButton(
+                text = "Pull from PC Clipboard",
+                onClick = {
+                    if (targetDevice == null) {
+                        statusMessage = "No PC connected on network"
+                        isSuccess = false
+                        return@KmSecondaryButton
+                    }
+                    isWorking = true
+                    scope.launch {
+                        val text = manager.fetchClipboardText(targetDevice.ipAddress)
+                        isWorking = false
+                        if (!text.isNullOrBlank()) {
+                            clipboardInput = text
+                            val clipData = android.content.ClipData.newPlainText("KnowToMigrate Clipboard", text)
+                            clipboardManager?.setPrimaryClip(clipData)
+                            statusMessage = "✓ Copied from ${targetDevice.deviceName} to Android!"
+                            isSuccess = true
+                        } else {
+                            statusMessage = "PC clipboard is empty or unreachable"
+                            isSuccess = false
+                        }
+                    }
+                },
+                enabled = !isWorking && targetDevice != null,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            if (!statusMessage.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = statusMessage ?: "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isSuccess) KmSuccess else KmError,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
     }
 }
 

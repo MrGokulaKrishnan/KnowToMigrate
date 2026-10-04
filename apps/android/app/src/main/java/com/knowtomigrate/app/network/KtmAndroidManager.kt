@@ -5,7 +5,9 @@ import android.net.Uri
 import android.os.Environment
 import com.knowtomigrate.app.data.KtmPreferences
 import com.knowtomigrate.app.data.TransferHistoryRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 
@@ -79,6 +81,46 @@ class KtmAndroidManager private constructor(private val context: Context) {
             uris = uris,
             selectedTransport = selected
         )
+    }
+
+    suspend fun sendClipboardText(targetIp: String, text: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val url = java.net.URL("http://$targetIp:${KtmConstants.WEB_SHARE_PORT}/clipboard")
+            val conn = url.openConnection() as java.net.HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.connectTimeout = 4000
+            conn.readTimeout = 4000
+            conn.doOutput = true
+            conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
+            val jsonPayload = org.json.JSONObject().apply {
+                put("text", text)
+            }.toString()
+            conn.outputStream.use { os ->
+                os.write(jsonPayload.toByteArray(Charsets.UTF_8))
+            }
+            conn.responseCode in 200..299
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    suspend fun fetchClipboardText(targetIp: String): String? = withContext(Dispatchers.IO) {
+        try {
+            val url = java.net.URL("http://$targetIp:${KtmConstants.WEB_SHARE_PORT}/clipboard")
+            val conn = url.openConnection() as java.net.HttpURLConnection
+            conn.requestMethod = "GET"
+            conn.connectTimeout = 4000
+            conn.readTimeout = 4000
+            if (conn.responseCode in 200..299) {
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
+                val obj = org.json.JSONObject(response)
+                if (obj.has("text")) obj.getString("text") else null
+            } else {
+                null
+            }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     companion object {

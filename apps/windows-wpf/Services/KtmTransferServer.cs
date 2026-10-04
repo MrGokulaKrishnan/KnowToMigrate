@@ -277,9 +277,29 @@ namespace KnowToMigrate.Services
                             throw new CryptographicException($"Checksum verification failed for {safeRelPath}");
                         }
 
-                        // Atomically move .part to final destination with fallback copy & retried cleanup
+                        // Atomically move .part to final destination with smart duplicate handling
+                        var userSettings = UserSettingsManager.LoadSettings();
                         if (File.Exists(fullTargetPath))
-                            File.Delete(fullTargetPath);
+                        {
+                            if (userSettings.DuplicateHandling == DuplicateResolutionMode.KeepBoth)
+                            {
+                                string dir = Path.GetDirectoryName(fullTargetPath) ?? _downloadDirectory;
+                                string fnameWithoutExt = Path.GetFileNameWithoutExtension(fullTargetPath);
+                                string ext = Path.GetExtension(fullTargetPath);
+                                int counter = 1;
+                                string candidate;
+                                do
+                                {
+                                    candidate = Path.Combine(dir, $"{fnameWithoutExt} ({counter}){ext}");
+                                    counter++;
+                                } while (File.Exists(candidate));
+                                fullTargetPath = candidate;
+                            }
+                            else if (userSettings.DuplicateHandling == DuplicateResolutionMode.Replace)
+                            {
+                                try { File.Delete(fullTargetPath); } catch { }
+                            }
+                        }
 
                         try
                         {

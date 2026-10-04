@@ -1,4 +1,4 @@
-﻿package com.knowtomigrate.app.ui.screens
+package com.knowtomigrate.app.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -58,6 +58,28 @@ fun MigrationScreen(navController: NavController) {
     var isStarting by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val dynamicSizes = remember { mutableStateMapOf<String, String>() }
+
+    val manager = remember { com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context) }
+    val discoveredDevices by manager.discoveredDevices.collectAsState()
+    val uiDevices = discoveredDevices.map { dev ->
+        UiDevice(
+            id = dev.deviceId,
+            name = dev.deviceName,
+            platform = dev.platform.lowercase(),
+            ip = dev.ipAddress,
+            status = if (dev.isOnline) "online" else "offline",
+            supportedTransports = dev.supportedTransports,
+            bestTransport = dev.bestTransport,
+            isWifiLanReachable = dev.isWifiLanReachable
+        )
+    }
+    var selectedDevice by remember { mutableStateOf<UiDevice?>(null) }
+
+    LaunchedEffect(uiDevices) {
+        if (selectedDevice == null && uiDevices.isNotEmpty()) {
+            selectedDevice = uiDevices.first()
+        }
+    }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -171,30 +193,107 @@ fun MigrationScreen(navController: NavController) {
                 }
                 3 -> {
                     item {
-                        KmSectionHeader(title = "Connect Source Device", subtitle = "Ensure both devices are on the same Wi-Fi")
+                        KmSectionHeader(
+                            title = "Select Migration Target",
+                            subtitle = if (uiDevices.isEmpty()) "Open KnowToMigrate on PC or other device" else "${uiDevices.size} target device(s) found"
+                        )
                     }
                     item {
                         KmGlassCard(modifier = Modifier.fillMaxWidth()) {
-                            KmDiscoveryRadar(modifier = Modifier.fillMaxWidth().height(160.dp))
+                            KmDiscoveryRadar(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(180.dp),
+                                devices = uiDevices,
+                                onDeviceClick = { dev ->
+                                    selectedDevice = dev
+                                }
+                            )
                             Spacer(modifier = Modifier.height(12.dp))
+                            if (uiDevices.isEmpty()) {
+                                Text(
+                                    text = "Searching for nearby devices on Wi-Fi / Local Network…",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = KmTextMuted,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            } else {
+                                Text(
+                                    text = if (selectedDevice != null) "Selected: ${selectedDevice?.name}" else "Tap a device to select as migration destination",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (selectedDevice != null) KmOrange else KmTextSecondary,
+                                    fontWeight = FontWeight.Medium,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
+                    if (uiDevices.isNotEmpty()) {
+                        item {
                             Text(
-                                text = "Searching for source device…",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = KmTextMuted
+                                text = "Available Targets",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = KmTextPrimary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                        items(uiDevices.size) { idx ->
+                            val dev = uiDevices[idx]
+                            KmDeviceCard(
+                                device = dev,
+                                onClick = { selectedDevice = dev },
+                                isSelected = selectedDevice?.id == dev.id
                             )
                         }
                     }
                 }
                 4 -> {
                     item {
-                        KmSectionHeader(title = "Ready to Migrate", subtitle = "Review and confirm")
+                        KmSectionHeader(title = "Ready to Migrate", subtitle = "Review and confirm Pluto Engine parameters")
                     }
                     item {
                         KmGlassCard(modifier = Modifier.fillMaxWidth()) {
+                            // Target device summary banner
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(KmOrangeGlow)
+                                    .border(1.dp, KmOrange.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Laptop,
+                                    contentDescription = null,
+                                    tint = KmOrange,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = selectedDevice?.name ?: "Unknown Target Device",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = KmTextPrimary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "${selectedDevice?.ip ?: "LAN"} • Pluto Direct • AES-256-GCM",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = KmTextMuted
+                                    )
+                                }
+                                KmBadge(text = "Target", color = KmOrange)
+                            }
+
+                            Spacer(modifier = Modifier.height(14.dp))
                             Text(
-                                text = "Selected: ${selectedCategories.size} categories",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = KmTextPrimary
+                                text = "Categories to Migrate (${selectedCategories.size}):",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = KmTextPrimary,
+                                fontWeight = FontWeight.SemiBold
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             selectedCategories.forEach { id ->
@@ -208,7 +307,7 @@ fun MigrationScreen(navController: NavController) {
                                         Icon(cat.icon, contentDescription = null, tint = KmOrange, modifier = Modifier.size(16.dp))
                                         Text(text = cat.label, style = MaterialTheme.typography.bodySmall, color = KmTextSecondary)
                                         Spacer(modifier = Modifier.weight(1f))
-                                        Text(text = cat.estimatedSize, style = MaterialTheme.typography.bodySmall, color = KmTextMuted)
+                                        Text(text = dynamicSizes[cat.id] ?: cat.estimatedSize, style = MaterialTheme.typography.bodySmall, color = KmTextMuted)
                                     }
                                 }
                             }
@@ -220,11 +319,17 @@ fun MigrationScreen(navController: NavController) {
             // Navigation button
             item {
                 Spacer(modifier = Modifier.height(8.dp))
+                val canProceed = when (currentStep) {
+                    1 -> selectedCategories.isNotEmpty()
+                    2 -> true
+                    3 -> selectedDevice != null
+                    else -> true
+                }
                 if (currentStep < totalSteps) {
                     KmPrimaryButton(
-                        text = "Next",
+                        text = if (currentStep == 3 && selectedDevice == null) "Select a Target Device" else "Next",
                         onClick = { currentStep++ },
-                        enabled = if (currentStep == 1) selectedCategories.isNotEmpty() else true,
+                        enabled = canProceed,
                         modifier = Modifier.fillMaxWidth()
                     )
                 } else {
@@ -232,9 +337,10 @@ fun MigrationScreen(navController: NavController) {
                         text = if (isStarting) "Starting Migration…" else "Start Migration",
                         onClick = {
                             isStarting = true
-                            navController.navigate(Screen.Transfer.withSession("migration_${System.currentTimeMillis()}"))
+                            val targetId = selectedDevice?.id ?: "target"
+                            navController.navigate(Screen.Transfer.withSession("migration_${targetId}_${System.currentTimeMillis()}"))
                         },
-                        enabled = !isStarting,
+                        enabled = !isStarting && selectedDevice != null,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }

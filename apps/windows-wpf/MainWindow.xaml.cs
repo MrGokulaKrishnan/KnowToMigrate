@@ -149,6 +149,38 @@ namespace KnowToMigrate
                         _trayManager?.ShowNotification("File Received via Web Share", $"{fileName} ({KtmFormatting.FormatBytes(bytes)}) saved to Downloads.");
                     });
                 };
+
+                KtmWebShareServer.Instance.OnClipboardReceived += (text) =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        try
+                        {
+                            Clipboard.SetText(text);
+                            string preview = text.Length > 50 ? text.Substring(0, 47) + "..." : text;
+                            ShowNotificationBanner("Clipboard Synced", $"Received text from device: \"{preview}\"", true);
+                            _trayManager?.ShowNotification("Clipboard Synced", "Text copied to your Windows clipboard.");
+                            KtmSoundService.PlayTransferSuccess();
+                        }
+                        catch { }
+                    });
+                };
+
+                KtmWebShareServer.Instance.OnGetClipboardText = () =>
+                {
+                    string text = "";
+                    Dispatcher.Invoke(() =>
+                    {
+                        try
+                        {
+                            if (Clipboard.ContainsText())
+                                text = Clipboard.GetText();
+                        }
+                        catch { }
+                    });
+                    return text;
+                };
+
                 KtmWebShareServer.Instance.Start();
 
                 if (App.InitialFilesToStage.Length > 0)

@@ -120,11 +120,12 @@ if ($ReleaseNotes.Length -gt 0) {
     $manifest.releaseNotes = $ReleaseNotes
 } else {
     $manifest.releaseNotes = @(
+        "Universal Clipboard Sharing (Android to Windows bidirectional sync)",
+        "Smart Duplicate Resolution Manager (Keep Both, Replace, Skip)",
+        "Dynamic Migration Mission Target Picker with real-time Radar discovery",
         "Liquid Glass AMOLED custom CheckBox unique UI upgrade",
-        "Official KnowToMigrate brand logo integration in Settings",
-        "Streamlined navigation (Home & Settings)",
-        "Seamless background auto-update pipeline with instant cache busting",
-        "Hardware-accelerated Pluto Engine AES-256-GCM transfer verified"
+        "Pluto Engine AES-256-GCM hardware-accelerated transfer with Merkle verification",
+        "Seamless background auto-update pipeline with instant cache busting"
     )
 }
 
@@ -158,7 +159,7 @@ Set-Location $RepoRoot
 # 9. Commit & Push to GitHub
 Write-Host "`n[Done] Committing and pushing release v$TargetVersion to GitHub..." -ForegroundColor Green
 git add -A
-git commit -m "release: KnowToMigrate v$TargetVersion - UI polish, custom CheckBox UI, and seamless auto-update"
+git commit -m "release: KnowToMigrate v$TargetVersion - Universal Clipboard, Smart Duplicates, Migration Target Picker"
 git push origin main
 
 Write-Host "`n==========================================================" -ForegroundColor Green

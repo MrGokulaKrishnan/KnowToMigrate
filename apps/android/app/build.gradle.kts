@@ -16,8 +16,8 @@ android {
         applicationId = "com.knowtomigrate.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 10002
-        versionName = "1.0.2"
+        versionCode = 10003
+        versionName = "1.0.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val buildDateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.ENGLISH))
         buildConfigField("String", "BUILD_DATE", "\"$buildDateStr\"")

@@ -131,24 +131,28 @@ fun KmPrimaryButton(
 fun KmSecondaryButton(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1.0f,
+        targetValue = if (isPressed && enabled) 0.97f else 1.0f,
         animationSpec = spring(dampingRatio = 0.7f, stiffness = 500f),
         label = "btn_sec_scale"
     )
 
     OutlinedButton(
         onClick = onClick,
+        enabled = enabled,
         interactionSource = interactionSource,
         shape = RoundedCornerShape(14.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, KmGlassBorder),
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (enabled) KmGlassBorder else KmGlassBorder.copy(alpha = 0.4f)),
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = KmGlassSurfaceSecondary,
-            contentColor = KmTextPrimary
+            contentColor = if (enabled) KmTextPrimary else KmTextDisabled,
+            disabledContainerColor = KmGlassSurfaceSecondary.copy(alpha = 0.5f),
+            disabledContentColor = KmTextDisabled
         ),
         modifier = modifier
             .scale(scale)
@@ -422,14 +426,19 @@ fun KmCompletionNotificationBanner(
 fun KmDeviceCard(
     device: UiDevice,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isSelected: Boolean = false
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(KmBlackElevated)
-            .border(1.dp, KmGlassBorder, RoundedCornerShape(12.dp))
+            .background(if (isSelected) KmOrangeGlow else KmBlackElevated)
+            .border(
+                width = if (isSelected) 1.5.dp else 1.dp,
+                color = if (isSelected) KmOrange else KmGlassBorder,
+                shape = RoundedCornerShape(12.dp)
+            )
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -439,7 +448,7 @@ fun KmDeviceCard(
             modifier = Modifier
                 .size(44.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(KmOrangeGlow),
+                .background(if (isSelected) KmOrange.copy(alpha = 0.25f) else KmOrangeGlow),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -491,7 +500,16 @@ fun KmDeviceCard(
                 }
             }
         }
-        KmStatusDot(status = device.status)
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = "Selected",
+                tint = KmOrange,
+                modifier = Modifier.size(22.dp)
+            )
+        } else {
+            KmStatusDot(status = device.status)
+        }
     }
 }
 

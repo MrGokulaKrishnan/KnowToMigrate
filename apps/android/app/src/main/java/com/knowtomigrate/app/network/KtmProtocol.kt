@@ -17,6 +17,7 @@ object KtmConstants {
     const val MAX_CHUNK_SIZE = 1024 * 1024 // 1 MB
     const val DISCOVERY_INTERVAL_MS = 2000L
     const val DEVICE_TIMEOUT_MS = 7000L
+    const val WEB_SHARE_PORT = 54125
 }
 
 enum class KtmTransportType(val code: String, val displayName: String, val speedRating: String, val priority: Int) {

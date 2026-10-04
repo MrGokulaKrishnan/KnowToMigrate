@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -24,6 +24,8 @@ namespace KnowToMigrate.Services
         public int Port => KtmConstants.WebSharePort;
 
         public event Action<string, long>? OnFileUploaded;
+        public event Action<string>? OnClipboardReceived;
+        public Func<string>? OnGetClipboardText;
         public event Action<string>? OnServerError;
 
         public List<string> GetStagedFiles()
@@ -212,6 +214,10 @@ namespace KnowToMigrate.Services
                 {
                     await ServeStatusJsonAsync(res);
                 }
+                else if (rawUrl.StartsWith("/clipboard"))
+                {
+                    await HandleClipboardAsync(req, res);
+                }
                 else
                 {
                     res.StatusCode = 404;
@@ -364,6 +370,19 @@ namespace KnowToMigrate.Services
                     <div class='progress-bar' id='progressBar'></div>
                 </div>
                 <div class='status-txt' id='statusText'>Uploading...</div>
+        <section class='card'>
+            <div class='card-title'>
+                <span>Universal Clipboard &amp; Text</span>
+                <span class='badge'>Bidirectional</span>
+            </div>
+            <p class='card-desc'>Paste a link, note, or code snippet to send directly to this PC, or fetch what's currently copied on the PC.</p>
+            <div style='display:flex; flex-direction:column; gap:10px;'>
+                <textarea id='clipInput' rows='3' placeholder='Paste text, links, or notes here...' style='width:100%; box-sizing:border-box; background:#141414; border:1px solid var(--border); border-radius:10px; color:#FFF; padding:10px 12px; font-size:13px; resize:vertical; font-family:inherit;'></textarea>
+                <div style='display:flex; gap:10px;'>
+                    <button class='btn' type='button' style='flex:1;' onclick='sendClipboard()'>Send to PC Clipboard</button>
+                    <button class='btn btn-small' type='button' style='background:#181818; color:#FF8A00; border:1px solid #333;' onclick='fetchClipboard()'>Get PC Clipboard</button>
+                </div>
+                <div id='clipStatus' style='font-size:11px; color:var(--text-sub); display:none;'></div>
             </div>
         </section>
 
@@ -424,6 +443,55 @@ namespace KnowToMigrate.Services
             }}
 
             uploadNext(0);
+        }}
+
+        function sendClipboard() {{
+            const text = document.getElementById('clipInput').value;
+            const status = document.getElementById('clipStatus');
+            if (!text) {{
+                status.style.display = 'block';
+                status.style.color = '#F59E0B';
+                status.innerText = 'Please enter or paste text to send.';
+                return;
+            }}
+            status.style.display = 'block';
+            status.style.color = '#FF8A00';
+            status.innerText = 'Sending to PC...';
+            fetch('/clipboard', {{
+                method: 'POST',
+                headers: {{ 'Content-Type': 'application/json' }},
+                body: JSON.stringify({{ text: text }})
+            }}).then(r => r.json()).then(d => {{
+                status.style.color = '#22C55E';
+                status.innerText = '✓ Sent to PC clipboard!';
+                setTimeout(() => {{ status.style.display = 'none'; }}, 3000);
+            }}).catch(err => {{
+                status.style.color = '#EF4444';
+                status.innerText = 'Failed to send to PC clipboard.';
+            }});
+        }}
+
+        function fetchClipboard() {{
+            const status = document.getElementById('clipStatus');
+            status.style.display = 'block';
+            status.style.color = '#FF8A00';
+            status.innerText = 'Fetching PC clipboard...';
+            fetch('/clipboard')
+            .then(r => r.json())
+            .then(d => {{
+                if (d && d.text) {{
+                    document.getElementById('clipInput').value = d.text;
+                    status.style.color = '#22C55E';
+                    status.innerText = '✓ Loaded text from PC clipboard!';
+                }} else {{
+                    status.style.color = '#888';
+                    status.innerText = 'PC clipboard is empty.';
+                }}
+                setTimeout(() => {{ status.style.display = 'none'; }}, 3000);
+            }}).catch(err => {{
+                status.style.color = '#EF4444';
+                status.innerText = 'Failed to fetch PC clipboard.';
+            }});
         }}
     </script>
 </body>
@@ -655,6 +723,51 @@ namespace KnowToMigrate.Services
             res.ContentLength64 = bytes.Length;
             await res.OutputStream.WriteAsync(bytes, 0, bytes.Length);
             res.Close();
+        }
+
+        private async Task HandleClipboardAsync(HttpListenerRequest req, HttpListenerResponse res)
+        {
+            if (req.HttpMethod == "POST")
+            {
+                using var reader = new StreamReader(req.InputStream, Encoding.UTF8);
+                string body = await reader.ReadToEndAsync();
+                string text = "";
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(body);
+                    if (doc.RootElement.TryGetProperty("text", out var textElem))
+                    {
+                        text = textElem.GetString() ?? "";
+                    }
+                }
+                catch
+                {
+                    text = body;
+                }
+
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    OnClipboardReceived?.Invoke(text);
+                }
+
+                res.StatusCode = 200;
+                res.ContentType = "application/json; charset=utf-8";
+                byte[] resp = Encoding.UTF8.GetBytes("{\"success\":true}");
+                res.ContentLength64 = resp.Length;
+                await res.OutputStream.WriteAsync(resp, 0, resp.Length);
+                res.Close();
+            }
+            else
+            {
+                string currentText = OnGetClipboardText?.Invoke() ?? "";
+                res.StatusCode = 200;
+                res.ContentType = "application/json; charset=utf-8";
+                string json = System.Text.Json.JsonSerializer.Serialize(new { text = currentText });
+                byte[] resp = Encoding.UTF8.GetBytes(json);
+                res.ContentLength64 = resp.Length;
+                await res.OutputStream.WriteAsync(resp, 0, resp.Length);
+                res.Close();
+            }
         }
 
         public void Dispose()
