@@ -120,16 +120,32 @@ if ($ReleaseNotes.Length -gt 0) {
     $manifest.releaseNotes = $ReleaseNotes
 } else {
     $manifest.releaseNotes = @(
-        "Universal Clipboard Sharing (Android to Windows bidirectional sync)",
-        "Smart Duplicate Resolution Manager (Keep Both, Replace, Skip)",
-        "Dynamic Migration Mission Target Picker with real-time Radar discovery",
-        "Liquid Glass AMOLED custom CheckBox unique UI upgrade",
-        "Pluto Engine AES-256-GCM hardware-accelerated transfer with Merkle verification",
-        "Seamless background auto-update pipeline with instant cache busting"
+        "Independent Android APK Self-Updater with SHA-256 verification and active transfer safety",
+        "Persistent Migration Ledger with cryptographic audit log, export, and quick folder reveal",
+        "Universal Web Share with live QR code pairing and seamless multi-device browser transfers",
+        "Windows Security Center real-time socket telemetry and Pluto Auto diagnostics",
+        "Pluto Engine AES-256-GCM multi-transport transfer with dynamic backpressure",
+        "Liquid Glass AMOLED custom CheckBox unique UI upgrade"
     )
 }
 
 $manifest | ConvertTo-Json -Depth 6 | Set-Content $manifestPath -Encoding utf8
+
+# Sync Android stable update manifest
+$androidStablePath = Join-Path $RepoRoot "apps\website\public\updates\android\stable.json"
+if (Test-Path $androidStablePath) {
+    $as = Get-Content $androidStablePath | ConvertFrom-Json
+    $as.versionName = $TargetVersion
+    $parts = $TargetVersion.Split('.')
+    if ($parts.Length -ge 3) {
+        $as.versionCode = [int]$parts[0] * 10000 + [int]$parts[1] * 100 + [int]$parts[2]
+    }
+    $as.releaseDate = (Get-Date).ToString("yyyy-MM-dd")
+    $as.title = "KnowToMigrate $TargetVersion"
+    $as.releaseNotes = $manifest.releaseNotes
+    $as | ConvertTo-Json -Depth 6 | Set-Content $androidStablePath -Encoding utf8
+    Write-Host "  Updated $androidStablePath" -ForegroundColor Gray
+}
 
 # Update DownloadPage.tsx with latest version, hashes, sizes, and release date
 $downloadPagePath = Join-Path $RepoRoot "apps\website\src\pages\DownloadPage.tsx"

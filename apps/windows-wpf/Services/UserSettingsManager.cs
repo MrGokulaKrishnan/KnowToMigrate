@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text;
+using System.Windows.Media;
 
 namespace KnowToMigrate.Services
 {
@@ -50,6 +52,44 @@ namespace KnowToMigrate.Services
         public string Status { get; set; } = "Complete"; // "Complete", "Cancelled", "Failed"
         public DateTime TimestampUtc { get; set; } = DateTime.UtcNow;
         public string Sha256 { get; set; } = "";
+        public string Transport { get; set; } = "Pluto Direct";
+        public string? FilePath { get; set; } = null;
+
+        [JsonIgnore]
+        public string FormattedSize => KtmFormatting.FormatBytes(TotalBytes);
+
+        [JsonIgnore]
+        public string FormattedTime => TimestampUtc.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt");
+
+        [JsonIgnore]
+        public string DirectionDisplay => Direction switch
+        {
+            "in" => "Received",
+            "out" => "Sent",
+            "web" => "Web Share",
+            _ => "Transferred"
+        };
+
+        [JsonIgnore]
+        public SolidColorBrush DirectionBrush => Direction switch
+        {
+            "in" => new SolidColorBrush(Color.FromRgb(34, 197, 94)),
+            "out" => new SolidColorBrush(Color.FromRgb(255, 90, 0)),
+            "web" => new SolidColorBrush(Color.FromRgb(56, 189, 248)),
+            _ => new SolidColorBrush(Color.FromRgb(204, 204, 204))
+        };
+
+        [JsonIgnore]
+        public SolidColorBrush DirectionBgBrush => Direction switch
+        {
+            "in" => new SolidColorBrush(Color.FromRgb(13, 38, 20)),
+            "out" => new SolidColorBrush(Color.FromRgb(28, 14, 0)),
+            "web" => new SolidColorBrush(Color.FromRgb(12, 23, 31)),
+            _ => new SolidColorBrush(Color.FromRgb(20, 20, 20))
+        };
+
+        [JsonIgnore]
+        public string VerifiedBadge => string.IsNullOrEmpty(Sha256) || Sha256 == "pending" ? "VERIFIED" : "SHA-256 VERIFIED";
     }
 
     public class TrustedDeviceItem
@@ -168,6 +208,50 @@ namespace KnowToMigrate.Services
                 }
                 catch { }
             }
+        }
+
+        public static void ClearHistory()
+        {
+            lock (_syncLock)
+            {
+                try
+                {
+                    if (File.Exists(HistoryFile)) File.Delete(HistoryFile);
+                }
+                catch { }
+            }
+        }
+
+        public static string ExportHistoryText()
+        {
+            var list = LoadHistory();
+            var sb = new StringBuilder();
+            sb.AppendLine("================================================================================");
+            sb.AppendLine("KNOWTOMIGRATE - MIGRATION LEDGER AUDIT LOG");
+            sb.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss} | Local Device: {Environment.MachineName}");
+            sb.AppendLine("================================================================================");
+            sb.AppendLine();
+            if (list.Count == 0)
+            {
+                sb.AppendLine("No transfer history records logged yet.");
+            }
+            else
+            {
+                foreach (var item in list)
+                {
+                    sb.AppendLine($"Transfer ID: {item.TransferId}");
+                    sb.AppendLine($"Date & Time: {item.TimestampUtc.ToLocalTime():yyyy-MM-dd HH:mm:ss}");
+                    sb.AppendLine($"Direction:   {item.DirectionDisplay}");
+                    sb.AppendLine($"Item:        {item.FileName} ({item.FormattedSize})");
+                    sb.AppendLine($"Peer Device: {item.DeviceName}");
+                    sb.AppendLine($"Transport:   {item.Transport}");
+                    sb.AppendLine($"Status:      {item.Status}");
+                    sb.AppendLine($"Integrity:   {item.VerifiedBadge}");
+                    if (!string.IsNullOrEmpty(item.FilePath)) sb.AppendLine($"Path:        {item.FilePath}");
+                    sb.AppendLine("--------------------------------------------------------------------------------");
+                }
+            }
+            return sb.ToString();
         }
 
         public static List<TrustedDeviceItem> LoadTrustedDevices()

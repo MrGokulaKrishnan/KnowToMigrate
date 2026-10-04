@@ -92,4 +92,31 @@ if (Test-Path $downloadPagePath) {
     Write-Host "  Updated $downloadPagePath" -ForegroundColor Gray
 }
 
+# 6. Update apps/website/public/updates/android/stable.json
+$androidStablePath = Join-Path $RepoRoot "apps\website\public\updates\android\stable.json"
+if (Test-Path $androidStablePath) {
+    $asConfig = Get-Content $androidStablePath | ConvertFrom-Json
+    $asConfig.versionCode = $verCode
+    $asConfig.versionName = $ver
+    $asConfig.releaseDate = (Get-Date).ToString("yyyy-MM-dd")
+    $asConfig.title = "KnowToMigrate $ver"
+    $asConfig.apkUrl = "https://knowtomigrate.web.app/download/KnowToMigrate-$ver.apk.bin"
+    $asConfig | ConvertTo-Json -Depth 5 | Set-Content $androidStablePath -Encoding utf8
+    Write-Host "  Updated $androidStablePath" -ForegroundColor Gray
+}
+
+# 7. Update apps/website/public/update-manifest.json android block
+$updateManifestPath = Join-Path $RepoRoot "apps\website\public\update-manifest.json"
+if (Test-Path $updateManifestPath) {
+    $umConfig = Get-Content $updateManifestPath | ConvertFrom-Json
+    if ($umConfig.android) {
+        $umConfig.android.versionCode = $verCode
+        $umConfig.android.versionName = $ver
+        $umConfig.android.filename = "KnowToMigrate-$ver.apk"
+        $umConfig.android.url = "https://knowtomigrate.web.app/download/KnowToMigrate-$ver.apk.bin"
+        $umConfig | ConvertTo-Json -Depth 6 | Set-Content $updateManifestPath -Encoding utf8
+        Write-Host "  Updated $updateManifestPath (android block)" -ForegroundColor Gray
+    }
+}
+
 Write-Host "Version and date sync completed successfully." -ForegroundColor Green

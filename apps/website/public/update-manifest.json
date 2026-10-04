@@ -1,46 +1,46 @@
 ﻿{
     "product":  "KnowToMigrate",
     "channel":  "stable",
-    "version":  "1.0.3",
+    "version":  "1.0.4",
     "minimumSupportedVersion":  "1.0.0",
     "mandatory":  false,
-    "publishedAt":  "2026-10-04T15:19:08Z",
+    "publishedAt":  "2026-10-04T16:28:02Z",
     "windows":  {
                     "architecture":  "x64",
                     "installerType":  "exe",
-                    "version":  "1.0.3",
+                    "version":  "1.0.4",
                     "filename":  "KnowToMigrate-Setup.exe",
                     "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-Setup.exe.bin",
-                    "size":  66525184,
-                    "sha256":  "d194ba4fd36e41238fa1a05c4e8607d66521bde68e27f57bb99cf5d47ad11824",
+                    "size":  66524160,
+                    "sha256":  "46f5073d5717d12a384aca63796f60d138b54502f088f611fd7a7aae96bc9f2d",
                     "signature":  "",
                     "msi":  {
-                                "filename":  "KnowToMigrate-1.0.3-x64.msi",
-                                "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.3-x64.msi.bin",
+                                "filename":  "KnowToMigrate-1.0.4-x64.msi",
+                                "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.4-x64.msi.bin",
                                 "size":  66478080,
-                                "sha256":  "09e75f5a143c26dfac2b540cca75c936b060cd7dedcb98330419db7efad4ddd3"
+                                "sha256":  "93143ac0534362cfe59404f2b9c701708059513aec7965a88f6ab7075f877d98"
                             },
                     "standalone":  {
                                        "filename":  "KnowToMigrate.exe",
                                        "url":  "https://knowtomigrate.web.app/download/KnowToMigrate.exe.bin",
-                                       "size":  72439014,
-                                       "sha256":  "b5475d9a261438a4fe96bbaf6eb1d134372fe0c4973c2d624be8891f83daac9b"
+                                       "size":  72435707,
+                                       "sha256":  "25e0ffd2a10da36981f338201dfb2d430e59c8485778f72d7cfbbcf05b46794c"
                                    }
                 },
     "android":  {
-                    "versionCode":  1,
-                    "versionName":  "1.0.0",
-                    "filename":  "KnowToMigrate-1.0.0.apk",
-                    "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.0.apk.bin",
-                    "size":  11507496,
-                    "sha256":  "35909c8904a169c7f09ac0cc0926877f8000366d07f450d3b3ce862686ab37f5"
+                    "versionCode":  10004,
+                    "versionName":  "1.0.4",
+                    "filename":  "KnowToMigrate-1.0.4.apk",
+                    "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.4.apk.bin",
+                    "size":  17599199,
+                    "sha256":  "7789deaa4baa5ee1d2aad8f0a50a7a823beef1d0a0a6707885af0bb7a60cc48a"
                 },
     "releaseNotes":  [
-                         "Universal Clipboard Sharing (Android to Windows bidirectional sync)",
-                         "Smart Duplicate Resolution Manager (Keep Both, Replace, Skip)",
-                         "Dynamic Migration Mission Target Picker with real-time Radar discovery",
-                         "Liquid Glass AMOLED custom CheckBox unique UI upgrade",
-                         "Pluto Engine AES-256-GCM hardware-accelerated transfer with Merkle verification",
-                         "Seamless background auto-update pipeline with instant cache busting"
+                         "Independent Android APK Self-Updater with SHA-256 verification and active transfer safety",
+                         "Persistent Migration Ledger with cryptographic audit log, export, and quick folder reveal",
+                         "Universal Web Share with live QR code pairing and seamless multi-device browser transfers",
+                         "Windows Security Center real-time socket telemetry and Pluto Auto diagnostics",
+                         "Pluto Engine AES-256-GCM multi-transport transfer with dynamic backpressure",
+                         "Liquid Glass AMOLED custom CheckBox unique UI upgrade"
                      ]
 }

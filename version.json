@@ -1,11 +1,11 @@
 ﻿{
     "product":  "KnowToMigrate",
     "tagline":  "Move Anything. Anywhere. Seamlessly.",
-    "version":  "1.0.3",
-    "versionCode":  10003,
+    "version":  "1.0.4",
+    "versionCode":  10004,
     "channel":  "stable",
     "minimumSupportedVersion":  "1.0.0",
-    "publishedAt":  "2026-10-04T15:18:00Z",
+    "publishedAt":  "2026-10-04T16:26:24Z",
     "releaseNotes":  [
                          "Pluto Engine v2 Multi-Transport (Wi-Fi LAN, Direct, Bluetooth)",
                          "Hardware-accelerated AES-256-GCM encryption with X25519 key exchange",
@@ -15,5 +15,5 @@
                          "Windows native incoming transfer dialog with taskbar alerts",
                          "Integrated Update Center with secure package verification"
                      ],
-    "updatedAt":  "2026-10-04T15:18:00Z"
+    "updatedAt":  "2026-10-04T16:26:24Z"
 }

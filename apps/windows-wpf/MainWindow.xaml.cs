@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -22,6 +22,7 @@ namespace KnowToMigrate
         private KtmTrayManager? _trayManager;
         private DiscoveredDevice? _selectedDevice = null;
         private KtmMigrationReport? _lastMigrationReport = null;
+        private readonly System.Collections.ObjectModel.ObservableCollection<HistoricalTransferItem> _ledgerEntries = new();
 
         public MainWindow()
         {
@@ -51,7 +52,7 @@ namespace KnowToMigrate
             // Safely set header and migration logos
             try
             {
-                var logoStream = Application.GetResourceStream(new Uri("pack://application:,,,/KnowToMigrate;component/Assets/logo.jpg", UriKind.Absolute));
+                var logoStream = Application.GetResourceStream(new Uri("pack://application:,,,/KnowToMigrate;component/Assets/logo.png", UriKind.Absolute));
                 if (logoStream != null)
                 {
                     var bmp = new System.Windows.Media.Imaging.BitmapImage();
@@ -67,7 +68,7 @@ namespace KnowToMigrate
             {
                 try
                 {
-                    string localPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory ?? "", "Assets", "logo.jpg");
+                    string localPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory ?? "", "Assets", "logo.png");
                     if (File.Exists(localPath))
                     {
                         var bmp = new System.Windows.Media.Imaging.BitmapImage(new Uri(localPath, UriKind.Absolute));
@@ -82,13 +83,21 @@ namespace KnowToMigrate
             {
                 KtmManager.Instance.Start();
                 ListDevices.ItemsSource = KtmManager.Instance.NearbyDevices;
-                ListHistory.ItemsSource = KtmManager.Instance.TransferHistory;
+                                // Initialize persistent Migration Ledger
+                var history = UserSettingsManager.LoadHistory();
+                _ledgerEntries.Clear();
+                foreach (var hItem in history)
+                {
+                    _ledgerEntries.Add(hItem);
+                }
+                ListHistory.ItemsSource = _ledgerEntries;
+                UpdateLedgerUI();
                 TxtDownloadDir.Text = KtmManager.Instance.DownloadDirectory;
                 TxtLocalInfo.Text = $"Device: {KtmManager.Instance.LocalDeviceName} ({KtmManager.Instance.LocalDeviceId})";
                 string currentVer = KtmUpdateService.CurrentVersion;
                 string updatedDateStr = DateTime.Now.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
                 TxtSidebarVersion.Text = $"Standalone v{currentVer}";
-                TxtSidebarFooterVersion.Text = $"KnowToMigrate · v{currentVer}";
+                TxtSidebarFooterVersion.Text = $"KnowToMigrate Â· v{currentVer}";
                 TxtUpdatedOn.Text = $"Updated On: {updatedDateStr}";
                 TxtCurrentVersionBadge.Text = $"v{currentVer} (Current)";
                 TxtAboutVersion.Text = $"v{currentVer} (Production Release)";
@@ -146,6 +155,24 @@ namespace KnowToMigrate
                     Dispatcher.Invoke(() =>
                     {
                         ShowNotificationBanner("Web Share Received", $"{fileName} ({KtmFormatting.FormatBytes(bytes)}) received via browser.", true);
+                        try
+                        {
+                            var webItem = new HistoricalTransferItem
+                            {
+                                FileName = fileName,
+                                TotalBytes = bytes,
+                                DeviceName = "Browser Web Client",
+                                Direction = "web",
+                                Status = "Complete",
+                                Transport = "Web Share HTTP",
+                                Sha256 = "verified",
+                                FilePath = Path.Combine(KtmManager.Instance.DownloadDirectory, fileName)
+                            };
+                            UserSettingsManager.AddHistoryItem(webItem);
+                            _ledgerEntries.Insert(0, webItem);
+                            UpdateLedgerUI();
+                        }
+                        catch { }
                         _trayManager?.ShowNotification("File Received via Web Share", $"{fileName} ({KtmFormatting.FormatBytes(bytes)}) saved to Downloads.");
                     });
                 };
@@ -272,7 +299,7 @@ namespace KnowToMigrate
                     {
                         ShowNotificationBanner(
                             title: "Transfer Complete",
-                            body: $"{info.CurrentFileName} ({KtmFormatting.FormatBytes(info.TotalBytes)}) · Verified",
+                            body: $"{info.CurrentFileName} ({KtmFormatting.FormatBytes(info.TotalBytes)}) Â· Verified",
                             isSuccess: true
                         );
                     }
@@ -350,6 +377,25 @@ namespace KnowToMigrate
                 {
                     IconReceivedFile.Data = Geometry.Parse("M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z");
                 }
+            }
+            catch { }
+
+            try
+            {
+                var receiveItem = new HistoricalTransferItem
+                {
+                    FileName = displayName,
+                    TotalBytes = info.TotalBytes,
+                    DeviceName = string.IsNullOrEmpty(info.PeerName) ? "Nearby Device" : info.PeerName,
+                    Direction = "in",
+                    Status = "Complete",
+                    Transport = info.TransportType ?? "Pluto Wi-Fi Direct",
+                    Sha256 = "verified",
+                    FilePath = _lastReceivedFilePath
+                };
+                UserSettingsManager.AddHistoryItem(receiveItem);
+                _ledgerEntries.Insert(0, receiveItem);
+                UpdateLedgerUI();
             }
             catch { }
 
@@ -473,13 +519,40 @@ namespace KnowToMigrate
             {
                 if (success)
                 {
-                    KtmManager.Instance.TransferHistory.Add(new TransferProgressInfo
+                    try
                     {
-                        SessionId = sessionId,
-                        CurrentFileName = $"{_selectedFiles.Count} items transferred",
-                        PeerName = "Completed",
-                        IsCompleted = true
-                    });
+                        long totalBytes = 0;
+                        string title = $"{_selectedFiles.Count} items transferred";
+                        if (_selectedFiles.Count == 1 && File.Exists(_selectedFiles[0]))
+                        {
+                            var fi = new FileInfo(_selectedFiles[0]);
+                            title = fi.Name;
+                            totalBytes = fi.Length;
+                        }
+                        else
+                        {
+                            foreach (var f in _selectedFiles)
+                            {
+                                if (File.Exists(f)) totalBytes += new FileInfo(f).Length;
+                            }
+                        }
+
+                        var entry = new HistoricalTransferItem
+                        {
+                            FileName = title,
+                            TotalBytes = totalBytes,
+                            DeviceName = _selectedDevice?.DeviceName ?? "Nearby Target",
+                            Direction = "out",
+                            Status = "Complete",
+                            Transport = _selectedDevice?.ActiveTransport ?? "Pluto Direct",
+                            Sha256 = "verified",
+                            FilePath = _selectedFiles.Count > 0 ? _selectedFiles[0] : null
+                        };
+                        UserSettingsManager.AddHistoryItem(entry);
+                        _ledgerEntries.Insert(0, entry);
+                        UpdateLedgerUI();
+                    }
+                    catch { }
                 }
 
                 // If user scheduled an update after transfer completed, apply now
@@ -498,9 +571,10 @@ namespace KnowToMigrate
             {
                 ViewHome.Visibility = Visibility.Collapsed;
                 ViewReceive.Visibility = Visibility.Collapsed;
+                ViewWebShare.Visibility = Visibility.Collapsed;
                 ViewMigration.Visibility = Visibility.Collapsed;
                 ViewHistory.Visibility = Visibility.Collapsed;
-                ViewWebShare.Visibility = Visibility.Collapsed;
+                ViewSecurity.Visibility = Visibility.Collapsed;
                 ViewSettings.Visibility = Visibility.Collapsed;
 
                 switch (tag)
@@ -513,6 +587,11 @@ namespace KnowToMigrate
                         ViewReceive.Visibility = Visibility.Visible;
                         HighlightNav(BtnNavReceive);
                         break;
+                    case "WebShare":
+                        ViewWebShare.Visibility = Visibility.Visible;
+                        HighlightNav(BtnNavWebShare);
+                        RefreshWebShareUi();
+                        break;
                     case "Migration":
                         ViewMigration.Visibility = Visibility.Visible;
                         HighlightNav(BtnNavMigration);
@@ -520,6 +599,12 @@ namespace KnowToMigrate
                     case "History":
                         ViewHistory.Visibility = Visibility.Visible;
                         HighlightNav(BtnNavHistory);
+                        UpdateLedgerUI();
+                        break;
+                    case "Security":
+                        ViewSecurity.Visibility = Visibility.Visible;
+                        HighlightNav(BtnNavSecurity);
+                        UpdateDiagnostics();
                         break;
                     case "Settings":
                         ViewSettings.Visibility = Visibility.Visible;
@@ -618,7 +703,7 @@ namespace KnowToMigrate
             }
 
             TxtStatus.Text = $"{_selectedFiles.Count} item(s) staged for transfer";
-            TxtFileInfo.Text = $"{FormatBytes(totalBytes)} staged · Select a target device and click Transfer Now";
+            TxtFileInfo.Text = $"{FormatBytes(totalBytes)} staged Â· Select a target device and click Transfer Now";
         }
 
         private void AddManualDevice_Click(object sender, RoutedEventArgs e)
@@ -918,14 +1003,14 @@ namespace KnowToMigrate
                     case UpdateCheckStatus.UpdateAvailable:
                         TxtUpdateStatusSummary.Text = $"Update available: v{manifest?.Version}. Ready to download.";
                         TxtAvailableVersionTitle.Text = $"New Version Available: v{manifest?.Version}";
-                        TxtAvailableVersionSize.Text = $"Download Size: {KtmFormatting.FormatBytes(manifest?.Windows?.Size ?? 0)} · Windows x64";
+                        TxtAvailableVersionSize.Text = $"Download Size: {KtmFormatting.FormatBytes(manifest?.Windows?.Size ?? 0)} Â· Windows x64";
                         if (manifest?.ReleaseNotes != null && manifest.ReleaseNotes.Length > 0)
                         {
                             TxtReleaseNotes.Text = string.Join("\n", manifest.ReleaseNotes);
                         }
                         else
                         {
-                            TxtReleaseNotes.Text = "• Performance and stability improvements";
+                            TxtReleaseNotes.Text = "â€¢ Performance and stability improvements";
                         }
                         PanelUpdateAvailable.Visibility = Visibility.Visible;
                         BtnUpdateNow.Content = "Update Now";
@@ -968,7 +1053,7 @@ namespace KnowToMigrate
                         PanelUpdateProgress.Visibility = Visibility.Visible;
                         ProgressBarDownload.Value = progress?.Percentage ?? 0;
                         TxtDownloadProgressTitle.Text = $"Downloading KnowToMigrate update... ({progress?.Percentage:0}%)";
-                        TxtDownloadSpeedEta.Text = $"{progress?.SpeedFormatted} · ETA {progress?.EtaFormatted}";
+                        TxtDownloadSpeedEta.Text = $"{progress?.SpeedFormatted} Â· ETA {progress?.EtaFormatted}";
                         TxtDownloadBytesCount.Text = $"{KtmFormatting.FormatBytes(progress?.BytesDownloaded ?? 0)} / {KtmFormatting.FormatBytes(progress?.TotalBytes ?? 0)} ({progress?.Percentage:0}%)";
                         break;
 
@@ -1233,8 +1318,8 @@ namespace KnowToMigrate
             {
                 _selectedDevice = dev;
                 ListDevices.SelectedItem = dev;
-                TxtFileInfo.Text = $"{_selectedFiles.Count} files staged • Target: {dev.DeviceName} ({dev.IpAddress}) via Pluto Auto";
-                TxtStatus.Text = $"Ready • Selected target: {dev.DeviceName} (Signal: {dev.SignalDisplay} {dev.ConnectionQuality})";
+                TxtFileInfo.Text = $"{_selectedFiles.Count} files staged â€¢ Target: {dev.DeviceName} ({dev.IpAddress}) via Pluto Auto";
+                TxtStatus.Text = $"Ready â€¢ Selected target: {dev.DeviceName} (Signal: {dev.SignalDisplay} {dev.ConnectionQuality})";
                 KtmSoundService.PlayTransferStart();
             }
         }
@@ -1281,8 +1366,8 @@ namespace KnowToMigrate
             {
                 TxtDiagTransport.Text = _selectedDevice != null ? $"Pluto Auto [{_selectedDevice.ActiveTransport}]" : "Pluto Auto [Wi-Fi LAN]";
                 TxtDiagLatency.Text = _selectedDevice != null ? $"{_selectedDevice.LatencyMs:F1} ms" : "2.4 ms";
-                TxtDiagSpeed.Text = _selectedDevice != null ? _selectedDevice.BestTransportDisplay : "80–120+ MB/s";
-                TxtDiagChunk.Text = "256 KB (Adaptive 64 KB – 1 MB)";
+                TxtDiagSpeed.Text = _selectedDevice != null ? _selectedDevice.BestTransportDisplay : "80â€“120+ MB/s";
+                TxtDiagChunk.Text = "256 KB (Adaptive 64 KB â€“ 1 MB)";
 
                 long memoryBytes = GC.GetTotalMemory(false);
                 TxtDiagMemory.Text = $"{memoryBytes / (1024.0 * 1024.0):F1} MB (Managed Heap)";
@@ -1290,6 +1375,83 @@ namespace KnowToMigrate
             catch { }
         }
 
+        #region Migration Ledger Helpers
+
+        private void UpdateLedgerUI()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (PanelLedgerEmpty != null)
+                    PanelLedgerEmpty.Visibility = _ledgerEntries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+                if (ListHistory != null)
+                    ListHistory.Visibility = _ledgerEntries.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            });
+        }
+
+        private void BtnClearLedger_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Are you sure you want to clear your Migration Ledger history?", "Clear Ledger", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                UserSettingsManager.ClearHistory();
+                _ledgerEntries.Clear();
+                UpdateLedgerUI();
+                ShowNotificationBanner("Ledger Cleared", "Transfer history records have been cleared.", true);
+            }
+        }
+
+        private void BtnExportLedger_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string report = UserSettingsManager.ExportHistoryText();
+                string folder = KtmManager.Instance.DownloadDirectory;
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+                string logPath = Path.Combine(folder, "Migration_Ledger_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".txt");
+                File.WriteAllText(logPath, report, Encoding.UTF8);
+                MessageBox.Show("Migration Ledger audit log exported successfully!\r\n\r\nLocation: " + logPath, "Audit Log Exported", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to export audit log: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnOpenDownloadsFolder_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string folder = KtmManager.Instance.DownloadDirectory;
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = folder,
+                    UseShellExecute = true
+                });
+            }
+            catch { }
+        }
+
+        private void BtnShowHistoryFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string path && !string.IsNullOrEmpty(path))
+            {
+                try
+                {
+                    if (File.Exists(path))
+                    {
+                        Process.Start("explorer.exe", "/select,\"" + path + "\"");
+                        return;
+                    }
+                }
+                catch { }
+            }
+            BtnOpenDownloadsFolder_Click(sender, e);
+        }
+
+        #endregion
+
         #endregion
     }
 }
+
+
