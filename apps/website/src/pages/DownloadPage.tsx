@@ -69,7 +69,7 @@ const DEFAULT_ANDROID_DOWNLOADS: DownloadEntry[] = [
   {
     id: 'android-apk',
     filename: 'KnowToMigrate-1.0.0.apk',
-    version: '1.0.0',
+    version: '1.0.2',
     size: '11.0 MB',
     sha256: '35909C8904A169C7F09AC0CC0926877F8000366D07F450D3B3CE862686AB37F5',
     requirements: 'Android 8.0+ (API 26+) — Enable "Install from unknown sources" in Settings',

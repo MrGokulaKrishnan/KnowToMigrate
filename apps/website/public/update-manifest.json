@@ -4,7 +4,7 @@
     "version":  "1.0.2",
     "minimumSupportedVersion":  "1.0.0",
     "mandatory":  false,
-    "publishedAt":  "2026-10-02T14:03:47Z",
+    "publishedAt":  "2026-10-04T07:04:07Z",
     "windows":  {
                     "architecture":  "x64",
                     "installerType":  "exe",
@@ -12,19 +12,19 @@
                     "filename":  "KnowToMigrate-Setup.exe",
                     "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-Setup.exe.bin",
                     "size":  66521088,
-                    "sha256":  "0af66ecff7a114d2b66bd17b1814ec1f612c54dd0ab78199e7060efcb315e135",
+                    "sha256":  "89326cec4d19b6d031dee17940682ab9e5742f7687f062bb16198a35a0120670",
                     "signature":  "",
                     "msi":  {
                                 "filename":  "KnowToMigrate-1.0.2-x64.msi",
                                 "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.2-x64.msi.bin",
                                 "size":  66473984,
-                                "sha256":  "88a452e85e7e4cb8b194b9b3dd7feb9e17326af076417315c3dccf26817a2e25"
+                                "sha256":  "29205e5fdfe9cda19afa93f6ac84d99c1e9d7822e2111e8f1e8152d41701cfcd"
                             },
                     "standalone":  {
                                        "filename":  "KnowToMigrate.exe",
                                        "url":  "https://knowtomigrate.web.app/download/KnowToMigrate.exe.bin",
-                                       "size":  72429677,
-                                       "sha256":  "9ecea10a8d2c5807dfaae0684f090b657de55c73d6c5708c980c1184a67454cd"
+                                       "size":  72436137,
+                                       "sha256":  "9724ca428b1793a09c5949470e121614b0b208fd9b792876e8333fe75701a40c"
                                    }
                 },
     "android":  {
