@@ -17,6 +17,12 @@ if (!(Test-Path $DotnetExe)) { Write-Error ".NET SDK executable not found at $Do
 if (!(Test-Path $CscExe)) { Write-Error "CSC compiler not found at $CscExe" }
 if (!(Test-Path $WixExe)) { Write-Error "WiX tool not found at $WixExe" }
 
+function Write-Utf8NoBom {
+    param([string]$Path, [string]$Content)
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($Path, $Content, $utf8NoBom)
+}
+
 # 1. Determine Target Version
 $versionJsonPath = Join-Path $RepoRoot "version.json"
 $vConfig = Get-Content $versionJsonPath | ConvertFrom-Json
@@ -99,6 +105,32 @@ Write-Host "  Setup EXE:   $setupSize bytes | SHA256: $setupHash" -ForegroundCol
 Write-Host "  WiX MSI:     $msiSize bytes | SHA256: $msiHash" -ForegroundColor Gray
 Write-Host "  Standalone:  $standaloneSize bytes | SHA256: $standaloneHash" -ForegroundColor Gray
 
+# 6. Build and Stage Android APK
+Write-Host "`nBuilding Android APK..." -ForegroundColor Green
+$androidDir = Join-Path $RepoRoot "apps\android"
+Push-Location $androidDir
+& .\gradlew.bat assembleRelease
+if ($LASTEXITCODE -ne 0) {
+    Write-Warning "assembleRelease failed, building assembleDebug instead..."
+    & .\gradlew.bat assembleDebug
+}
+Pop-Location
+
+$apkSrc = Join-Path $androidDir "app\build\outputs\apk\release\app-release.apk"
+if (!(Test-Path $apkSrc)) {
+    $apkSrc = Join-Path $androidDir "app\build\outputs\apk\debug\app-debug.apk"
+}
+
+$apkHash = ""
+$apkSize = 0
+if (Test-Path $apkSrc) {
+    $apkHash = (Get-FileHash -Path $apkSrc -Algorithm SHA256).Hash.ToLowerInvariant()
+    $apkSize = (Get-Item $apkSrc).Length
+    Copy-Item -Path $apkSrc -Destination (Join-Path $webDownloadDir "KnowToMigrate-$TargetVersion.apk.bin") -Force
+    Copy-Item -Path $apkSrc -Destination (Join-Path $webDownloadDir "KnowToMigrate.apk.bin") -Force
+    Write-Host "  Android APK: $apkSize bytes | SHA256: $apkHash" -ForegroundColor Gray
+}
+
 # 7. Update update-manifest.json and Website DownloadPage
 Write-Host "`n[6/7] Updating update-manifest.json and DownloadPage.tsx..." -ForegroundColor Green
 $manifestPath = Join-Path $RepoRoot "apps\website\public\update-manifest.json"
@@ -116,20 +148,34 @@ $manifest.windows.msi.sha256 = $msiHash
 $manifest.windows.standalone.size = $standaloneSize
 $manifest.windows.standalone.sha256 = $standaloneHash
 
+if ($apkSize -gt 0) {
+    if (!$manifest.android) {
+        $manifest | Add-Member -MemberType NoteProperty -Name "android" -Value (@{})
+    }
+    $vParts = $TargetVersion.Split('.')
+    $manifest.android.versionCode = [int]$vParts[0] * 10000 + [int]$vParts[1] * 100 + [int]$vParts[2]
+    $manifest.android.versionName = $TargetVersion
+    $manifest.android.size = $apkSize
+    $manifest.android.sha256 = $apkHash
+    $manifest.android.url = "https://knowtomigrate.web.app/download/KnowToMigrate-$TargetVersion.apk.bin"
+    $manifest.android.filename = "KnowToMigrate-$TargetVersion.apk"
+}
+
 if ($ReleaseNotes.Length -gt 0) {
     $manifest.releaseNotes = $ReleaseNotes
 } else {
     $manifest.releaseNotes = @(
-        "Independent Android APK Self-Updater with SHA-256 verification and active transfer safety",
+        "Fixed file verification and byte alignment in Pluto transfer engine",
+        "Independent Android APK Self-Updater with UTF-8 BOM sanitation and SHA-256 verification",
+        "Liquid Glass navigation bar and responsive non-clipping action button",
         "Persistent Migration Ledger with cryptographic audit log, export, and quick folder reveal",
         "Universal Web Share with live QR code pairing and seamless multi-device browser transfers",
         "Windows Security Center real-time socket telemetry and Pluto Auto diagnostics",
-        "Pluto Engine AES-256-GCM multi-transport transfer with dynamic backpressure",
         "Liquid Glass AMOLED custom CheckBox unique UI upgrade"
     )
 }
 
-$manifest | ConvertTo-Json -Depth 6 | Set-Content $manifestPath -Encoding utf8
+Write-Utf8NoBom -Path $manifestPath -Content ($manifest | ConvertTo-Json -Depth 6)
 
 # Sync Android stable update manifest
 $androidStablePath = Join-Path $RepoRoot "apps\website\public\updates\android\stable.json"
@@ -143,8 +189,13 @@ if (Test-Path $androidStablePath) {
     $as.releaseDate = (Get-Date).ToString("yyyy-MM-dd")
     $as.title = "KnowToMigrate $TargetVersion"
     $as.releaseNotes = $manifest.releaseNotes
-    $as | ConvertTo-Json -Depth 6 | Set-Content $androidStablePath -Encoding utf8
-    Write-Host "  Updated $androidStablePath" -ForegroundColor Gray
+    if ($apkSize -gt 0) {
+        $as.sizeBytes = $apkSize
+        $as.sha256 = $apkHash
+        $as.apkUrl = "https://knowtomigrate.web.app/download/KnowToMigrate-$TargetVersion.apk.bin"
+    }
+    Write-Utf8NoBom -Path $androidStablePath -Content ($as | ConvertTo-Json -Depth 6)
+    Write-Host "  Updated $androidStablePath (UTF-8 without BOM)" -ForegroundColor Gray
 }
 
 # Update DownloadPage.tsx with latest version, hashes, sizes, and release date

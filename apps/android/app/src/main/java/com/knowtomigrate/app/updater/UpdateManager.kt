@@ -100,12 +100,15 @@ class UpdateManager private constructor(private val context: Context) {
 
                 if (conn.responseCode in 200..299) {
                     val body = conn.inputStream.bufferedReader().use { it.readText() }
-                    val manifest = AndroidUpdateManifest.fromJson(body)
+                    val cleanBody = body.trim().removePrefix("\uFEFF").trim()
+                    val manifest = AndroidUpdateManifest.fromJson(cleanBody)
                     if (manifest != null && manifest.versionCode > 0) {
                         return@withContext manifest
                     }
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                android.util.Log.w("UpdateManager", "Failed to fetch from endpoint $endpoint: ${e.message}")
+            }
         }
         null
     }

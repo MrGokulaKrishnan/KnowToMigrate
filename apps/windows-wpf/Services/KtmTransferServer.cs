@@ -213,6 +213,10 @@ namespace KnowToMigrate.Services
 
                         using (var fileStream = new FileStream(partPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite, 131072, useAsync: true))
                         {
+                            if (currentOffset == 0)
+                            {
+                                fileStream.SetLength(0);
+                            }
                             fileStream.Seek(currentOffset, SeekOrigin.Begin);
 
                             while (currentOffset < fileItem.Size)
@@ -255,6 +259,7 @@ namespace KnowToMigrate.Services
                                     OnProgress?.Invoke(progress);
                                 }
                             }
+                            fileStream.SetLength(fileItem.Size);
                             await fileStream.FlushAsync(token);
                             fileStream.Flush(true);
                         }
@@ -264,6 +269,9 @@ namespace KnowToMigrate.Services
                         OnProgress?.Invoke(progress);
 
                         string computedSha = KtmSecurityUtils.ComputeFileSha256(partPath);
+                        long actualPartLen = File.Exists(partPath) ? new FileInfo(partPath).Length : 0;
+                        System.Diagnostics.Debug.WriteLine($"[VERIFY] {safeRelPath}: Expected SHA={fileItem.Sha256}, Computed SHA={computedSha}, ActualLen={actualPartLen}, ExpectedSize={fileItem.Size}");
+
                         if (!string.IsNullOrEmpty(fileItem.Sha256) && !string.Equals(computedSha, fileItem.Sha256, StringComparison.OrdinalIgnoreCase))
                         {
                             // Hash mismatch
@@ -274,7 +282,7 @@ namespace KnowToMigrate.Services
                                 Status = "HASH_MISMATCH",
                                 Sha256 = computedSha
                             }, token);
-                            throw new CryptographicException($"Checksum verification failed for {safeRelPath}");
+                            throw new CryptographicException($"Checksum verification failed for {safeRelPath} (Expected: {fileItem.Sha256}, Got: {computedSha}, Size: {actualPartLen}/{fileItem.Size})");
                         }
 
                         // Atomically move .part to final destination with smart duplicate handling

@@ -74,10 +74,10 @@ fun KmPrimaryButton(
             disabledContainerColor = Color.Transparent,
             disabledContentColor = KmTextDisabled
         ),
-        contentPadding = PaddingValues(0.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         modifier = modifier
             .scale(scale)
-            .height(52.dp)
+            .defaultMinSize(minHeight = 52.dp)
             .drawBehind {
                 if (enabled) {
                     // Soft orange outer glow
@@ -154,9 +154,10 @@ fun KmSecondaryButton(
             disabledContainerColor = KmGlassSurfaceSecondary.copy(alpha = 0.5f),
             disabledContentColor = KmTextDisabled
         ),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         modifier = modifier
             .scale(scale)
-            .height(52.dp)
+            .defaultMinSize(minHeight = 52.dp)
             .drawBehind {
                 // Subtle top gloss highlight
                 drawLine(

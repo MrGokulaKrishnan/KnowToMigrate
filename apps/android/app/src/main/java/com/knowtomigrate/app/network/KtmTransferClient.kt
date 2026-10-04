@@ -57,8 +57,8 @@ class KtmTransferClient(private val context: Context) {
                 var totalBytes = 0L
 
                 uris.forEachIndexed { index, uri ->
-                    val (name, size) = queryFileInfo(uri)
-                    val sha = computeUriSha256(uri)
+                    val name = queryFileName(uri)
+                    val (size, sha) = inspectUri(uri)
                     manifestItems.add(
                         KtmManifestItem(
                             fileIndex = index,
@@ -69,7 +69,7 @@ class KtmTransferClient(private val context: Context) {
                         )
                     )
                     totalBytes += size
-                    Log.i("KtmTransferClient", "[MANIFEST_ITEM] #$index: '$name', size=$size bytes, SHA=$sha")
+                    Log.i("KtmTransferClient", "[MANIFEST_ITEM] #$index: '$name', exactStreamSize=$size bytes, SHA=$sha")
                 }
 
                 val manifest = KtmManifest(
@@ -256,68 +256,20 @@ class KtmTransferClient(private val context: Context) {
         }
     }
 
-    private fun queryFileInfo(uri: Uri): Pair<String, Long> {
+    private fun queryFileName(uri: Uri): String {
         var name = "file_${System.currentTimeMillis()}"
-        var size = -1L
-
-        // Primary: Query Android ContentResolver OpenableColumns
         try {
-            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
                 val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
-                if (cursor.moveToFirst()) {
-                    if (nameIndex != -1 && !cursor.isNull(nameIndex)) {
-                        val n = cursor.getString(nameIndex)
-                        if (!n.isNullOrBlank()) name = n
-                    }
-                    if (sizeIndex != -1 && !cursor.isNull(sizeIndex)) {
-                        val s = cursor.getLong(sizeIndex)
-                        if (s >= 0) size = s
-                    }
+                if (cursor.moveToFirst() && nameIndex != -1 && !cursor.isNull(nameIndex)) {
+                    val n = cursor.getString(nameIndex)
+                    if (!n.isNullOrBlank()) name = n
                 }
             }
         } catch (e: Exception) {
             Log.w("KtmTransferClient", "Cursor query failed for $uri", e)
         }
 
-        // Fallback 1: AssetFileDescriptor length
-        if (size <= 0) {
-            try {
-                context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { afd ->
-                    val afdLen = afd.length
-                    if (afdLen > 0) size = afdLen
-                }
-            } catch (_: Exception) {}
-        }
-
-        // Fallback 2: ParcelFileDescriptor statSize
-        if (size <= 0) {
-            try {
-                context.contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
-                    val pfdSize = pfd.statSize
-                    if (pfdSize > 0) size = pfdSize
-                }
-            } catch (_: Exception) {}
-        }
-
-        // Fallback 3: Measure stream length directly
-        if (size <= 0) {
-            try {
-                context.contentResolver.openInputStream(uri)?.use { stream ->
-                    var count = 0L
-                    val buf = ByteArray(65536)
-                    var r: Int
-                    while (stream.read(buf).also { r = it } != -1) {
-                        count += r
-                    }
-                    size = count
-                }
-            } catch (e: Exception) {
-                Log.w("KtmTransferClient", "Stream byte measurement failed for $uri", e)
-            }
-        }
-
-        // Name fallback from URI path if generic
         if (name.startsWith("file_")) {
             val lastSegment = uri.lastPathSegment
             if (!lastSegment.isNullOrBlank()) {
@@ -325,26 +277,26 @@ class KtmTransferClient(private val context: Context) {
                 if (clean.isNotBlank()) name = clean
             }
         }
-
-        if (size < 0) size = 0L
-        return Pair(name, size)
+        return name
     }
 
-    private fun computeUriSha256(uri: Uri): String {
-        return try {
-            val digest = MessageDigest.getInstance("SHA-256")
+    private fun inspectUri(uri: Uri): Pair<Long, String> {
+        val digest = MessageDigest.getInstance("SHA-256")
+        var byteCount = 0L
+        try {
             context.contentResolver.openInputStream(uri)?.use { stream ->
                 val buf = ByteArray(65536)
                 var r: Int
                 while (stream.read(buf).also { r = it } != -1) {
                     digest.update(buf, 0, r)
+                    byteCount += r
                 }
             }
-            digest.digest().joinToString("") { "%02X".format(it) }
         } catch (e: Exception) {
-            Log.w("KtmTransferClient", "Failed to compute SHA-256 for $uri", e)
-            ""
+            Log.w("KtmTransferClient", "Failed to stream URI for size/sha: $uri", e)
         }
+        val sha = digest.digest().joinToString("") { "%02X".format(it) }
+        return Pair(byteCount, sha)
     }
 
     private fun readLengthPrefixedString(dis: DataInputStream): String {

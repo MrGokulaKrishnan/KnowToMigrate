@@ -1,46 +1,47 @@
-﻿{
+{
     "product":  "KnowToMigrate",
     "channel":  "stable",
-    "version":  "1.0.4",
+    "version":  "1.0.5",
     "minimumSupportedVersion":  "1.0.0",
     "mandatory":  false,
-    "publishedAt":  "2026-10-04T16:28:02Z",
+    "publishedAt":  "2026-10-04T16:58:35Z",
     "windows":  {
                     "architecture":  "x64",
                     "installerType":  "exe",
-                    "version":  "1.0.4",
+                    "version":  "1.0.5",
                     "filename":  "KnowToMigrate-Setup.exe",
                     "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-Setup.exe.bin",
-                    "size":  66524160,
-                    "sha256":  "46f5073d5717d12a384aca63796f60d138b54502f088f611fd7a7aae96bc9f2d",
+                    "size":  66515968,
+                    "sha256":  "28bfeae352e78e3b2acbaaa62376dfb9261df3e7b76ddd1a814f846305bca0bd",
                     "signature":  "",
                     "msi":  {
-                                "filename":  "KnowToMigrate-1.0.4-x64.msi",
-                                "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.4-x64.msi.bin",
-                                "size":  66478080,
-                                "sha256":  "93143ac0534362cfe59404f2b9c701708059513aec7965a88f6ab7075f877d98"
+                                "filename":  "KnowToMigrate-1.0.5-x64.msi",
+                                "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5-x64.msi.bin",
+                                "size":  66469888,
+                                "sha256":  "c19d7a1ec56f07d87d399e88f2717e0d6c4bcc633d705cfb760fe1dc6397f1c3"
                             },
                     "standalone":  {
                                        "filename":  "KnowToMigrate.exe",
                                        "url":  "https://knowtomigrate.web.app/download/KnowToMigrate.exe.bin",
-                                       "size":  72435707,
-                                       "sha256":  "25e0ffd2a10da36981f338201dfb2d430e59c8485778f72d7cfbbcf05b46794c"
+                                       "size":  72435819,
+                                       "sha256":  "2f5c193a01d61e08da9abfd79108d56ed7a4ac9eadacede9be94c96d19b21c69"
                                    }
                 },
     "android":  {
-                    "versionCode":  10004,
-                    "versionName":  "1.0.4",
-                    "filename":  "KnowToMigrate-1.0.4.apk",
-                    "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.4.apk.bin",
-                    "size":  17599199,
-                    "sha256":  "7789deaa4baa5ee1d2aad8f0a50a7a823beef1d0a0a6707885af0bb7a60cc48a"
+                    "versionCode":  10005,
+                    "versionName":  "1.0.5",
+                    "filename":  "KnowToMigrate-1.0.5.apk",
+                    "url":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5.apk.bin",
+                    "size":  11540988,
+                    "sha256":  "2d5ed75499aa55689513a70d4dafd3526a9f7547078045b49d1c551842ddd784"
                 },
     "releaseNotes":  [
-                         "Independent Android APK Self-Updater with SHA-256 verification and active transfer safety",
+                         "Fixed file verification and byte alignment in Pluto transfer engine",
+                         "Independent Android APK Self-Updater with UTF-8 BOM sanitation and SHA-256 verification",
+                         "Liquid Glass navigation bar and responsive non-clipping action button",
                          "Persistent Migration Ledger with cryptographic audit log, export, and quick folder reveal",
                          "Universal Web Share with live QR code pairing and seamless multi-device browser transfers",
                          "Windows Security Center real-time socket telemetry and Pluto Auto diagnostics",
-                         "Pluto Engine AES-256-GCM multi-transport transfer with dynamic backpressure",
                          "Liquid Glass AMOLED custom CheckBox unique UI upgrade"
                      ]
 }

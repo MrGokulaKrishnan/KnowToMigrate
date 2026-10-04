@@ -21,6 +21,12 @@ if ($TargetVersion -ne "") {
     }
 }
 
+function Write-Utf8NoBom {
+    param([string]$Path, [string]$Content)
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($Path, $Content, $utf8NoBom)
+}
+
 # ALWAYS update publishedAt and updatedAt timestamps in version.json
 $nowUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
 $versionConfig.publishedAt = $nowUtc
@@ -30,7 +36,7 @@ if ($versionConfig.PSObject.Properties["updatedAt"]) {
     $versionConfig | Add-Member -MemberType NoteProperty -Name "updatedAt" -Value $nowUtc
 }
 
-$versionConfig | ConvertTo-Json -Depth 5 | Set-Content $VersionJsonPath -Encoding utf8
+Write-Utf8NoBom -Path $VersionJsonPath -Content ($versionConfig | ConvertTo-Json -Depth 5)
 Write-Host "Updated version.json to $($versionConfig.version) (code: $($versionConfig.versionCode), updated: $nowUtc)" -ForegroundColor Green
 
 $ver = $versionConfig.version
@@ -101,7 +107,7 @@ if (Test-Path $androidStablePath) {
     $asConfig.releaseDate = (Get-Date).ToString("yyyy-MM-dd")
     $asConfig.title = "KnowToMigrate $ver"
     $asConfig.apkUrl = "https://knowtomigrate.web.app/download/KnowToMigrate-$ver.apk.bin"
-    $asConfig | ConvertTo-Json -Depth 5 | Set-Content $androidStablePath -Encoding utf8
+    Write-Utf8NoBom -Path $androidStablePath -Content ($asConfig | ConvertTo-Json -Depth 5)
     Write-Host "  Updated $androidStablePath" -ForegroundColor Gray
 }
 
@@ -114,7 +120,7 @@ if (Test-Path $updateManifestPath) {
         $umConfig.android.versionName = $ver
         $umConfig.android.filename = "KnowToMigrate-$ver.apk"
         $umConfig.android.url = "https://knowtomigrate.web.app/download/KnowToMigrate-$ver.apk.bin"
-        $umConfig | ConvertTo-Json -Depth 6 | Set-Content $updateManifestPath -Encoding utf8
+        Write-Utf8NoBom -Path $updateManifestPath -Content ($umConfig | ConvertTo-Json -Depth 6)
         Write-Host "  Updated $updateManifestPath (android block)" -ForegroundColor Gray
     }
 }

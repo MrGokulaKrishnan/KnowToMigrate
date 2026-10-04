@@ -29,7 +29,8 @@ data class AndroidUpdateManifest(
     companion object {
         fun fromJson(jsonStr: String): AndroidUpdateManifest? {
             return try {
-                val json = JSONObject(jsonStr)
+                val clean = jsonStr.trim().removePrefix("\uFEFF").trim()
+                val json = JSONObject(clean)
                 // Case 1: Standalone android stable.json format
                 if (json.has("platform") && json.optString("platform") == "android") {
                     val notesList = mutableListOf<String>()

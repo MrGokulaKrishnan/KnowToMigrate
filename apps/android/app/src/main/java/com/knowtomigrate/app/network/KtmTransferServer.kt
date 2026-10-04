@@ -206,6 +206,9 @@ class KtmTransferServer(
                     Log.i("KtmTransferServer", "[RECEIVING_FILE] #$prog.currentFileIndex: '$safeRel', targetSize=${item.size}, resumeOffset=$resumeOffset")
 
                     RandomAccessFile(partFile, "rw").use { raf ->
+                        if (currentOffset == 0L) {
+                            raf.setLength(0L)
+                        }
                         raf.seek(currentOffset)
 
                         while (currentOffset < item.size) {
@@ -242,16 +245,18 @@ class KtmTransferServer(
                                 _progress.value = prog.copy()
                             }
                         }
+                        raf.setLength(item.size)
                         raf.fd.sync()
                     }
 
-                    Log.i("KtmTransferServer", "[CHUNKS_COMPLETE] '$safeRel' written to disk ($currentOffset bytes), verifying SHA-256")
+                    Log.i("KtmTransferServer", "[CHUNKS_COMPLETE] '$safeRel' written to disk ($currentOffset bytes, fileLen=${partFile.length()}), verifying SHA-256")
                     prog.status = TransferStatus.VERIFYING
                     _progress.value = prog.copy()
 
                     // 4. Verify SHA-256
                     val computedSha = KtmSecurityUtils.computeFileSha256(partFile)
                     if (item.sha256.isNotBlank() && !computedSha.equals(item.sha256, ignoreCase = true)) {
+                        Log.e("KtmTransferServer", "[HASH_MISMATCH] '$safeRel' Expected=${item.sha256}, Got=$computedSha, FileLen=${partFile.length()}, ExpectedSize=${item.size}")
                         partFile.delete()
                         val compObj = JSONObject().apply {
                             put("type", "FILE_COMPLETE")

@@ -1,22 +1,23 @@
-﻿{
+{
     "product":  "KnowToMigrate",
     "platform":  "android",
     "channel":  "stable",
-    "versionCode":  10004,
-    "versionName":  "1.0.4",
+    "versionCode":  10005,
+    "versionName":  "1.0.5",
     "minimumSupportedVersionCode":  10000,
-    "apkUrl":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.4.apk.bin",
-    "sizeBytes":  17599199,
-    "sha256":  "7789deaa4baa5ee1d2aad8f0a50a7a823beef1d0a0a6707885af0bb7a60cc48a",
+    "apkUrl":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5.apk.bin",
+    "sizeBytes":  11540988,
+    "sha256":  "2d5ed75499aa55689513a70d4dafd3526a9f7547078045b49d1c551842ddd784",
     "releaseDate":  "2026-10-04",
     "mandatory":  false,
-    "title":  "KnowToMigrate 1.0.4",
+    "title":  "KnowToMigrate 1.0.5",
     "releaseNotes":  [
-                         "Independent Android APK Self-Updater with SHA-256 verification and active transfer safety",
+                         "Fixed file verification and byte alignment in Pluto transfer engine",
+                         "Independent Android APK Self-Updater with UTF-8 BOM sanitation and SHA-256 verification",
+                         "Liquid Glass navigation bar and responsive non-clipping action button",
                          "Persistent Migration Ledger with cryptographic audit log, export, and quick folder reveal",
                          "Universal Web Share with live QR code pairing and seamless multi-device browser transfers",
                          "Windows Security Center real-time socket telemetry and Pluto Auto diagnostics",
-                         "Pluto Engine AES-256-GCM multi-transport transfer with dynamic backpressure",
                          "Liquid Glass AMOLED custom CheckBox unique UI upgrade"
                      ]
 }

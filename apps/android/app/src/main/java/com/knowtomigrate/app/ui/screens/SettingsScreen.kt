@@ -278,7 +278,7 @@ fun SettingsScreen(navController: NavController) {
                             Text("KnowToMigrate APK Self-Updater", color = KmTextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Installed: v (Build )",
+                                text = "Installed: v${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE})",
                                 color = KmTextMuted,
                                 fontSize = 12.sp
                             )
@@ -323,7 +323,7 @@ fun SettingsScreen(navController: NavController) {
                                 ) {
                                     Icon(Icons.Default.CheckCircle, contentDescription = null, tint = KmSuccess, modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(10.dp))
-                                    Text("KnowToMigrate is up to date (v).", color = KmTextPrimary, fontSize = 13.sp)
+                                    Text("KnowToMigrate is up to date (v${BuildConfig.VERSION_NAME}).", color = KmTextPrimary, fontSize = 13.sp)
                                 }
                             }
                         }
@@ -342,16 +342,16 @@ fun SettingsScreen(navController: NavController) {
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Text("Update Available: v", color = KmOrangeLight, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                            Text("Update Available: v${manifest.versionName}", color = KmOrangeLight, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                                             KmBadge(text = manifest.formattedSize, color = KmOrange)
                                         }
 
                                         if (manifest.releaseNotes.isNotEmpty()) {
                                             Spacer(modifier = Modifier.height(8.dp))
-                                            Text("What's New in :", color = KmTextPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                            Text("What's New in v${manifest.versionName}:", color = KmTextPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                                             Spacer(modifier = Modifier.height(4.dp))
                                             manifest.releaseNotes.forEach { note ->
-                                                Text("â€¢ ", color = KmTextSecondary, fontSize = 12.sp, modifier = Modifier.padding(vertical = 1.dp))
+                                                Text("• $note", color = KmTextSecondary, fontSize = 12.sp, modifier = Modifier.padding(vertical = 1.dp))
                                             }
                                         }
                                     }
@@ -395,8 +395,8 @@ fun SettingsScreen(navController: NavController) {
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("Downloading v...", color = KmTextPrimary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                                    Text("%", color = KmOrangeLight, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                    Text("Downloading v${manifest.versionName}...", color = KmTextPrimary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                    Text("${(state.progress * 100).toInt()}%", color = KmOrangeLight, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 KmProgressBar(progress = state.progress)
@@ -406,12 +406,12 @@ fun SettingsScreen(navController: NavController) {
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
-                                        text = " / ",
+                                        text = "${com.knowtomigrate.app.network.KtmFormatting.formatBytes(state.bytesDownloaded)} / ${com.knowtomigrate.app.network.KtmFormatting.formatBytes(state.totalBytes)}",
                                         color = KmTextMuted,
                                         fontSize = 11.sp
                                     )
                                     Text(
-                                        text = " MB/s Â· ETA s",
+                                        text = "${String.format(Locale.US, "%.1f", state.speedMBps)} MB/s · ETA ${state.etaSecs}s",
                                         color = KmTextMuted,
                                         fontSize = 11.sp
                                     )
@@ -505,7 +505,7 @@ fun SettingsScreen(navController: NavController) {
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Column {
                                         Text("Update Queued for Installation", color = KmTextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                                        Text("v will automatically launch PackageInstaller once active transfers finish.", color = KmTextMuted, fontSize = 11.sp)
+                                        Text("v${state.manifest.versionName} will automatically launch PackageInstaller once active transfers finish.", color = KmTextMuted, fontSize = 11.sp)
                                     }
                                 }
                             }

@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.*
@@ -18,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.knowtomigrate.app.data.TransferRecord
 import com.knowtomigrate.app.ui.components.*
@@ -81,7 +84,8 @@ fun TransferScreen(navController: NavController, sessionId: String) {
                 .fillMaxSize()
                 .background(KmBlack)
                 .padding(paddingValues)
-                .padding(24.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -293,16 +297,56 @@ fun TransferScreen(navController: NavController, sessionId: String) {
                         KmPrimaryButton(
                             text = "Done",
                             onClick = { navController.popBackStack() },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .navigationBarsPadding()
                         )
                     }
                 }
             } else {
-                KmSecondaryButton(
-                    text = "Close Screen (Transfer runs in background)",
+                Surface(
                     onClick = { navController.popBackStack() },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    shape = RoundedCornerShape(16.dp),
+                    color = KmGlassSurfaceSecondary,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, KmGlassBorder),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp, horizontal = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                tint = KmTextPrimary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Close Screen",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = KmTextPrimary,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Transfer continues safely in background",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = KmTextMuted,
+                            fontSize = 11.sp
+                        )
+                    }
+                }
             }
         }
     }
