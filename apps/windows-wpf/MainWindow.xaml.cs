@@ -85,7 +85,14 @@ namespace KnowToMigrate
                 ListHistory.ItemsSource = KtmManager.Instance.TransferHistory;
                 TxtDownloadDir.Text = KtmManager.Instance.DownloadDirectory;
                 TxtLocalInfo.Text = $"Device: {KtmManager.Instance.LocalDeviceName} ({KtmManager.Instance.LocalDeviceId})";
-                TxtUpdatedOn.Text = "Updated On: " + DateTime.Now.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
+                string currentVer = KtmUpdateService.CurrentVersion;
+                string updatedDateStr = DateTime.Now.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
+                TxtSidebarVersion.Text = $"Standalone v{currentVer}";
+                TxtSidebarFooterVersion.Text = $"KnowToMigrate · v{currentVer}";
+                TxtUpdatedOn.Text = $"Updated On: {updatedDateStr}";
+                TxtCurrentVersionBadge.Text = $"v{currentVer} (Current)";
+                TxtAboutVersion.Text = $"v{currentVer} (Production Release)";
+                TxtAboutDateUpdated.Text = updatedDateStr;
 
                 KtmManager.Instance.NearbyDevices.CollectionChanged += (s, e) => UpdateDiscoveryStatus();
                 UpdateDiscoveryStatus();

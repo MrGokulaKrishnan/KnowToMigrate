@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Shield, Wifi, Smartphone, Monitor, ArrowRight, CheckCircle, Zap, RefreshCw, Lock, LayoutGrid, Radio, Link2, Globe } from 'lucide-react'
+import { Shield, Wifi, Smartphone, Monitor, ArrowRight, CheckCircle, Zap, RefreshCw, Lock, LayoutGrid, Radio, Link2, Globe, Download } from 'lucide-react'
+import { usePlatformDetection } from '../utils/platform'
 
 /* ─── Particle background ──────────────────────────────────── */
 function ParticleField() {
@@ -71,10 +72,34 @@ interface HomePageProps {
 }
 
 export function HomePage({ onOpenAppPreview }: HomePageProps) {
+  const platform = usePlatformDetection()
+
   // Update document title
   useEffect(() => {
     document.title = 'KnowToMigrate  -  Move Anything. Anywhere. Seamlessly.'
   }, [])
+
+  const getHeroCta = () => {
+    if (platform.type === 'windows') {
+      return {
+        label: 'Download for Windows',
+        icon: Monitor,
+      }
+    }
+    if (platform.type === 'android') {
+      return {
+        label: 'Download for Android',
+        icon: Smartphone,
+      }
+    }
+    return {
+      label: 'Download Beta',
+      icon: Download,
+    }
+  }
+
+  const cta = getHeroCta()
+  const CtaIcon = cta.icon
 
   return (
     <main style={{ minHeight: '100vh', background: '#000', color: '#fff' }}>
@@ -163,47 +188,72 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
             No cloud. No account. No browser required.
           </p>
 
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '3rem' }}>
-            <Link to="/download" style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-              padding: '0.75rem 1.75rem', borderRadius: 12, fontWeight: 600,
-              fontSize: '0.9375rem', textDecoration: 'none', color: '#fff',
-              background: 'linear-gradient(135deg, #FF4D00, #FF8A00)',
-              boxShadow: '0 4px 24px rgba(255,90,0,0.30)',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-            }}>
-              Join Beta <ArrowRight size={16} />
-            </Link>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.85rem', marginBottom: '3rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link to="/download" style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                padding: '0.75rem 1.75rem', borderRadius: 12, fontWeight: 600,
+                fontSize: '0.9375rem', textDecoration: 'none', color: '#fff',
+                background: 'linear-gradient(135deg, #FF4D00, #FF8A00)',
+                boxShadow: '0 4px 24px rgba(255,90,0,0.30)',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+              }}>
+                <CtaIcon size={17} /> {cta.label} <ArrowRight size={16} />
+              </Link>
 
-            {onOpenAppPreview && (
-              <button
-                onClick={onOpenAppPreview}
+              {onOpenAppPreview && (
+                <button
+                  onClick={onOpenAppPreview}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '0.75rem 1.75rem', borderRadius: 12, fontWeight: 600,
+                    fontSize: '0.9375rem', color: '#FF8A00',
+                    border: '1px solid rgba(255,90,0,0.30)', background: 'rgba(255,90,0,0.07)',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s, border-color 0.2s',
+                  }}
+                >
+                  <LayoutGrid size={16} /> Live App Preview
+                </button>
+              )}
+
+              <a
+                href="https://github.com/MrGokulaKrishnan/KnowToMigrate"
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.75rem 1.75rem', borderRadius: 12, fontWeight: 600,
-                  fontSize: '0.9375rem', color: '#FF8A00',
-                  border: '1px solid rgba(255,90,0,0.30)', background: 'rgba(255,90,0,0.07)',
-                  cursor: 'pointer',
-                  transition: 'background 0.2s, border-color 0.2s',
+                  fontSize: '0.9375rem', textDecoration: 'none', color: 'rgba(255,255,255,0.70)',
+                  border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(255,255,255,0.03)',
                 }}
               >
-                <LayoutGrid size={16} /> Live App Preview
-              </button>
-            )}
+                View Source
+              </a>
+            </div>
 
-            <a
-              href="https://github.com/MrGokulaKrishnan/KnowToMigrate"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.75rem 1.75rem', borderRadius: 12, fontWeight: 600,
-                fontSize: '0.9375rem', textDecoration: 'none', color: 'rgba(255,255,255,0.70)',
-                border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(255,255,255,0.03)',
-              }}
-            >
-              View Source
-            </a>
+            {/* Detected Platform Tag */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              fontSize: '0.75rem',
+              color: 'rgba(255,255,255,0.5)',
+              padding: '0.25rem 0.75rem',
+              borderRadius: 999,
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.07)'
+            }}>
+              <span style={{
+                display: 'inline-block',
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: '#FF5A00',
+                boxShadow: '0 0 8px #FF5A00'
+              }} />
+              <span>Suggested for your device: <strong style={{ color: '#FF8A00' }}>{platform.fullLabel}</strong></span>
+            </div>
           </div>
 
           {/* Trust pills */}

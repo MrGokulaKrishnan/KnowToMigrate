@@ -1,4 +1,4 @@
-# Synchronizes version numbers across all KnowToMigrate components from version.json
+# Synchronizes version numbers and timestamps across all KnowToMigrate components from version.json
 param(
     [string]$TargetVersion = ""
 )
@@ -19,15 +19,26 @@ if ($TargetVersion -ne "") {
     if ($parts.Length -ge 3) {
         $versionConfig.versionCode = [int]$parts[0] * 10000 + [int]$parts[1] * 100 + [int]$parts[2]
     }
-    $versionConfig | ConvertTo-Json -Depth 5 | Set-Content $VersionJsonPath -Encoding utf8
-    Write-Host "Updated version.json to $($versionConfig.version) (code: $($versionConfig.versionCode))" -ForegroundColor Green
 }
+
+# ALWAYS update publishedAt and updatedAt timestamps in version.json
+$nowUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+$versionConfig.publishedAt = $nowUtc
+if ($versionConfig.PSObject.Properties["updatedAt"]) {
+    $versionConfig.updatedAt = $nowUtc
+} else {
+    $versionConfig | Add-Member -MemberType NoteProperty -Name "updatedAt" -Value $nowUtc
+}
+
+$versionConfig | ConvertTo-Json -Depth 5 | Set-Content $VersionJsonPath -Encoding utf8
+Write-Host "Updated version.json to $($versionConfig.version) (code: $($versionConfig.versionCode), updated: $nowUtc)" -ForegroundColor Green
 
 $ver = $versionConfig.version
 $verCode = $versionConfig.versionCode
 $fourPartVer = "$ver.0"
+$todayFormatted = (Get-Date).ToString("dd MMMM yyyy", [System.Globalization.CultureInfo]::InvariantCulture)
 
-Write-Host "=== Syncing KnowToMigrate Version: $ver (Code: $verCode, Quad: $fourPartVer) ===" -ForegroundColor Cyan
+Write-Host "=== Syncing KnowToMigrate Version: $ver (Code: $verCode, Quad: $fourPartVer, Date: $todayFormatted) ===" -ForegroundColor Cyan
 
 # 1. Update apps/windows-wpf/KnowToMigrate.csproj
 $wpfProj = Join-Path $RepoRoot "apps\windows-wpf\KnowToMigrate.csproj"
@@ -59,4 +70,26 @@ if (Test-Path $androidGradle) {
     Write-Host "  Updated $androidGradle" -ForegroundColor Gray
 }
 
-Write-Host "Version sync completed successfully." -ForegroundColor Green
+# 4. Update DEVELOPMENT_STATUS.md
+$devStatusPath = Join-Path $RepoRoot "DEVELOPMENT_STATUS.md"
+if (Test-Path $devStatusPath) {
+    $content = Get-Content $devStatusPath -Raw
+    $content = [regex]::Replace($content, '\*\*CURRENT VERSION:\*\*.*', "**CURRENT VERSION:** $ver  ")
+    $content = [regex]::Replace($content, '\*\*LAST UPDATED:\*\*.*', "**LAST UPDATED:** $todayFormatted  ")
+    $content = [regex]::Replace($content, '\|\s*\*\*CURRENT VERSION\*\*\s*\|\s*.*?\|', "| **CURRENT VERSION** | $ver |")
+    $content = [regex]::Replace($content, '\|\s*\*\*LAST UPDATED\*\*\s*\|\s*.*?\|', "| **LAST UPDATED** | $todayFormatted |")
+    Set-Content -Path $devStatusPath -Value $content -NoNewline
+    Write-Host "  Updated $devStatusPath" -ForegroundColor Gray
+}
+
+# 5. Update apps/website/src/pages/DownloadPage.tsx
+$downloadPagePath = Join-Path $RepoRoot "apps\website\src\pages\DownloadPage.tsx"
+if (Test-Path $downloadPagePath) {
+    $content = Get-Content $downloadPagePath -Raw
+    $content = [regex]::Replace($content, "export const RELEASE_DATE = '[^']*'", "export const RELEASE_DATE = '$todayFormatted'")
+    $content = [regex]::Replace($content, "const RELEASE_DATE = '[^']*'", "const RELEASE_DATE = '$todayFormatted'")
+    Set-Content -Path $downloadPagePath -Value $content -NoNewline
+    Write-Host "  Updated $downloadPagePath" -ForegroundColor Gray
+}
+
+Write-Host "Version and date sync completed successfully." -ForegroundColor Green

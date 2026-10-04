@@ -1,8 +1,8 @@
 # KnowToMigrate — Development & Production Status
 
 **PROJECT:** KnowToMigrate  
-**CURRENT VERSION:** 1.0.0  
-**LAST UPDATED:** 01 October 2026  
+**CURRENT VERSION:** 1.0.2  
+**LAST UPDATED:** 04 October 2026  
 **STATUS:** PRODUCTION READY — ENTERPRISE AUTO-UPDATE SYSTEM FULLY IMPLEMENTED & VERIFIED  
 
 ---
@@ -12,7 +12,7 @@
 | Field | Value |
 | :--- | :--- |
 | **PROJECT** | KnowToMigrate |
-| **CURRENT VERSION** | 1.0.0 |
+| **CURRENT VERSION** | 1.0.2 |
 | **WINDOWS STACK** | C# / .NET 8.0 WPF (`apps/windows-wpf/KnowToMigrate.csproj`), single-file self-contained `win-x64`, custom WindowChrome, Pluto Engine v2 (TCP 54124, UDP 54123) |
 | **INSTALLER** | WiX Toolset v4 Enterprise MSI (`Package.wxs`) + C# Setup Bootstrapper (`apps/windows-setup/SetupBootstrapper.cs`). Native MajorUpgrade configured via `UpgradeCode="C8B72D32-1594-4F77-8E82-7AC4E7D01A4B"` |
 | **STANDALONE UPDATER** | `KnowToMigrate.Updater.exe` (55.5 KB, C# Native WinForms, zero-dependency, self-relocates to `%TEMP%`, enforces SHA-256 verification, manages parent PID exit, executes WiX MajorUpgrade / msiexec, with rollback guard) |

@@ -130,13 +130,18 @@ if ($ReleaseNotes.Length -gt 0) {
 
 $manifest | ConvertTo-Json -Depth 6 | Set-Content $manifestPath -Encoding utf8
 
-# Update DownloadPage.tsx if hashes or sizes changed
+# Update DownloadPage.tsx with latest version, hashes, sizes, and release date
 $downloadPagePath = Join-Path $RepoRoot "apps\website\src\pages\DownloadPage.tsx"
 if (Test-Path $downloadPagePath) {
+    $todayFormatted = (Get-Date).ToString("dd MMMM yyyy", [System.Globalization.CultureInfo]::InvariantCulture)
     $dpContent = Get-Content $downloadPagePath -Raw
+    $dpContent = [regex]::Replace($dpContent, "export const RELEASE_DATE = '[^']*'", "export const RELEASE_DATE = '$todayFormatted'")
+    $dpContent = [regex]::Replace($dpContent, "const RELEASE_DATE = '[^']*'", "const RELEASE_DATE = '$todayFormatted'")
     $dpContent = [regex]::Replace($dpContent, "v\d+\.\d+\.\d+", "v$TargetVersion")
-    $dpContent = [regex]::Replace($dpContent, '([0-9a-f]{64})', $msiHash)
+    $dpContent = [regex]::Replace($dpContent, "version:\s*'\d+\.\d+\.\d+'", "version: '$TargetVersion'")
+    $dpContent = [regex]::Replace($dpContent, "KnowToMigrate-\d+\.\d+\.\d+-x64\.msi", "KnowToMigrate-$TargetVersion-x64.msi")
     Set-Content -Path $downloadPagePath -Value $dpContent -NoNewline
+    Write-Host "  Updated $downloadPagePath with release date ($todayFormatted) and v$TargetVersion" -ForegroundColor Gray
 }
 
 # 8. Build Website & Deploy to Firebase

@@ -100,7 +100,7 @@
                                 
                                 <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
                                     <TextBlock Text="KnowToMigrate" Foreground="#FFFFFF" FontWeight="ExtraBold" FontSize="16" />
-                                    <TextBlock Text="Standalone v1.0.0" Foreground="#888888" FontSize="11" Margin="0,1,0,0" />
+                                    <TextBlock x:Name="TxtSidebarVersion" Text="Standalone v1.0.2" Foreground="#888888" FontSize="11" Margin="0,1,0,0" />
                                 </StackPanel>
                             </StackPanel>
                             
@@ -114,8 +114,8 @@
                         <StackPanel DockPanel.Dock="Bottom">
                             <Border Background="#0C0C0C" BorderBrush="#181818" BorderThickness="1" CornerRadius="10" Padding="12,10">
                                 <StackPanel>
-                                    <TextBlock Text="KnowToMigrate · v1.0.0" Foreground="#DDDDDD" FontSize="11" FontWeight="SemiBold" />
-                                    <TextBlock x:Name="TxtUpdatedOn" Text="Updated On: 01 October 2026" Foreground="#FF8A00" FontSize="10" Margin="0,2,0,0" />
+                                    <TextBlock x:Name="TxtSidebarFooterVersion" Text="KnowToMigrate · v1.0.2" Foreground="#DDDDDD" FontSize="11" FontWeight="SemiBold" />
+                                    <TextBlock x:Name="TxtUpdatedOn" Text="Updated On: 04 October 2026" Foreground="#FF8A00" FontSize="10" Margin="0,2,0,0" />
                                     <TextBlock Text="Transfer Engine: Pluto Engine" Foreground="#777777" FontSize="10" Margin="0,2,0,0" />
                                     <TextBlock Text="AES-256-GCM · X25519 · SHA-256" Foreground="#555555" FontSize="10" Margin="0,2,0,0" />
                                     <TextBlock x:Name="TxtLocalInfo" Text="Device: Windows PC" Foreground="#555555" FontSize="10" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
@@ -770,7 +770,7 @@
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="KnowToMigrate Update Center" Foreground="#FFFFFF" FontWeight="Bold" FontSize="16" />
                                                 <Border Background="#1C0E00" BorderBrush="#FF5A00" BorderThickness="1" CornerRadius="8" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
-                                                    <TextBlock x:Name="TxtCurrentVersionBadge" Text="v1.0.0 (Current)" Foreground="#FF8A00" FontSize="11" FontWeight="SemiBold" />
+                                                    <TextBlock x:Name="TxtCurrentVersionBadge" Text="v1.0.2 (Current)" Foreground="#FF8A00" FontSize="11" FontWeight="SemiBold" />
                                                 </Border>
                                             </StackPanel>
                                             <TextBlock x:Name="TxtUpdateStatusSummary" Text="Click below to check for the latest release." Foreground="#AAAAAA" FontSize="12" Margin="0,3,0,0" />
@@ -1002,7 +1002,11 @@
                                     </Grid>
                                     <Grid Margin="0,0,0,8">
                                         <TextBlock Text="Application Version" Foreground="#777777" FontSize="13" />
-                                        <TextBlock Text="v1.0.0 (Production Release)" Foreground="#FF8A00" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                                        <TextBlock x:Name="TxtAboutVersion" Text="v1.0.2 (Production Release)" Foreground="#FF8A00" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                                    </Grid>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="Date Updated" Foreground="#777777" FontSize="13" />
+                                        <TextBlock x:Name="TxtAboutDateUpdated" Text="04 October 2026" Foreground="#D4D4D4" FontSize="13" HorizontalAlignment="Right" />
                                     </Grid>
                                     <Grid Margin="0,0,0,8">
                                         <TextBlock Text="Transfer Engine" Foreground="#777777" FontSize="13" />

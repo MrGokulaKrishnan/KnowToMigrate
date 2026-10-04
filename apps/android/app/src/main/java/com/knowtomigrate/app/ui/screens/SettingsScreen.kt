@@ -1,4 +1,4 @@
-﻿package com.knowtomigrate.app.ui.screens
+package com.knowtomigrate.app.ui.screens
 
 import android.content.Intent
 import android.os.Build
@@ -275,7 +275,7 @@ fun SettingsScreen(navController: NavController) {
                             Text(
                                 text = when (updateCheckState) {
                                     "Checking" -> "Checking for updates..."
-                                    "UpToDate" -> "You are using the latest version (v1.0.0)"
+                                    "UpToDate" -> "You are using the latest version (v${BuildConfig.VERSION_NAME})"
                                     "Available" -> "New update available: v$availableVersion"
                                     "Error" -> "Could not check for updates"
                                     else -> "Check for the latest release & security patches"
@@ -300,7 +300,7 @@ fun SettingsScreen(navController: NavController) {
                                         val remoteVer = result.optString("version", "1.0.0")
                                         val androidObj = result.optJSONObject("android")
                                         val remoteCode = androidObj?.optInt("versionCode", 1) ?: 1
-                                        if (remoteCode > 1 || remoteVer > "1.0.0") {
+                                        if (remoteCode > BuildConfig.VERSION_CODE || remoteVer > BuildConfig.VERSION_NAME) {
                                             availableVersion = remoteVer
                                             updateCheckState = "Available"
                                         } else {
@@ -397,9 +397,9 @@ fun SettingsScreen(navController: NavController) {
                         }
                     }
                     HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
-                    SettingsInfoRow(label = "Application Version", value = "1.0.0")
+                    SettingsInfoRow(label = "Application Version", value = "v${BuildConfig.VERSION_NAME}")
                     HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
-                    SettingsInfoRow(label = "Updated On", value = try { BuildConfig.BUILD_DATE } catch (_: Throwable) { "01 October 2026" })
+                    SettingsInfoRow(label = "Updated On", value = try { BuildConfig.BUILD_DATE } catch (_: Throwable) { "04 October 2026" })
                     HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsInfoRow(label = "Transfer Engine", value = "Pluto Engine")
                     HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
