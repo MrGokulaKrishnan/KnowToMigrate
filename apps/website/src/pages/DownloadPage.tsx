@@ -68,12 +68,12 @@ const DEFAULT_WINDOWS_DOWNLOADS: DownloadEntry[] = [
 const DEFAULT_ANDROID_DOWNLOADS: DownloadEntry[] = [
   {
     id: 'android-apk',
-    filename: 'KnowToMigrate-1.0.4.apk',
+    filename: 'KnowToMigrate-1.0.5.apk',
     version: '1.0.5',
-    size: '16.8 MB',
-    sha256: '7789deaa4baa5ee1d2aad8f0a50a7a823beef1d0a0a6707885af0bb7a60cc48a',
+    size: '11.0 MB',
+    sha256: '2d5ed75499aa55689513a70d4dafd3526a9f7547078045b49d1c551842ddd784',
     requirements: 'Android 8.0+ (API 26+) — Independent APK with built-in self-updater',
-    downloadUrl: '/download/KnowToMigrate-1.0.4.apk.bin',
+    downloadUrl: '/download/KnowToMigrate-1.0.5.apk.bin',
     recommended: true,
     platform: 'android',
   },

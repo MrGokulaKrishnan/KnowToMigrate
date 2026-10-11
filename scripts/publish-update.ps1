@@ -96,6 +96,25 @@ $standaloneSize = (Get-Item $standaloneOut).Length
 $webDownloadDir = Join-Path $RepoRoot "apps\website\public\download"
 if (!(Test-Path $webDownloadDir)) { New-Item -ItemType Directory -Path $webDownloadDir -Force | Out-Null }
 
+# Prune older versioned binaries from web download dir and releases to prevent storage bloat
+Get-ChildItem -Path $webDownloadDir -File -ErrorAction SilentlyContinue | Where-Object {
+    $_.Name -match '^KnowToMigrate-\d+\.\d+\.\d+' -and
+    $_.Name -notmatch [regex]::Escape($TargetVersion)
+} | Remove-Item -Force
+
+Get-ChildItem -Path (Join-Path $RepoRoot "releases\windows") -File -ErrorAction SilentlyContinue | Where-Object {
+    $_.Name -match '^KnowToMigrate-\d+\.\d+\.\d+' -and
+    $_.Name -notmatch [regex]::Escape($TargetVersion)
+} | Remove-Item -Force
+
+$androidRelDir = Join-Path $RepoRoot "releases\android"
+if (Test-Path $androidRelDir) {
+    Get-ChildItem -Path $androidRelDir -File -ErrorAction SilentlyContinue | Where-Object {
+        $_.Name -match '^KnowToMigrate-\d+\.\d+\.\d+' -and
+        $_.Name -notmatch [regex]::Escape($TargetVersion)
+    } | Remove-Item -Force
+}
+
 Copy-Item -Path $setupOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-Setup.exe.bin") -Force
 Copy-Item -Path $msiOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-$TargetVersion-x64.msi.bin") -Force
 Copy-Item -Path $standaloneOut -Destination (Join-Path $webDownloadDir "KnowToMigrate.exe.bin") -Force
