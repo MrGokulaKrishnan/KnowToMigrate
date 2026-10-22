@@ -208,7 +208,7 @@ The Android client is built natively with modern Android engineering patterns (J
 | **Background Execution** | Foreground Service (`dataSync`) | `TransferForegroundService.kt` acquires `WakeLock` & `WifiLock` |
 | **Asynchronous I/O** | Kotlin Coroutines & Flow | Asynchronous non-blocking network streams and progress propagation |
 | **Storage & Audit** | Android Room Database & DataStore | High-speed local persistence for Migration Ledger and device preferences |
-| **Native Integration** | C++ JNI Bridge (`CMakeLists.txt`) | JNI interface (`ktm_jni.cpp`) binding Kotlin code to Rust `libktm.so` |
+| **Network Stack** | Pure Kotlin Coroutines & Sockets | Direct non-blocking TCP socket engine with SHA-256 chunk validation |
 | **Hardware Pairing** | Android CameraX (`androidx.camera`) | Fast in-app camera scanner for pairing with Windows or Web QR codes |
 | **System Share Sheet** | Intent Filters (`ACTION_SEND`) | Direct system-wide "Share to KnowToMigrate" from any Android gallery or file manager |
 
@@ -472,10 +472,8 @@ c:\KnowToMigrate\
 │   ├── android\                    # Android Native Client Application
 │   │   ├── app\
 │   │   │   ├── src\main\
-│   │   │   │   ├── cpp\            # C++ JNI bridge (CMakeLists.txt, ktm_jni.cpp)
 │   │   │   │   ├── java\com\knowtomigrate\app\
 │   │   │   │   │   ├── data\       # Room DB, TransferRecord, KtmPreferences
-│   │   │   │   │   ├── jni\        # Kotlin JNI bindings (KtmJni.kt)
 │   │   │   │   │   ├── network\    # Discovery, Transfer Server/Client, Pluto Engine
 │   │   │   │   │   ├── service\    # Foreground Transfer Service (WakeLock/WifiLock)
 │   │   │   │   │   ├── ui\         # Jetpack Compose Screens, Theme, Components
