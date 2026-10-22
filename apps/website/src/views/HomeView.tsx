@@ -163,8 +163,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-sm text-gray-300">Local Transfer Engine</h3>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30 font-medium flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-[#22C55E]" /> P2P Ready
+              <span className="text-xs px-2 py-0.5 rounded-full bg-[#4ADE80]/15 text-[#4ADE80] border border-[#4ADE80]/30 font-medium flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-[#4ADE80]" /> P2P Ready
               </span>
             </div>
 
@@ -178,13 +178,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <div className="flex justify-between items-center py-2 border-b border-white/5">
                 <span className="text-gray-400">Network Transport</span>
                 <span className="font-medium text-white flex items-center gap-1.5">
-                  <Wifi className="w-4 h-4 text-emerald-400" /> Direct Wi-Fi 6 (1.2 Gbps)
+                  <Wifi className="w-4 h-4 text-[#4ADE80]" /> Direct Wi-Fi 6 (1.2 Gbps)
                 </span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-white/5">
                 <span className="text-gray-400">Security & Integrity</span>
-                <span className="font-medium text-[#22C55E] flex items-center gap-1">
-                  <ShieldCheck className="w-4 h-4 text-[#22C55E]" /> Local Network + SHA-256
+                <span className="font-medium text-[#4ADE80] flex items-center gap-1">
+                  <ShieldCheck className="w-4 h-4 text-[#4ADE80]" /> Local Network + SHA-256
                 </span>
               </div>
               <div className="flex justify-between items-center py-2">
@@ -247,17 +247,17 @@ export const HomeView: React.FC<HomeViewProps> = ({
             className="glass-card p-5 cursor-pointer relative group focus:outline-none focus:ring-1 focus:ring-[#FF5A00]"
           >
             <div className="flex items-start justify-between mb-3">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition">
+              <div className="w-12 h-12 rounded-xl bg-[#4ADE80]/15 border border-[#4ADE80]/30 flex items-center justify-center text-[#4ADE80] group-hover:scale-105 transition">
                 <Smartphone className="w-6 h-6" />
               </div>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span> Trusted
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#4ADE80]/15 text-[#4ADE80] border border-[#4ADE80]/30 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80]"></span> Trusted
               </span>
             </div>
             <h4 className="font-bold text-white text-base group-hover:text-[#FF8A00] transition">Krish's Phone</h4>
             <p className="text-xs text-gray-400">Google Pixel 8 Pro · Android 15</p>
             <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
-              <span className="text-emerald-400 font-medium">Direct P2P Ready</span>
+              <span className="text-[#4ADE80] font-medium">Direct P2P Ready</span>
               <button type="button" className="km-glossy-btn px-3 py-1 text-xs">Send</button>
             </div>
           </div>
@@ -302,14 +302,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <div className="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-105 transition">
                 <Tablet className="w-6 h-6" />
               </div>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span> Trusted
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#4ADE80]/15 text-[#4ADE80] border border-[#4ADE80]/30 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80]"></span> Trusted
               </span>
             </div>
             <h4 className="font-bold text-white text-base group-hover:text-[#FF8A00] transition">Studio Tablet</h4>
             <p className="text-xs text-gray-400">Samsung Galaxy Tab S9</p>
             <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
-              <span className="text-emerald-400 font-medium">Auto-Accept ON</span>
+              <span className="text-[#4ADE80] font-medium">Auto-Accept ON</span>
               <button type="button" className="km-glossy-btn px-3 py-1 text-xs">Send</button>
             </div>
           </div>

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Shield, Wifi, Smartphone, Monitor, ArrowRight, CheckCircle, Zap, RefreshCw, Lock, LayoutGrid, Radio, Link2, Globe, Download } from 'lucide-react'
 import { usePlatformDetection } from '../utils/platform'
+import { useLiveTimeAgo } from '../utils/timeAgo'
 
 /* ─── Particle background ──────────────────────────────────── */
 function ParticleField() {
@@ -73,6 +74,7 @@ interface HomePageProps {
 
 export function HomePage({ onOpenAppPreview }: HomePageProps) {
   const platform = usePlatformDetection()
+  const liveUpdatedTime = useLiveTimeAgo('2026-10-22T06:22:22Z')
 
   // Update document title
   useEffect(() => {
@@ -118,7 +120,7 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
       }}>
         <strong>KnowToMigrate 1.0.5</strong> &mdash; Standalone high-speed encrypted local transfers for Windows and Android.
         &nbsp;&middot;&nbsp;
-        <span style={{ color: '#22C55E', fontWeight: 600 }}>Recently Updated 1min ago</span>
+        <span style={{ color: '#4ADE80', fontWeight: 600 }}>{liveUpdatedTime}</span>
         &nbsp;&middot;&nbsp;
         <a
           href="https://github.com/MrGokulaKrishnan/KnowToMigrate"
@@ -311,8 +313,8 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           {[
-            { mode: 'Same Wi-Fi',    Icon: Wifi, status: 'Active', desc: 'Both devices on the same router. UDP broadcast discovers peers automatically. No internet needed.', color: '#22C55E' },
-            { mode: 'Wi-Fi Hotspot', Icon: Radio, status: 'Active', desc: 'One device creates a hotspot; the other connects to it. Same protocol, direct link.', color: '#22C55E' },
+            { mode: 'Same Wi-Fi',    Icon: Wifi, status: 'Active', desc: 'Both devices on the same router. UDP broadcast discovers peers automatically. No internet needed.', color: '#4ADE80' },
+            { mode: 'Wi-Fi Hotspot', Icon: Radio, status: 'Active', desc: 'One device creates a hotspot; the other connects to it. Same protocol, direct link.', color: '#4ADE80' },
             { mode: 'Wi-Fi Direct',  Icon: Link2, status: 'Planned', desc: 'Device-to-device peer-to-peer link without an external router or access point.', color: '#F59E0B' },
             { mode: 'Internet Relay',Icon: Globe, status: 'Planned', desc: 'Encrypted STUN/TURN relay for cross-network transfers. Optional  -  all local transfers work offline.', color: '#F59E0B' },
           ].map(({ mode, Icon, status, desc, color }) => (

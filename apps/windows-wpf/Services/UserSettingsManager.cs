@@ -73,7 +73,7 @@ namespace KnowToMigrate.Services
         [JsonIgnore]
         public SolidColorBrush DirectionBrush => Direction switch
         {
-            "in" => new SolidColorBrush(Color.FromRgb(34, 197, 94)),
+            "in" => new SolidColorBrush(Color.FromRgb(74, 222, 128)),
             "out" => new SolidColorBrush(Color.FromRgb(255, 90, 0)),
             "web" => new SolidColorBrush(Color.FromRgb(56, 189, 248)),
             _ => new SolidColorBrush(Color.FromRgb(204, 204, 204))

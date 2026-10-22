@@ -21,6 +21,7 @@ export interface ValidatedFileItem {
   mimeType: string;
   category: 'video' | 'audio' | 'image' | 'doc' | 'archive' | 'folder' | 'other';
   rawFile?: File;
+  lastModified?: number;
   isValid: boolean;
   validationError?: string;
 }
@@ -122,6 +123,7 @@ export class FileValidator {
       mimeType: file.type || 'application/octet-stream',
       category,
       rawFile: file,
+      lastModified: typeof file.lastModified === 'number' ? file.lastModified : Date.now(),
       isValid,
       validationError,
     };

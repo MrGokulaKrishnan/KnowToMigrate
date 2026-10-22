@@ -1,10 +1,77 @@
 import React, { useState } from 'react';
 import {
   ShieldCheck, ArrowUpRight, ArrowDownLeft, Folder, Search,
-  Trash2, Filter, CheckCircle2, History as HistoryIcon
+  Trash2, Filter, CheckCircle2, History as HistoryIcon, Clock
 } from 'lucide-react';
 import { useTransfer } from '../context/TransferContext';
 import { useToast } from '../components/Toast';
+import { useLiveTimeAgo } from '../utils/timeAgo';
+import { StoredTransferRecord } from '../services/storageService';
+
+const HistoryItemRow: React.FC<{
+  item: StoredTransferRecord;
+  onOpenFolder: (title: string) => void;
+}> = ({ item, onOpenFolder }) => {
+  const liveTime = useLiveTimeAgo(item.timestamp || Date.now());
+
+  return (
+    <div className="glass-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group">
+      <div className="flex items-center gap-3.5 min-w-0">
+        <div
+          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+            item.direction === 'send'
+              ? 'bg-[#FF5A00]/15 border border-[#FF5A00]/30 text-[#FF5A00]'
+              : 'bg-[#4ADE80]/15 border border-[#4ADE80]/30 text-[#4ADE80]'
+          }`}
+        >
+          {item.direction === 'send' ? (
+            <ArrowUpRight className="w-5 h-5" />
+          ) : (
+            <ArrowDownLeft className="w-5 h-5" />
+          )}
+        </div>
+        <div className="min-w-0">
+          <h4 className="font-bold text-white text-sm truncate max-w-xs sm:max-w-md">
+            {item.title}
+          </h4>
+          <p className="text-xs text-gray-400">
+            {item.direction === 'send' ? 'Sent to' : 'Received from'}{' '}
+            <strong className="text-gray-200">{item.device}</strong> ·{' '}
+            <span className="text-[#4ADE80] font-semibold inline-flex items-center gap-1">
+              <Clock className="w-3 h-3 text-[#4ADE80]" />
+              {liveTime}
+            </span> ·{' '}
+            {item.speed} ({item.transport})
+          </p>
+          {item.merkleRootHash && (
+            <p className="text-[10px] text-gray-500 font-mono mt-0.5 truncate max-w-sm">
+              Merkle: {item.merkleRootHash.slice(0, 24)}…
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
+        <div className="text-right">
+          <span className="font-mono text-sm font-bold text-white">{item.sizeFormatted}</span>
+          <p className="text-[11px] text-[#4ADE80] flex items-center justify-end gap-1 font-medium">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#4ADE80]" /> SHA-256 Verified
+          </p>
+        </div>
+        <div className="flex gap-1.5">
+          <button
+            type="button"
+            onClick={() => onOpenFolder(item.title)}
+            className="km-glass-btn px-3 py-1.5 text-xs gap-1 hover:border-[#FF5A00]"
+            title="Locate folder"
+          >
+            <Folder className="w-3.5 h-3.5" /> Open
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const HistoryView: React.FC = () => {
   const { history, clearHistory, settings } = useTransfer();
@@ -85,60 +152,11 @@ export const HistoryView: React.FC = () => {
       {/* History Items List */}
       <div className="space-y-3">
         {filtered.map((item) => (
-          <div
+          <HistoryItemRow
             key={item.id}
-            className="glass-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
-          >
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                  item.direction === 'send'
-                    ? 'bg-[#FF5A00]/15 border border-[#FF5A00]/30 text-[#FF5A00]'
-                    : 'bg-[#22C55E]/15 border border-[#22C55E]/30 text-[#22C55E]'
-                }`}
-              >
-                {item.direction === 'send' ? (
-                  <ArrowUpRight className="w-5 h-5" />
-                ) : (
-                  <ArrowDownLeft className="w-5 h-5" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <h4 className="font-bold text-white text-sm truncate max-w-xs sm:max-w-md">
-                  {item.title}
-                </h4>
-                <p className="text-xs text-gray-400">
-                  {item.direction === 'send' ? 'Sent to' : 'Received from'}{' '}
-                  <strong className="text-gray-200">{item.device}</strong> · <span className="text-[#22C55E] font-medium">Recently Updated 1min ago</span> ·{' '}
-                  {item.speed} ({item.transport})
-                </p>
-                {item.merkleRootHash && (
-                  <p className="text-[10px] text-gray-500 font-mono mt-0.5 truncate max-w-sm">
-                    Merkle: {item.merkleRootHash.slice(0, 24)}…
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
-              <div className="text-right">
-                <span className="font-mono text-sm font-bold text-white">{item.sizeFormatted}</span>
-                <p className="text-[11px] text-[#22C55E] flex items-center justify-end gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" /> SHA-256 Verified
-                </p>
-              </div>
-              <div className="flex gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => handleOpenFolder(item.title)}
-                  className="km-glass-btn px-3 py-1.5 text-xs gap-1 hover:border-[#FF5A00]"
-                  title="Locate folder"
-                >
-                  <Folder className="w-3.5 h-3.5" /> Open
-                </button>
-              </div>
-            </div>
-          </div>
+            item={item}
+            onOpenFolder={handleOpenFolder}
+          />
         ))}
 
         {filtered.length === 0 && (

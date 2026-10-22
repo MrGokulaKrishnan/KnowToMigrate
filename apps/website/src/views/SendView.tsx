@@ -2,11 +2,57 @@ import React, { useRef } from 'react';
 import {
   Upload, FolderUp, Smartphone, Laptop, Tablet, FileText, Film,
   Image as ImageIcon, Music, Archive, CheckCircle2, ShieldCheck,
-  ArrowRight, Trash2, X
+  ArrowRight, Trash2, X, Clock
 } from 'lucide-react';
 import { useTransfer } from '../context/TransferContext';
 import { useToast } from '../components/Toast';
 import { FileValidator, ValidatedFileItem } from '../services/fileValidator';
+import { useLiveTimeAgo } from '../utils/timeAgo';
+
+const StagedItemRow: React.FC<{
+  file: ValidatedFileItem;
+  onRemove: (id: string) => void;
+  icon: React.ReactNode;
+}> = ({ file, onRemove, icon }) => {
+  const liveTime = useLiveTimeAgo(file.lastModified || Date.now());
+
+  return (
+    <div className="glass-card p-3.5 flex items-center justify-between group">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-8 h-8 rounded-lg bg-[#FF5A00]/15 flex items-center justify-center text-[#FF5A00] shrink-0">
+          {icon}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-white truncate max-w-xs sm:max-w-md">
+            {file.sanitizedName}
+          </p>
+          <p className="text-xs text-gray-400 font-mono flex items-center gap-1.5 flex-wrap">
+            <span>{file.sizeFormatted}</span>
+            <span>·</span>
+            <span className="text-[#4ADE80] font-sans flex items-center gap-1 font-medium">
+              <Clock className="w-3 h-3 text-[#4ADE80]" />
+              {liveTime}
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-[#4ADE80] flex items-center gap-1 font-semibold">
+          <CheckCircle2 className="w-3.5 h-3.5 text-[#4ADE80]" /> Ready
+        </span>
+        <button
+          type="button"
+          onClick={() => onRemove(file.id)}
+          aria-label={`Remove ${file.sanitizedName}`}
+          className="p-1 rounded-md text-gray-500 hover:text-red-400 hover:bg-white/5 transition"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 interface SendViewProps {
   onStartTransfer: () => void;
@@ -131,37 +177,12 @@ export const SendView: React.FC<SendViewProps> = ({ onStartTransfer }) => {
 
           <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
             {selectedFiles.map((file) => (
-              <div key={file.id} className="glass-card p-3.5 flex items-center justify-between group">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-[#FF5A00]/15 flex items-center justify-center text-[#FF5A00] shrink-0">
-                    {getFileIcon(file.category)}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white truncate max-w-xs sm:max-w-md">
-                      {file.sanitizedName}
-                    </p>
-                    <p className="text-xs text-gray-400 font-mono flex items-center gap-1.5">
-                      <span>{file.sizeFormatted}</span>
-                      <span>·</span>
-                      <span className="text-[#22C55E] font-sans">Recently Updated 1min ago</span>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-[#22C55E] flex items-center gap-1 font-medium">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Ready
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(file.id)}
-                    aria-label={`Remove ${file.sanitizedName}`}
-                    className="p-1 rounded-md text-gray-500 hover:text-red-400 hover:bg-white/5 transition"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
+              <StagedItemRow
+                key={file.id}
+                file={file}
+                onRemove={removeFile}
+                icon={getFileIcon(file.category)}
+              />
             ))}
 
             {selectedFiles.length === 0 && (
@@ -229,9 +250,9 @@ export const SendView: React.FC<SendViewProps> = ({ onStartTransfer }) => {
           </div>
 
           {/* Pre-flight Security & Storage Check */}
-          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 space-y-2">
+          <div className="p-4 rounded-xl bg-[#4ADE80]/10 border border-[#4ADE80]/30 text-xs text-[#4ADE80] space-y-2">
             <div className="flex items-center gap-1.5 font-bold">
-              <ShieldCheck className="w-4 h-4 text-[#22C55E]" />
+              <ShieldCheck className="w-4 h-4 text-[#4ADE80]" />
               Pre-flight Destination Storage &amp; Safety Check
             </div>
             <p className="text-gray-300">

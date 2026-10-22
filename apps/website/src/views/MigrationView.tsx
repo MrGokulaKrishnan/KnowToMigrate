@@ -352,9 +352,9 @@ export const MigrationView: React.FC<MigrationViewProps> = ({ onStartMigrationTr
                 <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">
                   Available on Destination Drive
                 </span>
-                <div className="text-3xl font-black text-[#22C55E] mt-1">{targetAvailableGB} GB</div>
-                <p className="text-xs text-emerald-400 mt-1 flex items-center md:justify-end gap-1">
-                  <ShieldCheck className="w-4 h-4" />
+                <div className="text-3xl font-black text-[#4ADE80] mt-1">{targetAvailableGB} GB</div>
+                <p className="text-xs text-[#4ADE80] mt-1 flex items-center md:justify-end gap-1">
+                  <ShieldCheck className="w-4 h-4 text-[#4ADE80]" />
                   {hasEnoughSpace ? 'Headroom Verified (+350 GB Safe Buffer)' : 'Insufficient Storage'}
                 </p>
               </div>
@@ -409,7 +409,7 @@ export const MigrationView: React.FC<MigrationViewProps> = ({ onStartMigrationTr
             </div>
             <div className="p-4 rounded-xl bg-black/60 border border-white/5 flex items-center justify-between text-xs">
               <span className="text-gray-400">Session Security Token:</span>
-              <span className="font-mono text-[#22C55E] font-bold">KTM-LOCAL-SESSION-VERIFIED</span>
+              <span className="font-mono text-[#4ADE80] font-bold">KTM-LOCAL-SESSION-VERIFIED</span>
             </div>
           </div>
 

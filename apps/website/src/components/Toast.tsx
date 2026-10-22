@@ -27,7 +27,7 @@ const ICONS = {
 }
 
 const COLORS = {
-  success: { border: 'rgba(34,197,94,0.35)', bg: 'rgba(34,197,94,0.08)', icon: '#22C55E' },
+  success: { border: 'rgba(74,222,128,0.40)', bg: 'rgba(74,222,128,0.12)', icon: '#4ADE80' },
   error:   { border: 'rgba(239,68,68,0.35)',  bg: 'rgba(239,68,68,0.08)',  icon: '#EF4444' },
   info:    { border: 'rgba(255,90,0,0.35)',    bg: 'rgba(255,90,0,0.08)',   icon: '#FF8A00' },
   warning: { border: 'rgba(234,179,8,0.35)',   bg: 'rgba(234,179,8,0.08)',  icon: '#EAB308' },

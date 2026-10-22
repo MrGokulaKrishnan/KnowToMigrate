@@ -129,13 +129,13 @@ export const ReceiveView: React.FC<ReceiveViewProps> = ({ onSimulateIncoming }) 
                   aria-label="Copy Pairing PIN"
                   className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition"
                 >
-                  {pinCopied ? <CheckCircle2 className="w-4 h-4 text-[#22C55E]" /> : <Copy className="w-4 h-4" />}
+                  {pinCopied ? <CheckCircle2 className="w-4 h-4 text-[#4ADE80]" /> : <Copy className="w-4 h-4" />}
                 </button>
               </div>
               <p className="text-xs text-gray-400">
                 Session token expires in <strong className="text-white">09:24</strong>
               </p>
-              <span className="inline-block text-[11px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-medium">
+              <span className="inline-block text-[11px] px-2 py-0.5 rounded bg-[#4ADE80]/15 text-[#4ADE80] font-medium">
                 Direct Local Network Session
               </span>
             </div>
@@ -188,7 +188,7 @@ export const ReceiveView: React.FC<ReceiveViewProps> = ({ onSimulateIncoming }) 
               </div>
               <div className="flex justify-between text-gray-300">
                 <span>Verification:</span>
-                <strong className="text-[#22C55E]">SHA-256 Merkle Enforced</strong>
+                <strong className="text-[#4ADE80]">SHA-256 Merkle Enforced</strong>
               </div>
             </div>
 

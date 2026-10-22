@@ -71,19 +71,19 @@ export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, 
             <span
               className={`px-2.5 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5 ${
                 isCompleted
-                  ? 'bg-[#22C55E]/15 text-[#22C55E] border-[#22C55E]/30'
+                  ? 'bg-[#4ADE80]/15 text-[#4ADE80] border-[#4ADE80]/30'
                   : isPaused
                   ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                  : 'bg-[#22C55E]/15 text-[#22C55E] border-[#22C55E]/30'
+                  : 'bg-[#4ADE80]/15 text-[#4ADE80] border-[#4ADE80]/30'
               }`}
             >
               <span
                 className={`w-2 h-2 rounded-full ${
                   isCompleted
-                    ? 'bg-[#22C55E]'
+                    ? 'bg-[#4ADE80]'
                     : isPaused
                     ? 'bg-amber-400'
-                    : 'bg-[#22C55E] animate-ping'
+                    : 'bg-[#4ADE80] animate-ping'
                 }`}
               ></span>
               {isCompleted ? 'Transfer Verified' : isPaused ? 'Transfer Paused' : 'Live Transfer Active'}
@@ -108,7 +108,7 @@ export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, 
             >
               {isPaused ? (
                 <>
-                  <Play className="w-4 h-4 text-[#22C55E]" /> Resume Transfer
+                  <Play className="w-4 h-4 text-[#4ADE80]" /> Resume Transfer
                 </>
               ) : (
                 <>
@@ -193,8 +193,8 @@ export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, 
           <div className="p-4 rounded-xl bg-white/5 border border-white/10">
             <div className="flex items-center justify-between text-xs mb-2">
               <span className="text-gray-400">Currently Streaming:</span>
-              <span className="text-[#22C55E] font-medium flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5" /> SHA-256 Merkle Checkpoints
+              <span className="text-[#4ADE80] font-medium flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#4ADE80]" /> SHA-256 Merkle Checkpoints
               </span>
             </div>
             <div className="flex items-center gap-3">
@@ -235,7 +235,7 @@ export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, 
                   key={i}
                   className={`h-2.5 rounded-sm transition-all ${
                     state === 'verified'
-                      ? 'bg-[#22C55E]'
+                      ? 'bg-[#4ADE80]'
                       : state === 'in_flight'
                       ? 'bg-[#FF5A00] animate-pulse'
                       : 'bg-white/10'
@@ -246,7 +246,7 @@ export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, 
             </div>
             <div className="flex items-center gap-4 text-[11px] text-gray-400 mt-2">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-sm bg-[#22C55E]"></span> Verified &amp; Written
+                <span className="w-2 h-2 rounded-sm bg-[#4ADE80]"></span> Verified &amp; Written
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-sm bg-[#FF5A00]"></span> In Flight
@@ -260,9 +260,9 @@ export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, 
       </div>
 
       {/* Verification Assurance Footer */}
-      <div className="p-3.5 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/20 flex items-center justify-between text-xs text-emerald-300">
+      <div className="p-3.5 rounded-xl bg-[#4ADE80]/10 border border-[#4ADE80]/30 flex items-center justify-between text-xs text-[#4ADE80]">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-[#22C55E]" />
+          <ShieldCheck className="w-4 h-4 text-[#4ADE80]" />
           <span>
             <strong>Zero-Corruption Guarantee:</strong> Interrupted transfers resume from the last verified chunk without re-transmitting previous data.
           </span>

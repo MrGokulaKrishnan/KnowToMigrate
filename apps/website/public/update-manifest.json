@@ -4,13 +4,11 @@
     "version": "1.0.5",
     "minimumSupportedVersion": "1.0.0",
     "mandatory": false,
-    "publishedAt": "2026-10-22T04:43:46Z",
-    "updateTimeText": "Recently Updated 1min ago",
+    "publishedAt": "2026-10-22T06:22:22Z",
     "windows": {
         "architecture": "x64",
         "installerType": "exe",
         "version": "1.0.5",
-        "updateTimeText": "Recently Updated 1min ago",
         "filename": "KnowToMigrate-Setup.exe",
         "url": "https://knowtomigrate.web.app/download/KnowToMigrate-Setup.exe",
         "size": 66515968,
@@ -20,15 +18,13 @@
             "filename": "KnowToMigrate-1.0.5-x64.msi",
             "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5-x64.msi",
             "size": 66469888,
-            "sha256": "c19d7a1ec56f07d87d399e88f2717e0d6c4bcc633d705cfb760fe1dc6397f1c3",
-            "updateTimeText": "Recently Updated 1min ago"
+            "sha256": "c19d7a1ec56f07d87d399e88f2717e0d6c4bcc633d705cfb760fe1dc6397f1c3"
         },
         "standalone": {
             "filename": "KnowToMigrate.exe",
             "url": "https://knowtomigrate.web.app/download/KnowToMigrate.exe",
             "size": 72435819,
-            "sha256": "2f5c193a01d61e08da9abfd79108d56ed7a4ac9eadacede9be94c96d19b21c69",
-            "updateTimeText": "Recently Updated 1min ago"
+            "sha256": "2f5c193a01d61e08da9abfd79108d56ed7a4ac9eadacede9be94c96d19b21c69"
         }
     },
     "android": {
@@ -36,9 +32,8 @@
         "versionName": "1.0.5",
         "filename": "KnowToMigrate-1.0.5.apk",
         "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5.apk",
-        "size": 11554975,
-        "sha256": "17b849cc2feca3118d46a33f1f83308f7590be29ba8d6ead41da0058333108ef",
-        "updateTimeText": "Recently Updated 1min ago"
+        "size": 11540988,
+        "sha256": "2d5ed75499aa55689513a70d4dafd3526a9f7547078045b49d1c551842ddd784"
     },
     "releaseNotes": [
         "Fixed file verification and byte alignment in Pluto transfer engine",

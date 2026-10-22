@@ -1,19 +1,19 @@
 {
-    "product":  "KnowToMigrate",
-    "tagline":  "Move Anything. Anywhere. Seamlessly.",
-    "version":  "1.0.5",
-    "versionCode":  10005,
-    "channel":  "stable",
-    "minimumSupportedVersion":  "1.0.0",
-    "publishedAt":  "2026-10-04T16:53:00Z",
-    "releaseNotes":  [
-                         "Pluto Engine v2 Multi-Transport (Wi-Fi LAN, Direct, Bluetooth)",
-                         "Hardware-accelerated AES-256-GCM encryption with X25519 key exchange",
-                         "SHA-256 Merkle tree verification with resume checkpoints",
-                         "Custom Liquid Glass AMOLED dark theme with responsive layout",
-                         "Android Gallery Sharesheet integration",
-                         "Windows native incoming transfer dialog with taskbar alerts",
-                         "Integrated Update Center with secure package verification"
-                     ],
-    "updatedAt":  "2026-10-04T16:53:00Z"
+    "product": "KnowToMigrate",
+    "tagline": "Move Anything. Anywhere. Seamlessly.",
+    "version": "1.0.5",
+    "versionCode": 10005,
+    "channel": "stable",
+    "minimumSupportedVersion": "1.0.0",
+    "publishedAt": "2026-10-22T06:22:22Z",
+    "releaseNotes": [
+        "Pluto Engine v2 Multi-Transport (Wi-Fi LAN, Direct, Bluetooth)",
+        "Hardware-accelerated AES-256-GCM encryption with X25519 key exchange",
+        "SHA-256 Merkle tree verification with resume checkpoints",
+        "Custom Liquid Glass AMOLED dark theme with responsive layout",
+        "Android Gallery Sharesheet integration",
+        "Windows native incoming transfer dialog with taskbar alerts",
+        "Integrated Update Center with secure package verification"
+    ],
+    "updatedAt": "2026-10-22T06:22:22Z"
 }

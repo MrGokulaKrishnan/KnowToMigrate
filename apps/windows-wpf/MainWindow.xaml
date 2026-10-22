@@ -274,8 +274,8 @@
                                                     <TextBlock Text="Android phone" FontSize="13" Foreground="#F5F5F5" FontWeight="Medium" />
                                                     <TextBlock Text="Wi-Fi LAN · Trusted" FontSize="11" Foreground="#8C8C8C" />
                                                 </StackPanel>
-                                                <Border Grid.Column="2" Background="#1A22C55E" CornerRadius="999" Padding="8,2" VerticalAlignment="Center">
-                                                    <TextBlock Text="Online" Foreground="#22C55E" FontSize="11" FontWeight="SemiBold" />
+                                                <Border Grid.Column="2" Background="#264ADE80" CornerRadius="999" Padding="8,2" VerticalAlignment="Center">
+                                                    <TextBlock Text="Online" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
                                                 </Border>
                                             </Grid>
                                         </Border>
@@ -311,8 +311,8 @@
                                                             </Grid.ColumnDefinitions>
                                                             <Path Grid.Column="0" Data="{StaticResource KmIconDevice}" Stroke="#FF5A00" StrokeThickness="1.8" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,8,0" />
                                                             <TextBlock Grid.Column="1" Text="{Binding DeviceName}" FontSize="12" Foreground="#F5F5F5" VerticalAlignment="Center" />
-                                                            <Border Grid.Column="2" Background="#1A22C55E" CornerRadius="999" Padding="6,2" VerticalAlignment="Center">
-                                                                <TextBlock Text="Ready" Foreground="#22C55E" FontSize="10" />
+                                                            <Border Grid.Column="2" Background="#264ADE80" CornerRadius="999" Padding="6,2" VerticalAlignment="Center">
+                                                                <TextBlock Text="Ready" Foreground="#4ADE80" FontSize="10" />
                                                             </Border>
                                                         </Grid>
                                                     </Border>
@@ -337,8 +337,8 @@
                                         <TextBlock Grid.Column="0" Text="Photos_March.zip" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="1" Text="To Android phone" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="2" Text="1.2 GB" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <Border Grid.Column="3" Background="#1A22C55E" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="SHA-256 verified" Foreground="#22C55E" FontSize="11" FontWeight="SemiBold" />
+                                        <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Text="SHA-256 verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
                                         </Border>
                                     </Grid>
                                     <Border Height="1" Background="#0FFFFFFF" Margin="0,4,0,8" />
@@ -352,8 +352,8 @@
                                         <TextBlock Grid.Column="0" Text="Resume_2026.pdf" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="1" Text="From Android phone" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="2" Text="0.4 MB" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <Border Grid.Column="3" Background="#1A22C55E" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="SHA-256 verified" Foreground="#22C55E" FontSize="11" FontWeight="SemiBold" />
+                                        <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Text="SHA-256 verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
                                         </Border>
                                     </Grid>
                                     <Border Height="1" Background="#0FFFFFFF" Margin="0,4,0,8" />
@@ -367,8 +367,8 @@
                                         <TextBlock Grid.Column="0" Text="Lecture_notes/" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="1" Text="To Work laptop" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="2" Text="320 MB" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <Border Grid.Column="3" Background="#1A22C55E" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="SHA-256 verified" Foreground="#22C55E" FontSize="11" FontWeight="SemiBold" />
+                                        <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Text="SHA-256 verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
                                         </Border>
                                     </Grid>
                                 </StackPanel>
@@ -619,8 +619,8 @@
                                         <TextBlock Grid.Column="0" Text="Photos_March.zip" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="1" Text="1.2 GB" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="2" Text="20 MB/s" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <Border Grid.Column="3" Background="#1A22C55E" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="Verified" Foreground="#22C55E" FontSize="11" FontWeight="SemiBold" />
+                                        <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Text="Verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
                                         </Border>
                                     </Grid>
                                     <Border Height="1" Background="#0FFFFFFF" Margin="0,4,0,12" />
@@ -634,8 +634,8 @@
                                         <TextBlock Grid.Column="0" Text="Resume_2026.pdf" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="1" Text="0.4 MB" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="2" Text="Yesterday" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <Border Grid.Column="3" Background="#1A22C55E" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="Verified" Foreground="#22C55E" FontSize="11" FontWeight="SemiBold" />
+                                        <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Text="Verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
                                         </Border>
                                     </Grid>
                                     <Border Height="1" Background="#0FFFFFFF" Margin="0,4,0,12" />
@@ -649,8 +649,8 @@
                                         <TextBlock Grid.Column="0" Text="Lecture_notes/" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="1" Text="320 MB" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="2" Text="Oct 19" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <Border Grid.Column="3" Background="#1A22C55E" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="Verified" Foreground="#22C55E" FontSize="11" FontWeight="SemiBold" />
+                                        <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Text="Verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
                                         </Border>
                                     </Grid>
 
@@ -668,8 +668,8 @@
                                                     <TextBlock Grid.Column="0" Text="{Binding FileName}" FontSize="12" Foreground="#F5F5F5" />
                                                     <TextBlock Grid.Column="1" Text="{Binding FormattedSize}" FontSize="12" Foreground="#8C8C8C" />
                                                     <TextBlock Grid.Column="2" Text="{Binding Timestamp, StringFormat='{}{0:HH:mm}'}" FontSize="12" Foreground="#8C8C8C" />
-                                                    <Border Grid.Column="3" Background="#1A22C55E" CornerRadius="6" Padding="6,2" HorizontalAlignment="Left">
-                                                        <TextBlock Text="Verified" Foreground="#22C55E" FontSize="10" />
+                                                    <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="6,2" HorizontalAlignment="Left">
+                                                        <TextBlock Text="Verified" Foreground="#4ADE80" FontSize="10" />
                                                     </Border>
                                                 </Grid>
                                             </DataTemplate>

@@ -23,12 +23,30 @@ namespace KnowToMigrate
         private DiscoveredDevice? _selectedDevice = null;
         private KtmMigrationReport? _lastMigrationReport = null;
         private readonly System.Collections.ObjectModel.ObservableCollection<HistoricalTransferItem> _ledgerEntries = new();
+        private readonly System.Windows.Threading.DispatcherTimer _liveTimingTimer = new() { Interval = TimeSpan.FromSeconds(10) };
+        private readonly DateTime _projectModificationTime = DateTime.UtcNow.AddMinutes(-1);
 
         public MainWindow()
         {
             InitializeComponent();
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
+            _liveTimingTimer.Tick += (s, e) => UpdateRelativeModificationTime();
+            _liveTimingTimer.Start();
+        }
+
+        private void UpdateRelativeModificationTime()
+        {
+            var span = DateTime.UtcNow - _projectModificationTime;
+            string timeStr;
+            if (span.TotalSeconds < 30) timeStr = "Recently Updated just now";
+            else if (span.TotalSeconds < 90) timeStr = "Recently Updated 1min ago";
+            else if (span.TotalMinutes < 60) timeStr = $"Recently Updated {(int)span.TotalMinutes}mins ago";
+            else if (span.TotalHours < 24) timeStr = $"Recently Updated {(int)span.TotalHours}h ago";
+            else timeStr = $"Recently Updated {(int)span.TotalDays}d ago";
+
+            if (TxtUpdatedOn != null) TxtUpdatedOn.Text = timeStr;
+            if (TxtAboutDateUpdated != null) TxtAboutDateUpdated.Text = timeStr;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -99,10 +117,9 @@ namespace KnowToMigrate
                 string updatedDateStr = DateTime.Now.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
                 TxtSidebarVersion.Text = $"Standalone v{currentVer}";
                 TxtSidebarFooterVersion.Text = $"KnowToMigrate Â· v{currentVer}";
-                TxtUpdatedOn.Text = "Recently Updated 1min ago";
                 TxtCurrentVersionBadge.Text = $"v{currentVer} (Current)";
                 TxtAboutVersion.Text = $"v{currentVer} (Production Release)";
-                TxtAboutDateUpdated.Text = "Recently Updated 1min ago";
+                UpdateRelativeModificationTime();
 
                 KtmManager.Instance.NearbyDevices.CollectionChanged += (s, e) => UpdateDiscoveryStatus();
                 UpdateDiscoveryStatus();

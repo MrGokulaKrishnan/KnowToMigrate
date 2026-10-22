@@ -17,6 +17,7 @@ import {
   Clock
 } from 'lucide-react'
 import { usePlatformDetection, PlatformType } from '../utils/platform'
+import { formatRelativeTime, useLiveTimeAgo } from '../utils/timeAgo'
 
 export interface DownloadEntry {
   id: string
@@ -32,30 +33,6 @@ export interface DownloadEntry {
 }
 
 export const RELEASE_DATE = 'Recently Updated 1min ago'
-
-export function formatRelativeTime(dateInput?: string | number | Date): string {
-  if (!dateInput) return 'Recently Updated 1min ago'
-  const date = new Date(dateInput)
-  const now = new Date()
-  const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000)
-
-  if (isNaN(diffSec) || diffSec <= 90) {
-    return 'Recently Updated 1min ago'
-  }
-  const diffMin = Math.floor(diffSec / 60)
-  if (diffMin < 60) {
-    return `Recently Updated ${diffMin}min ago`
-  }
-  const diffHours = Math.floor(diffMin / 60)
-  if (diffHours < 24) {
-    return `Recently Updated ${diffHours}h ago`
-  }
-  const diffDays = Math.floor(diffHours / 24)
-  if (diffDays < 7) {
-    return `Recently Updated ${diffDays}d ago`
-  }
-  return `Updated on ${date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
-}
 
 const DEFAULT_WINDOWS_DOWNLOADS: DownloadEntry[] = [
   {
@@ -165,7 +142,7 @@ function HiddenHash({ hash }: { hash: string }) {
             title="Copy SHA-256 hash"
             className="p-1 rounded hover:bg-white/10 transition-colors text-[#888] hover:text-white cursor-pointer"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-[#22C55E]" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-3.5 h-3.5 text-[#4ADE80]" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
         )}
       </div>
@@ -315,8 +292,8 @@ function DownloadCard({
             )}
           </div>
           <p className="text-xs text-[#666666] mt-0.5">{entry.requirements} · {entry.size}</p>
-          <div className="flex items-center gap-1.5 text-[11px] text-[#22C55E] mt-1 font-medium">
-            <Clock className="w-3 h-3 text-[#22C55E]" />
+          <div className="flex items-center gap-1.5 text-[11px] text-[#4ADE80] mt-1 font-semibold">
+            <Clock className="w-3.5 h-3.5 text-[#4ADE80]" />
             <span>{entry.updateTimeText || 'Recently Updated 1min ago'}</span>
           </div>
         </div>
@@ -339,7 +316,7 @@ function DownloadCard({
         style={{
           background:
             status === 'complete'
-              ? 'linear-gradient(135deg, #16A34A, #22C55E)'
+              ? 'linear-gradient(135deg, #10B981, #4ADE80)'
               : isRecommendedDevice
               ? 'linear-gradient(135deg, #FF4500, #FF5A00, #FF8A00)'
               : 'linear-gradient(135deg, #E64500, #FF5A00, #FF7A00)',
@@ -392,16 +369,16 @@ export function DownloadPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'windows' | 'android'>('all')
   const [windowsDownloads, setWindowsDownloads] = useState<DownloadEntry[]>(DEFAULT_WINDOWS_DOWNLOADS)
   const [androidDownloads, setAndroidDownloads] = useState<DownloadEntry[]>(DEFAULT_ANDROID_DOWNLOADS)
-  const [lastUpdated, setLastUpdated] = useState<string>(RELEASE_DATE)
+  const [publishedAt, setPublishedAt] = useState<string>('2026-10-22T06:22:22Z')
+  const liveUpdatedTime = useLiveTimeAgo(publishedAt)
 
   // Dynamically sync latest sizes, versions, and hashes from /update-manifest.json
   useEffect(() => {
     fetch('/update-manifest.json?_cb=' + Date.now())
       .then(res => res.json())
       .then(manifest => {
-        const timeAgoText = formatRelativeTime(manifest?.publishedAt)
         if (manifest?.publishedAt) {
-          setLastUpdated(timeAgoText)
+          setPublishedAt(manifest.publishedAt)
         }
         if (manifest?.windows) {
           const win = manifest.windows
@@ -416,7 +393,6 @@ export function DownloadPage() {
               downloadUrl: '/download/KnowToMigrate-Setup.exe',
               recommended: true,
               platform: 'windows',
-              updateTimeText: timeAgoText,
             },
             {
               id: 'win-msi',
@@ -427,7 +403,6 @@ export function DownloadPage() {
               requirements: 'Windows 10 / 11, 64-bit (Standard Enterprise Windows Installer Package)',
               downloadUrl: '/download/KnowToMigrate-1.0.5-x64.msi',
               platform: 'windows',
-              updateTimeText: timeAgoText,
             },
             {
               id: 'win-portable',
@@ -438,7 +413,6 @@ export function DownloadPage() {
               requirements: 'Windows 10 / 11, 64-bit (Portable Compressed Standalone Executable)',
               downloadUrl: '/download/KnowToMigrate.exe',
               platform: 'windows',
-              updateTimeText: timeAgoText,
             },
           ])
         }
@@ -456,7 +430,6 @@ export function DownloadPage() {
               downloadUrl: '/download/KnowToMigrate-1.0.5.apk',
               recommended: true,
               platform: 'android',
-              updateTimeText: timeAgoText,
             },
           ])
         }
@@ -517,10 +490,10 @@ export function DownloadPage() {
             <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest text-[#FF5A00] border border-[#FF5A00]/30 bg-[#FF5A00]/10">
               FREE &amp; OPEN SOURCE
             </span>
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#D4D4D4] border border-white/[0.08] bg-white/[0.03]">
-              <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
-              <Clock className="w-3.5 h-3.5 text-[#22C55E]" />
-              <span className="text-[#22C55E] font-medium">{lastUpdated}</span>
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#D4D4D4] border border-[#4ADE80]/30 bg-[#4ADE80]/10 shadow-[0_0_15px_rgba(74,222,128,0.15)]">
+              <span className="w-2 h-2 rounded-full bg-[#4ADE80] animate-pulse shadow-[0_0_8px_#4ADE80]" />
+              <Clock className="w-3.5 h-3.5 text-[#4ADE80]" />
+              <span className="text-[#4ADE80] font-semibold">{liveUpdatedTime}</span>
             </span>
           </div>
 
@@ -577,9 +550,9 @@ export function DownloadPage() {
                       <p className="text-xs text-[#FF8A00] mt-1 font-medium flex items-center gap-1.5 flex-wrap">
                         <span>File: {suggestedEntry.filename} · {suggestedEntry.size}</span>
                         <span>·</span>
-                        <span className="text-[#22C55E] flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-[#22C55E]" />
-                          {suggestedEntry.updateTimeText || 'Recently Updated 1min ago'}
+                        <span className="text-[#4ADE80] flex items-center gap-1 font-semibold">
+                          <Clock className="w-3.5 h-3.5 text-[#4ADE80]" />
+                          {liveUpdatedTime}
                         </span>
                       </p>
                     </div>

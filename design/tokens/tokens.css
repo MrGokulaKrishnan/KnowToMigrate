@@ -46,11 +46,11 @@
   /* ----------------------------------------------------------
      STATUS COLORS
      ---------------------------------------------------------- */
-  --ktm-status-success: #22C55E;
+  --ktm-status-success: #4ADE80;
   --ktm-status-warning: #F59E0B;
   --ktm-status-error:   #EF4444;
   --ktm-status-info:    #38BDF8;
-  --ktm-status-online:  #22C55E;
+  --ktm-status-online:  #4ADE80;
 
   /* ----------------------------------------------------------
      GLASS COLORS
