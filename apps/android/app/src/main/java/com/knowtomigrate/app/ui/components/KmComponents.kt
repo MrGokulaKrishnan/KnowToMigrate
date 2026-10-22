@@ -24,6 +24,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
@@ -894,10 +895,23 @@ fun KmMonogramLogo(
 @Composable
 fun KmRadarWidget(
     modifier: Modifier = Modifier,
-    size: Dp = 86.dp
+    size: Dp = 64.dp
 ) {
+    val context = LocalContext.current
+    val isReduceMotion = remember {
+        try {
+            android.provider.Settings.Global.getFloat(
+                context.contentResolver,
+                android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+                1.0f
+            ) == 0f
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     val transition = rememberInfiniteTransition(label = "radar")
-    val anim1 by transition.animateFloat(
+    val anim1 by if (isReduceMotion) remember { mutableFloatStateOf(0.7f) } else transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -906,7 +920,7 @@ fun KmRadarWidget(
         ),
         label = "ring1"
     )
-    val anim2 by transition.animateFloat(
+    val anim2 by if (isReduceMotion) remember { mutableFloatStateOf(0.45f) } else transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -915,7 +929,7 @@ fun KmRadarWidget(
         ),
         label = "ring2"
     )
-    val anim3 by transition.animateFloat(
+    val anim3 by if (isReduceMotion) remember { mutableFloatStateOf(0.2f) } else transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -929,28 +943,41 @@ fun KmRadarWidget(
         val center = Offset(this.size.width / 2f, this.size.height / 2f)
         val maxRadius = this.size.minDimension / 2f
 
-        listOf(anim1, anim2, anim3).forEach { progress ->
-            val scale = 0.25f + progress * 0.75f
-            val alpha = (1f - progress) * 0.9f
-            if (alpha > 0f) {
-                drawCircle(
-                    color = Color(0xFFFF5A00).copy(alpha = alpha.coerceIn(0f, 1f)),
-                    radius = maxRadius * scale,
-                    center = center,
-                    style = Stroke(width = 1.5.dp.toPx())
-                )
+        if (isReduceMotion) {
+            drawCircle(
+                color = KmOrange.copy(alpha = 0.3f),
+                radius = maxRadius * 0.7f,
+                center = center,
+                style = Stroke(width = 1.dp.toPx())
+            )
+        } else {
+            listOf(anim1, anim2, anim3).forEach { progress ->
+                val scale = 0.25f + progress * 0.75f
+                val alpha = (1f - progress) * 0.9f
+                if (alpha > 0f) {
+                    drawCircle(
+                        color = KmOrange.copy(alpha = alpha.coerceIn(0f, 1f)),
+                        radius = maxRadius * scale,
+                        center = center,
+                        style = Stroke(width = 1.dp.toPx())
+                    )
+                }
             }
         }
 
-        val dotRadius = 7.dp.toPx()
+        // Center dot with glow
         drawCircle(
-            color = Color(0x66FF5A00),
-            radius = dotRadius * 1.8f,
+            brush = Brush.radialGradient(
+                colors = listOf(KmOrangeGlowStrong, Color.Transparent),
+                center = center,
+                radius = 12.dp.toPx()
+            ),
+            radius = 12.dp.toPx(),
             center = center
         )
         drawCircle(
-            color = Color(0xFFFF5A00),
-            radius = dotRadius,
+            color = KmOrange,
+            radius = 5.dp.toPx(),
             center = center
         )
     }
@@ -1195,11 +1222,23 @@ fun KmFloatingBottomBar(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val isReduceMotion = remember {
+        try {
+            android.provider.Settings.Global.getFloat(
+                context.contentResolver,
+                android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+                1.0f
+            ) == 0f
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     val items = listOf(
         Pair("Home", Icons.Default.Home),
         Pair("Send", Icons.AutoMirrored.Filled.Send),
-        Pair("Receive", Icons.Default.ArrowDownward),
-        Pair("History", Icons.Default.History)
+        Pair("Receive", Icons.Default.ArrowDownward)
     )
 
     BoxWithConstraints(
@@ -1209,11 +1248,11 @@ fun KmFloatingBottomBar(
             .padding(horizontal = 14.dp, vertical = 14.dp)
     ) {
         val totalWidth = maxWidth
-        val tabWidth = (totalWidth - 12.dp) / 4
+        val tabWidth = (totalWidth - 12.dp) / 3
 
         val lensOffset by animateDpAsState(
-            targetValue = 6.dp + (tabWidth * selectedIndex),
-            animationSpec = spring(dampingRatio = 0.75f, stiffness = 500f),
+            targetValue = 6.dp + (tabWidth * selectedIndex.coerceIn(0, 2)),
+            animationSpec = if (isReduceMotion) snap() else spring(dampingRatio = 0.75f, stiffness = 500f),
             label = "lens_x"
         )
 
@@ -1223,7 +1262,7 @@ fun KmFloatingBottomBar(
                 .height(68.dp)
                 .clip(RoundedCornerShape(34.dp))
                 .background(Color(0xE6141414))
-                .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(34.dp))
+                .border(1.dp, KmGlassBorder, RoundedCornerShape(34.dp))
         ) {
             Box(
                 modifier = Modifier
@@ -1234,12 +1273,12 @@ fun KmFloatingBottomBar(
                     .clip(RoundedCornerShape(28.dp))
                     .background(
                         Brush.linearGradient(
-                            listOf(Color(0xFFFF8A00), Color(0xFFFF5A00), Color(0xFFFF4D00))
+                            listOf(KmOrangeLight, KmOrange, KmOrangeDark)
                         )
                     )
                     .drawBehind {
                         drawLine(
-                            color = Color(0x80FFFFFF),
+                            color = KmGlassTopHighlight,
                             start = Offset(12.dp.toPx(), 1.dp.toPx()),
                             end = Offset(size.width - 12.dp.toPx(), 1.dp.toPx()),
                             strokeWidth = 1.dp.toPx()
@@ -1255,12 +1294,13 @@ fun KmFloatingBottomBar(
             ) {
                 items.forEachIndexed { index, item ->
                     val isSelected = selectedIndex == index
-                    val contentColor = if (isSelected) Color(0xFF0A0A0A) else Color(0xFF8C8C8C)
+                    val contentColor = if (isSelected) KmTextOnGradient else KmTextMuted
 
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
+                            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                             .clickable(
                                 interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                                 indication = null
@@ -1275,11 +1315,11 @@ fun KmFloatingBottomBar(
                                 imageVector = item.second,
                                 contentDescription = item.first,
                                 tint = contentColor,
-                                modifier = Modifier.size(19.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                             Text(
                                 text = item.first,
-                                fontSize = 10.sp,
+                                fontSize = 11.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 color = contentColor
                             )

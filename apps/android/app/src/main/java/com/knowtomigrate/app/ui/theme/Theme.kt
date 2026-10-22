@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.Color
 
 private val KmColorScheme = darkColorScheme(
     primary = KmOrange,
-    onPrimary = Color.White,
+    onPrimary = KmTextOnGradient,
     primaryContainer = KmOrangeDark,
     onPrimaryContainer = Color.White,
     secondary = KmOrangeLight,

@@ -1,17 +1,25 @@
 package com.knowtomigrate.app.ui.screens
 
+import android.content.ClipboardManager
+import android.content.Context
 import android.net.Uri
-import androidx.compose.animation.core.*
+import androidx.compose.animation.*
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,16 +28,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.knowtomigrate.app.data.TransferDirection
-import com.knowtomigrate.app.data.TransferRecord
-import com.knowtomigrate.app.data.TransferRecordStatus
 import com.knowtomigrate.app.ui.components.*
 import com.knowtomigrate.app.ui.navigation.Screen
 import com.knowtomigrate.app.ui.theme.*
@@ -40,39 +46,28 @@ fun HomeScreen(
     navController: NavController,
     sharedUris: List<Uri> = emptyList()
 ) {
-    var selectedNavItem by remember { mutableIntStateOf(0) }
-
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val manager = remember { com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context) }
     val discoveredDevices by manager.discoveredDevices.collectAsState()
-    val transfers by manager.historyRepository.transfers.collectAsState()
-    val recentTransfers = transfers.take(5)
 
-    val uiDevices = discoveredDevices.map { dev ->
-        UiDevice(
-            id = dev.deviceId,
-            name = dev.deviceName,
-            platform = dev.platform.lowercase(),
-            ip = dev.ipAddress,
-            status = if (dev.isOnline) "online" else "offline",
-            supportedTransports = dev.supportedTransports,
-            bestTransport = dev.bestTransport,
-            isWifiLanReachable = dev.isWifiLanReachable
-        )
+    var isClipboardExpanded by remember { mutableStateOf(false) }
+    var clipboardText by remember { mutableStateOf("") }
+    var clipboardStatusMsg by remember { mutableStateOf<String?>(null) }
+    val clipboardManager = remember {
+        context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
     }
 
     Scaffold(
         containerColor = KmBlack,
         bottomBar = {
             KmFloatingBottomBar(
-                selectedIndex = selectedNavItem,
+                selectedIndex = 0,
                 onSelect = { idx ->
-                    selectedNavItem = idx
                     when (idx) {
                         0 -> { /* already home */ }
                         1 -> navController.navigate(Screen.Send.route)
                         2 -> navController.navigate(Screen.Receive.route)
-                        3 -> navController.navigate(Screen.History.route)
                     }
                 }
             )
@@ -83,10 +78,10 @@ fun HomeScreen(
                 .fillMaxSize()
                 .background(KmBlack)
                 .padding(paddingValues),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // 1. Header (KM monogram + KnowToMigrate + Wi-Fi LAN · Ready)
+            // 1. Top row: Monogram, App Name, Status line, and Ledger/Control action icons
             item {
                 Row(
                     modifier = Modifier
@@ -94,60 +89,150 @@ fun HomeScreen(
                         .padding(top = 4.dp, bottom = 2.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    KmMonogramLogo()
+                    // "KM" Monogram box (40x40 dp)
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(KmOrangeDark, KmOrange, KmOrangeLight)
+                                )
+                            )
+                            .drawBehind {
+                                drawLine(
+                                    color = Color(0x73FFFFFF),
+                                    start = Offset(0f, 1.dp.toPx()),
+                                    end = Offset(size.width, 1.dp.toPx()),
+                                    strokeWidth = 1.dp.toPx()
+                                )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "KM",
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 16.sp,
+                            color = KmTextOnGradient
+                        )
+                    }
+
                     Spacer(modifier = Modifier.width(12.dp))
-                    Column {
+
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "KnowToMigrate",
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFFF5F5F5)
+                            color = KmTextPrimary
                         )
-                        Text(
-                            text = "Wi-Fi LAN · Ready",
-                            fontSize = 12.sp,
-                            color = Color(0xFF8C8C8C),
-                            modifier = Modifier.padding(top = 1.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.padding(top = 2.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(KmSuccess)
+                            )
+                            Text(
+                                text = "On Wi-Fi · Local network",
+                                fontSize = 12.sp,
+                                color = KmTextMuted
+                            )
+                        }
+                    }
+
+                    // Ledger (History) icon button
+                    IconButton(
+                        onClick = { navController.navigate(Screen.History.route) },
+                        modifier = Modifier.size(44.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = "Migration Ledger",
+                            tint = KmTextMuted,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    // Control (Settings) icon button
+                    IconButton(
+                        onClick = { navController.navigate(Screen.Settings.route) },
+                        modifier = Modifier.size(44.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Control Center",
+                            tint = KmTextMuted,
+                            modifier = Modifier.size(22.dp)
                         )
                     }
                 }
             }
 
-            // 2. Share Sheet banner if shared files exist
+            // Optional Android ShareSheet banner
             if (sharedUris.isNotEmpty()) {
                 item {
-                    SharedFilesBanner(sharedUris, navController)
+                    KmGlassCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { navController.navigate(Screen.Send.route) }
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Share, contentDescription = null, tint = KmOrange, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "${sharedUris.size} file(s) ready to send",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = KmTextPrimary
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = KmOrange, modifier = Modifier.size(16.dp))
+                        }
+                    }
                 }
             }
 
-            // 3. Radar Nearby Card
+            // 2. Compact Radar Nearby Card (64 dp height)
             item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color(0x09FFFFFF))
-                        .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(KmGlassBackground)
+                        .border(1.dp, KmGlassBorder, RoundedCornerShape(18.dp))
+                        .drawBehind {
+                            drawLine(
+                                color = KmGlassTopHighlight,
+                                start = Offset(18.dp.toPx(), 1.dp.toPx()),
+                                end = Offset(size.width - 18.dp.toPx(), 1.dp.toPx()),
+                                strokeWidth = 1.dp.toPx()
+                            )
+                        }
                         .padding(16.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        KmRadarWidget(size = 86.dp)
-                        Column {
-                            val count = if (uiDevices.isNotEmpty()) uiDevices.size else 1
-                            val deviceTitle = if (uiDevices.isNotEmpty()) "${uiDevices.first().name} · Trusted" else "Windows PC · Trusted"
+                        KmRadarWidget(size = 64.dp)
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            val count = discoveredDevices.size
                             Text(
-                                text = "$count device nearby",
-                                fontSize = 16.sp,
+                                text = if (count == 0) "Looking for devices…" else "$count device${if (count > 1) "s" else ""} nearby",
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFFF5F5F5)
+                                color = KmTextPrimary
                             )
                             Text(
-                                text = deviceTitle,
+                                text = "Open KnowToMigrate on your PC to see it here.",
                                 fontSize = 12.sp,
-                                color = Color(0xFF8C8C8C),
+                                color = KmTextMuted,
                                 modifier = Modifier.padding(top = 2.dp)
                             )
                         }
@@ -155,494 +240,490 @@ fun HomeScreen(
                 }
             }
 
-            // 4. Action Tiles (Send & Receive)
+            // 3. Eyebrow: Start
+            item {
+                Text(
+                    text = "START",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.08.sp,
+                    color = KmTextMuted,
+                    modifier = Modifier.padding(start = 2.dp, top = 2.dp)
+                )
+            }
+
+            // 4. Equal-width Action Tiles: Send files (primary gradient) & Receive (glass)
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    KmActionTile(
-                        icon = Icons.AutoMirrored.Filled.Send,
-                        title = "Send",
-                        subtitle = "Files and folders",
-                        onClick = { navController.navigate(Screen.Send.route) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    KmActionTile(
-                        icon = Icons.Default.ArrowDownward,
-                        title = "Receive",
-                        subtitle = "Wait for a PC",
-                        onClick = { navController.navigate(Screen.Receive.route) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-
-            // 5. Recent Section
-            item {
-                Text(
-                    text = "Recent",
-                    fontSize = 12.sp,
-                    color = Color(0xFF8C8C8C),
-                    modifier = Modifier.padding(start = 2.dp, top = 4.dp, bottom = 2.dp)
-                )
-            }
-
-            if (recentTransfers.isEmpty()) {
-                item {
-                    KmRecentTransferRow(
-                        filename = "Photos_March.zip",
-                        subtitle = "1.2 GB · Sent 10:42 · Verified",
-                        isVerified = true,
-                        onClick = { navController.navigate(Screen.History.route) }
-                    )
-                }
-                item {
-                    KmRecentTransferRow(
-                        filename = "Lecture_notes/",
-                        subtitle = "320 MB · Yesterday",
-                        isVerified = false,
-                        isFolder = true,
-                        onClick = { navController.navigate(Screen.History.route) }
-                    )
-                }
-            } else {
-                items(recentTransfers) { record ->
-                    val isComp = record.status == com.knowtomigrate.app.data.TransferRecordStatus.COMPLETED
-                    KmRecentTransferRow(
-                        filename = record.fileName,
-                        subtitle = "${record.formattedSize} · ${record.status.displayName}",
-                        isVerified = isComp,
-                        onClick = { navController.navigate(Screen.History.route) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun HomeHeader(deviceName: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color.Black)
-                .border(1.dp, KmOrange, RoundedCornerShape(10.dp))
-        ) {
-            androidx.compose.foundation.Image(
-                painter = androidx.compose.ui.res.painterResource(id = com.knowtomigrate.app.R.drawable.logo),
-                contentDescription = "KnowToMigrate Logo",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(3.dp),
-                contentScale = androidx.compose.ui.layout.ContentScale.Fit
-            )
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Column {
-            Text(
-                text = "KnowToMigrate",
-                style = MaterialTheme.typography.titleLarge,
-                color = KmTextPrimary,
-                fontWeight = FontWeight.ExtraBold
-            )
-            Text(
-                text = deviceName,
-                style = MaterialTheme.typography.bodySmall,
-                color = KmOrange
-            )
-        }
-    }
-}
-
-@Composable
-private fun SharedFilesBanner(uris: List<Uri>, navController: NavController) {
-    KmGlassCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { navController.navigate(Screen.Send.route) }
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Share, contentDescription = null, tint = KmOrange, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "${uris.size} file(s) ready to send",
-                style = MaterialTheme.typography.bodyMedium,
-                color = KmTextPrimary
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = KmOrange, modifier = Modifier.size(16.dp))
-        }
-    }
-}
-
-@Composable
-private fun HomeTransferRow(record: TransferRecord) {
-    val statusColor = when (record.status) {
-        TransferRecordStatus.COMPLETED -> KmSuccess
-        TransferRecordStatus.TRANSFERRING -> KmOrange
-        TransferRecordStatus.CONNECTING,
-        TransferRecordStatus.PREPARING,
-        TransferRecordStatus.WAITING_ACCEPTANCE,
-        TransferRecordStatus.VERIFYING -> KmInfo
-        TransferRecordStatus.FAILED -> KmError
-        TransferRecordStatus.CANCELLED -> KmTextMuted
-    }
-
-    val dirIcon = if (record.direction == TransferDirection.SENT) Icons.Default.Upload else Icons.Default.Download
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(KmBlackCard)
-            .border(1.dp, KmGlassBorder, RoundedCornerShape(12.dp))
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(KmOrangeGlow),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = dirIcon,
-                contentDescription = record.direction.name,
-                tint = KmOrange,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = record.fileName,
-                style = MaterialTheme.typography.bodyMedium,
-                color = KmTextPrimary,
-                maxLines = 1,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = "${record.formattedSize} • ${record.peerDeviceName} • ${record.formattedDate}",
-                style = MaterialTheme.typography.bodySmall,
-                color = KmTextMuted,
-                maxLines = 1
-            )
-        }
-        KmBadge(text = record.status.displayName, color = statusColor)
-    }
-}
-
-@Composable
-private fun MigrationCtaCard(navController: NavController) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                Brush.horizontalGradient(listOf(KmOrangeDark, KmOrange))
-            )
-            .clickable { navController.navigate(Screen.Migration.route) }
-            .padding(20.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "Full Device Migration",
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Transfer photos, videos, contacts and files in one go",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.85f)
-            )
-        }
-        Icon(
-            imageVector = Icons.Default.MoveDown,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.size(28.dp)
-        )
-    }
-}
-
-@Composable
-private fun UniversalClipboardCard(
-    discoveredDevices: List<com.knowtomigrate.app.network.DiscoveredDevice>,
-    manager: com.knowtomigrate.app.network.KtmAndroidManager
-) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val clipboardManager = remember {
-        context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
-    }
-
-    var clipboardInput by remember { mutableStateOf("") }
-    var statusMessage by remember { mutableStateOf<String?>(null) }
-    var isSuccess by remember { mutableStateOf(true) }
-    var isWorking by remember { mutableStateOf(false) }
-
-    val targetDevice = discoveredDevices.firstOrNull { it.isOnline && it.ipAddress.isNotBlank() }
-
-    KmGlassCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.ContentPaste,
-                        contentDescription = null,
-                        tint = KmOrange,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Universal Clipboard",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = KmTextPrimary,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                KmBadge(
-                    text = if (targetDevice != null) targetDevice.deviceName.take(14) else "No Device",
-                    color = if (targetDevice != null) KmSuccess else KmTextMuted
-                )
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "Sync clipboard text, URLs, or notes between Android and your PC instantly.",
-                style = MaterialTheme.typography.bodySmall,
-                color = KmTextMuted
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = clipboardInput,
-                onValueChange = { clipboardInput = it },
-                placeholder = {
-                    Text(
-                        text = "Paste or type text to sync with PC…",
-                        color = KmTextDisabled,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 80.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = KmOrange,
-                    unfocusedBorderColor = KmGlassBorder,
-                    focusedTextColor = KmTextPrimary,
-                    unfocusedTextColor = KmTextPrimary,
-                    cursorColor = KmOrange
-                )
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Paste from Android button
-                KmSecondaryButton(
-                    text = "Paste Local",
-                    onClick = {
-                        val clip = clipboardManager?.primaryClip
-                        if (clip != null && clip.itemCount > 0) {
-                            clipboardInput = clip.getItemAt(0).coerceToText(context).toString()
-                            statusMessage = "Pasted from Android clipboard"
-                            isSuccess = true
-                        } else {
-                            statusMessage = "Android clipboard is empty"
-                            isSuccess = false
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-
-                // Send to PC button
-                KmPrimaryButton(
-                    text = if (isWorking) "Syncing…" else "Send to PC",
-                    onClick = {
-                        if (targetDevice == null) {
-                            statusMessage = "No PC connected on network"
-                            isSuccess = false
-                            return@KmPrimaryButton
-                        }
-                        if (clipboardInput.isBlank()) {
-                            statusMessage = "Enter or paste text first"
-                            isSuccess = false
-                            return@KmPrimaryButton
-                        }
-                        isWorking = true
-                        scope.launch {
-                            val ok = manager.sendClipboardText(targetDevice.ipAddress, clipboardInput)
-                            isWorking = false
-                            if (ok) {
-                                statusMessage = "✓ Sent to ${targetDevice.deviceName} clipboard!"
-                                isSuccess = true
-                            } else {
-                                statusMessage = "Failed to sync to PC (port 54125 unreachable)"
-                                isSuccess = false
-                            }
-                        }
-                    },
-                    enabled = !isWorking && targetDevice != null,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Fetch PC Clipboard button
-            KmSecondaryButton(
-                text = "Pull from PC Clipboard",
-                onClick = {
-                    if (targetDevice == null) {
-                        statusMessage = "No PC connected on network"
-                        isSuccess = false
-                        return@KmSecondaryButton
-                    }
-                    isWorking = true
-                    scope.launch {
-                        val text = manager.fetchClipboardText(targetDevice.ipAddress)
-                        isWorking = false
-                        if (!text.isNullOrBlank()) {
-                            clipboardInput = text
-                            val clipData = android.content.ClipData.newPlainText("KnowToMigrate Clipboard", text)
-                            clipboardManager?.setPrimaryClip(clipData)
-                            statusMessage = "✓ Copied from ${targetDevice.deviceName} to Android!"
-                            isSuccess = true
-                        } else {
-                            statusMessage = "PC clipboard is empty or unreachable"
-                            isSuccess = false
-                        }
-                    }
-                },
-                enabled = !isWorking && targetDevice != null,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            if (!statusMessage.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = statusMessage ?: "",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isSuccess) KmSuccess else KmError,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun KmBottomBar(selectedIndex: Int, onSelect: (Int) -> Unit) {
-    val tabs = remember { KmNavTab.values() }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(26.dp))
-                .border(
-                    width = 1.dp,
-                    color = KmGlassBorder,
-                    shape = RoundedCornerShape(26.dp)
-                )
-                .drawBehind {
-                    // Top subtle specular gloss line
-                    drawLine(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(Color.Transparent, Color(0x30FFFFFF), Color.Transparent)
-                        ),
-                        start = Offset(26.dp.toPx(), 1.dp.toPx()),
-                        end = Offset(this.size.width - 26.dp.toPx(), 1.dp.toPx()),
-                        strokeWidth = 1.dp.toPx()
-                    )
-                },
-            shape = RoundedCornerShape(26.dp),
-            color = Color(0xF2080808),
-            shadowElevation = 14.dp
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 6.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                tabs.forEachIndexed { idx, tab ->
-                    val isSelected = selectedIndex == idx
-
+                    // Send files button (Gradient, Primary, Near-black text)
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val isPressed by interactionSource.collectIsPressedAsState()
                     val scale by animateFloatAsState(
-                        targetValue = if (isSelected) 1.06f else 1.0f,
-                        animationSpec = spring(dampingRatio = 0.65f, stiffness = 450f),
-                        label = "tab_scale_$idx"
-                    )
-                    val capsuleAlpha by animateFloatAsState(
-                        targetValue = if (isSelected) 1.0f else 0.0f,
-                        animationSpec = tween(220, easing = FastOutSlowInEasing),
-                        label = "tab_capsule_$idx"
+                        targetValue = if (isPressed) 0.97f else 1.0f,
+                        animationSpec = spring(dampingRatio = 0.7f, stiffness = 500f),
+                        label = "send_tile_scale"
                     )
 
                     Box(
                         modifier = Modifier
+                            .weight(1f)
                             .scale(scale)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(KmOrangeGlowStrong.copy(alpha = KmOrangeGlowStrong.alpha * capsuleAlpha))
-                            .then(
-                                if (isSelected) Modifier.border(
-                                    width = 1.dp,
-                                    color = KmOrange.copy(alpha = 0.45f * capsuleAlpha),
-                                    shape = RoundedCornerShape(16.dp)
-                                ) else Modifier
+                            .defaultMinSize(minHeight = 88.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(KmOrangeDark, KmOrange, KmOrangeLight)
+                                )
                             )
-                            .clickable { onSelect(idx) }
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                        contentAlignment = Alignment.Center
+                            .drawBehind {
+                                drawLine(
+                                    color = Color(0x73FFFFFF),
+                                    start = Offset(14.dp.toPx(), 1.dp.toPx()),
+                                    end = Offset(size.width - 14.dp.toPx(), 1.dp.toPx()),
+                                    strokeWidth = 1.dp.toPx()
+                                )
+                            }
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null
+                            ) { navController.navigate(Screen.Send.route) }
+                            .padding(16.dp)
                     ) {
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(3.dp)
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            horizontalAlignment = Alignment.Start
                         ) {
-                            KmNavIcon(
-                                tab = tab,
-                                isSelected = isSelected,
-                                modifier = Modifier.size(22.dp)
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Send,
+                                contentDescription = null,
+                                tint = KmTextOnGradient,
+                                modifier = Modifier.size(20.dp)
                             )
                             Text(
-                                text = tab.label,
+                                text = "Send files",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = KmTextOnGradient
+                            )
+                            Text(
+                                text = "Photos, videos, documents",
                                 fontSize = 11.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) KmOrange else KmTextMuted,
-                                maxLines = 1,
-                                softWrap = false
+                                fontWeight = FontWeight.Medium,
+                                color = KmTextOnGradient.copy(alpha = 0.75f)
                             )
                         }
+                    }
+
+                    // Receive button (Glass surface)
+                    val recvInteraction = remember { MutableInteractionSource() }
+                    val recvPressed by recvInteraction.collectIsPressedAsState()
+                    val recvScale by animateFloatAsState(
+                        targetValue = if (recvPressed) 0.97f else 1.0f,
+                        animationSpec = spring(dampingRatio = 0.7f, stiffness = 500f),
+                        label = "recv_tile_scale"
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .scale(recvScale)
+                            .defaultMinSize(minHeight = 88.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(KmGlassBackground)
+                            .border(1.dp, KmGlassBorder, RoundedCornerShape(14.dp))
+                            .drawBehind {
+                                drawLine(
+                                    color = KmGlassTopHighlight,
+                                    start = Offset(14.dp.toPx(), 1.dp.toPx()),
+                                    end = Offset(size.width - 14.dp.toPx(), 1.dp.toPx()),
+                                    strokeWidth = 1.dp.toPx()
+                                )
+                            }
+                            .clickable(
+                                interactionSource = recvInteraction,
+                                indication = null
+                            ) { navController.navigate(Screen.Receive.route) }
+                            .padding(16.dp)
+                    ) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowDownward,
+                                contentDescription = null,
+                                tint = KmTextPrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = "Receive",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = KmTextPrimary
+                            )
+                            Text(
+                                text = "Wait for a PC or phone",
+                                fontSize = 11.sp,
+                                color = KmTextMuted
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 5. Eyebrow: Devices
+            item {
+                Text(
+                    text = "DEVICES",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.08.sp,
+                    color = KmTextMuted,
+                    modifier = Modifier.padding(start = 2.dp, top = 4.dp)
+                )
+            }
+
+            if (discoveredDevices.isEmpty()) {
+                // Empty state: "No devices yet" + "Make sure both devices are on the same Wi-Fi."
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(KmGlassBackground)
+                            .border(1.dp, KmGlassBorder, RoundedCornerShape(16.dp))
+                            .padding(14.dp)
+                    ) {
+                        Column {
+                            Text(
+                                text = "No devices yet",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = KmTextPrimary
+                            )
+                            Text(
+                                text = "Make sure both devices are on the same Wi-Fi.",
+                                fontSize = 12.sp,
+                                color = KmTextMuted,
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
+                    }
+                }
+            } else {
+                items(discoveredDevices) { device ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(KmGlassBackground)
+                            .border(1.dp, KmGlassBorder, RoundedCornerShape(16.dp))
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0x0FFFFFFF)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (device.platform.contains("win", ignoreCase = true)) Icons.Default.Computer else Icons.Default.Smartphone,
+                                contentDescription = null,
+                                tint = KmTextPrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = device.deviceName,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = KmTextPrimary
+                            )
+                            Text(
+                                text = "Trusted · Ready to receive",
+                                fontSize = 12.sp,
+                                color = KmTextMuted,
+                                modifier = Modifier.padding(top = 1.dp)
+                            )
+                        }
+
+                        // Send action button
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color(0x0FFFFFFF))
+                                .border(1.dp, KmGlassBorder, RoundedCornerShape(10.dp))
+                                .clickable { navController.navigate(Screen.Send.route) }
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = "Send",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = KmTextPrimary
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 6. Eyebrow: Clipboard sync
+            item {
+                Text(
+                    text = "CLIPBOARD SYNC",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.08.sp,
+                    color = KmTextMuted,
+                    modifier = Modifier.padding(start = 2.dp, top = 4.dp)
+                )
+            }
+
+            // Collapsed by default "Share text with your PC" disclosure card
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(KmGlassBackground)
+                        .border(1.dp, KmGlassBorder, RoundedCornerShape(18.dp))
+                        .padding(14.dp)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { isClipboardExpanded = !isClipboardExpanded },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0x0FFFFFFF)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ContentPaste,
+                                    contentDescription = null,
+                                    tint = KmTextPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Share text with your PC",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = KmTextPrimary
+                                )
+                                Text(
+                                    text = "Text only, sent over your Wi-Fi",
+                                    fontSize = 12.sp,
+                                    color = KmTextMuted,
+                                    modifier = Modifier.padding(top = 1.dp)
+                                )
+                            }
+
+                            Text(
+                                text = if (isClipboardExpanded) "Hide" else "Show",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = KmTextMuted,
+                                modifier = Modifier.padding(horizontal = 4.dp)
+                            )
+                        }
+
+                        AnimatedVisibility(
+                            visible = isClipboardExpanded,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 12.dp)
+                            ) {
+                                Text(
+                                    text = "Use this only on a network you trust.",
+                                    fontSize = 12.sp,
+                                    color = KmTextMuted,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+
+                                OutlinedTextField(
+                                    value = clipboardText,
+                                    onValueChange = {
+                                        clipboardText = it
+                                        clipboardStatusMsg = null
+                                    },
+                                    placeholder = {
+                                        Text(
+                                            text = "Paste or type text",
+                                            fontSize = 13.sp,
+                                            color = KmTextDisabled
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(84.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedContainerColor = Color(0x0AFFFFFF),
+                                        unfocusedContainerColor = Color(0x0AFFFFFF),
+                                        focusedBorderColor = KmOrange,
+                                        unfocusedBorderColor = KmGlassBorder,
+                                        focusedTextColor = KmTextPrimary,
+                                        unfocusedTextColor = KmTextPrimary
+                                    )
+                                )
+
+                                Spacer(modifier = Modifier.height(10.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    // Paste button
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(44.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(Color(0x0AFFFFFF))
+                                            .border(1.dp, KmGlassBorder, RoundedCornerShape(12.dp))
+                                            .clickable {
+                                                val clip = clipboardManager?.primaryClip
+                                                if (clip != null && clip.itemCount > 0) {
+                                                    val text = clip.getItemAt(0).text?.toString() ?: ""
+                                                    clipboardText = text
+                                                    clipboardStatusMsg = "Pasted from this phone"
+                                                }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "Paste",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = KmTextPrimary
+                                        )
+                                    }
+
+                                    // Send to PC button
+                                    val canSend = clipboardText.isNotBlank()
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(44.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(
+                                                if (canSend) {
+                                                    Brush.linearGradient(
+                                                        listOf(KmOrangeDark, KmOrange, KmOrangeLight)
+                                                    )
+                                                } else {
+                                                    SolidColor(Color(0x1AFFFFFF))
+                                                }
+                                            )
+                                            .clickable(enabled = canSend) {
+                                                val target = discoveredDevices.firstOrNull()
+                                                if (target != null) {
+                                                    scope.launch {
+                                                        val ok = manager.sendClipboardText(target.ipAddress, clipboardText)
+                                                        clipboardStatusMsg = if (ok) "Sent to PC clipboard!" else "Could not connect to PC."
+                                                    }
+                                                } else {
+                                                    clipboardStatusMsg = "No PC found on Wi-Fi."
+                                                }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "Send to PC",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (canSend) KmTextOnGradient else KmTextDisabled
+                                        )
+                                    }
+                                }
+
+                                if (clipboardStatusMsg != null) {
+                                    Text(
+                                        text = clipboardStatusMsg!!,
+                                        fontSize = 12.sp,
+                                        color = if (clipboardStatusMsg!!.startsWith("Sent")) KmSuccess else KmWarning,
+                                        modifier = Modifier.padding(top = 8.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 7. Full device migration row (Secondary action, NOT gradient!)
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(KmGlassBackground)
+                        .border(1.dp, KmGlassBorder, RoundedCornerShape(16.dp))
+                        .drawBehind {
+                            drawLine(
+                                color = KmGlassTopHighlight,
+                                start = Offset(16.dp.toPx(), 1.dp.toPx()),
+                                end = Offset(size.width - 16.dp.toPx(), 1.dp.toPx()),
+                                strokeWidth = 1.dp.toPx()
+                            )
+                        }
+                        .clickable { navController.navigate(Screen.Migration.route) }
+                        .padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0x0FFFFFFF)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Folder,
+                            contentDescription = null,
+                            tint = KmTextPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Full device migration",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = KmTextPrimary
+                        )
+                        Text(
+                            text = "Photos, contacts and files in one plan",
+                            fontSize = 12.sp,
+                            color = KmTextMuted,
+                            modifier = Modifier.padding(top = 1.dp)
+                        )
                     }
                 }
             }
