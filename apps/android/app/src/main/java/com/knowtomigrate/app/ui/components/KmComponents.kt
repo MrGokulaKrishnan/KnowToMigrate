@@ -691,11 +691,11 @@ fun KmStatusDot(
 // ─────────────────────────────────────────────────────────────────────────────
 
 enum class KmNavTab(val label: String, val contentDescription: String) {
-    COMMAND("Command", "Command Center"),
-    LAUNCH("Launch", "Launch Transfer"),
-    LANDING("Landing", "Landing Transfers"),
-    LEDGER("Ledger", "Migration Ledger"),
-    CONTROL("Control", "Control Center")
+    HOME("Home", "Home"),
+    SEND("Send", "Send"),
+    RECEIVE("Receive", "Receive"),
+    HISTORY("History", "History"),
+    SETTINGS("Settings", "Settings")
 }
 
 @Composable
@@ -712,7 +712,7 @@ fun KmNavIcon(
         val strokePx = 1.75.dp.toPx()
 
         when (tab) {
-            KmNavTab.COMMAND -> {
+            KmNavTab.HOME -> {
                 // Upper protective chevron / energy roof
                 val roofPath = Path().apply {
                     moveTo(w * 0.18f, h * 0.44f)
@@ -738,7 +738,7 @@ fun KmNavIcon(
                     style = if (isSelected) androidx.compose.ui.graphics.drawscope.Fill else Stroke(width = strokePx)
                 )
             }
-            KmNavTab.LAUNCH -> {
+            KmNavTab.SEND -> {
                 // Diagonal supersonic arrow shaft from bottom-left to top-right
                 drawLine(
                     color = color,
@@ -763,7 +763,7 @@ fun KmNavIcon(
                 }
                 drawPath(finPath, color = color.copy(alpha = if (isSelected) 0.85f else 0.5f), style = Stroke(width = strokePx * 0.9f, cap = StrokeCap.Round, join = StrokeJoin.Round))
             }
-            KmNavTab.LANDING -> {
+            KmNavTab.RECEIVE -> {
                 // Horizontal landing receptor cradle at bottom
                 val cradlePath = Path().apply {
                     moveTo(w * 0.18f, h * 0.72f)
@@ -789,7 +789,7 @@ fun KmNavIcon(
                 }
                 drawPath(arrowHead, color = color, style = Stroke(width = strokePx, cap = StrokeCap.Round, join = StrokeJoin.Round))
             }
-            KmNavTab.LEDGER -> {
+            KmNavTab.HISTORY -> {
                 // Cryptographic ledger document outline
                 val cardPath = Path().apply {
                     moveTo(w * 0.24f, h * 0.16f)
@@ -808,7 +808,7 @@ fun KmNavIcon(
                 // Checkpoint verification pip
                 drawCircle(color = if (isSelected) KmOrange else KmTextMuted, radius = w * 0.05f, center = Offset(w * 0.32f, h * 0.50f))
             }
-            KmNavTab.CONTROL -> {
+            KmNavTab.SETTINGS -> {
                 // Precision tuning sliders
                 // Row 1: Line with node at right
                 drawLine(color = color, start = Offset(w * 0.18f, h * 0.30f), end = Offset(w * 0.82f, h * 0.30f), strokeWidth = strokePx, cap = StrokeCap.Round)
