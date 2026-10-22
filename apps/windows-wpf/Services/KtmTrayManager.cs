@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -111,7 +111,7 @@ namespace KnowToMigrate.Services
                 uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP,
                 uCallbackMessage = WM_TRAYICON,
                 hIcon = _hIcon,
-                szTip = "KnowToMigrate — Pluto Engine Active"
+                szTip = "KnowToMigrate — Ready"
             };
 
             _isAdded = Shell_NotifyIcon(NIM_ADD, ref nid);

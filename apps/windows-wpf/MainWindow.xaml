@@ -751,7 +751,7 @@
                             </Grid>
                         </Grid>
 
-                        <!-- ══ VIEW 4: DEVICE MIGRATION ════════════════════════ -->
+                        <!-- ══ VIEW 4: MOVE DEVICE ═════════════════════════════ -->
                         <Grid x:Name="ViewMigration" Visibility="Collapsed">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -761,20 +761,20 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" Text="Device migration" FontSize="22" FontWeight="Bold" Foreground="#F5F5F5" Margin="4,4,0,4" />
+                            <TextBlock Grid.Row="0" Text="Move device" FontSize="22" FontWeight="Bold" Foreground="#F5F5F5" Margin="4,4,0,4" />
                             <TextBlock Grid.Row="1" x:Name="TxtMigrationStepLabel" Text="Step 2 of 10 · Photos" FontSize="12" Foreground="#8C8C8C" Margin="4,0,0,14" />
 
-                            <!-- 10 Step Pills -->
+                            <!-- 10 Step Indicator Pills -->
                             <WrapPanel Grid.Row="2" x:Name="PanelMigrationSteps" Margin="0,0,0,16">
                                 <!-- Populated dynamically by UpdateMigrationStepUI in MainWindow.xaml.cs -->
                             </WrapPanel>
 
-                            <!-- Pre-flight Storage Check Glass Card -->
+                            <!-- Storage Check Bar Glass Card -->
                             <Border Grid.Row="3" Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="20">
                                 <StackPanel>
                                     <Grid>
-                                        <TextBlock Text="Pre-flight storage check" FontSize="14" FontWeight="Bold" Foreground="#F5F5F5" VerticalAlignment="Center" />
-                                        <TextBlock Text="18.2 GB needed · 64 GB free" FontSize="12" Foreground="#8C8C8C" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                        <TextBlock Text="Storage check" FontSize="14" FontWeight="Bold" Foreground="#F5F5F5" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="TxtMigrationStorage" Text="Needs 18.2 GB &#x00B7; Free 64 GB" FontSize="12" Foreground="#8C8C8C" HorizontalAlignment="Right" VerticalAlignment="Center" />
                                     </Grid>
                                     <ProgressBar x:Name="ProgressBarMigrationScan" Style="{StaticResource KmGradientProgressBar}" Height="10" Value="28" Margin="0,14,0,14" />
                                     <TextBlock Text="Scan first, then choose what to move." FontSize="12" Foreground="#8C8C8C" />
@@ -783,8 +783,8 @@
 
                             <!-- Navigation Buttons -->
                             <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,16,0,0" Width="380" HorizontalAlignment="Left">
-                                <Button Content="Back" Click="BtnMigrationBack_Click" Style="{StaticResource KmGlassButton}" Width="180" Margin="0,0,10,0" />
-                                <Button Content="Next" Click="BtnMigrationNext_Click" Style="{StaticResource KmPrimaryButton}" Width="180" />
+                                <Button x:Name="BtnMigrationBack" Content="Back" Click="BtnMigrationBack_Click" Style="{StaticResource KmGlassButton}" Width="180" Margin="0,0,10,0" />
+                                <Button x:Name="BtnMigrationNext" Content="Next" Click="BtnMigrationNext_Click" Style="{StaticResource KmPrimaryButton}" Width="180" />
                             </StackPanel>
                         </Grid>
 

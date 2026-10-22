@@ -848,6 +848,14 @@ namespace KnowToMigrate
             {
                 TxtMigrationStepLabel.Text = $"Step {_currentMigrationStep + 1} of 10 · {_migrationSteps[_currentMigrationStep]}";
             }
+            if (BtnMigrationBack != null)
+            {
+                BtnMigrationBack.IsEnabled = _currentMigrationStep > 0;
+            }
+            if (BtnMigrationNext != null)
+            {
+                BtnMigrationNext.Content = _currentMigrationStep == _migrationSteps.Length - 1 ? "Start moving" : "Next";
+            }
             if (PanelMigrationSteps != null)
             {
                 PanelMigrationSteps.Children.Clear();
@@ -1646,7 +1654,7 @@ namespace KnowToMigrate
             {
                 _selectedDevice = dev;
                 ListDevices.SelectedItem = dev;
-                TxtFileInfo.Text = $"{_selectedFiles.Count} files staged â€¢ Target: {dev.DeviceName} ({dev.IpAddress}) via Pluto Auto";
+                TxtFileInfo.Text = $"{_selectedFiles.Count} files staged â€¢ Target: {dev.DeviceName} ({dev.IpAddress}) via Wi-Fi";
                 TxtStatus.Text = $"Ready â€¢ Selected target: {dev.DeviceName} (Signal: {dev.SignalDisplay} {dev.ConnectionQuality})";
                 KtmSoundService.PlayTransferStart();
             }
@@ -1692,7 +1700,7 @@ namespace KnowToMigrate
         {
             try
             {
-                TxtDiagTransport.Text = _selectedDevice != null ? $"Pluto Auto [{_selectedDevice.ActiveTransport}]" : "Pluto Auto [Wi-Fi LAN]";
+                TxtDiagTransport.Text = _selectedDevice != null ? $"Auto [{_selectedDevice.ActiveTransport}]" : "Auto [Wi-Fi LAN]";
                 TxtDiagLatency.Text = _selectedDevice != null ? $"{_selectedDevice.LatencyMs:F1} ms" : "2.4 ms";
                 TxtDiagSpeed.Text = _selectedDevice != null ? _selectedDevice.BestTransportDisplay : "80â€“120+ MB/s";
                 TxtDiagChunk.Text = "256 KB (Adaptive 64 KB â€“ 1 MB)";
