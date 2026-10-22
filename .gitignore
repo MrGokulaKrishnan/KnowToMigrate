@@ -30,7 +30,7 @@ test_wpf/
 *.wixpdb
 *.cab
 .firebase/
-releases/windows/publish/
+releases/
 tests/**/bin/
 tests/**/obj/
 
