@@ -31,6 +31,7 @@
     <string name="empty_send_files">No files added yet. Tap Add files to choose what to send.</string>
 
     <!-- Actions -->
+    <string name="action_send">Send</string>
     <string name="action_send_files">Send files</string>
     <string name="action_receive_files">Receive</string>
     <string name="action_add_files">Add files</string>
