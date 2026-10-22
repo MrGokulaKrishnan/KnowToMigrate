@@ -29,10 +29,7 @@ export interface DownloadEntry {
   downloadUrl: string
   recommended?: boolean
   platform: 'windows' | 'android'
-  updateTimeText?: string
 }
-
-export const RELEASE_DATE = 'Recently Updated 1min ago'
 
 const DEFAULT_WINDOWS_DOWNLOADS: DownloadEntry[] = [
   {
@@ -45,7 +42,6 @@ const DEFAULT_WINDOWS_DOWNLOADS: DownloadEntry[] = [
     downloadUrl: '/download/KnowToMigrate-Setup.exe',
     recommended: true,
     platform: 'windows',
-    updateTimeText: 'Recently Updated 1min ago',
   },
   {
     id: 'win-msi',
@@ -56,7 +52,6 @@ const DEFAULT_WINDOWS_DOWNLOADS: DownloadEntry[] = [
     requirements: 'Windows 10 / 11, 64-bit (Standard Enterprise Windows Installer Package)',
     downloadUrl: '/download/KnowToMigrate-1.0.5-x64.msi',
     platform: 'windows',
-    updateTimeText: 'Recently Updated 1min ago',
   },
   {
     id: 'win-portable',
@@ -67,7 +62,6 @@ const DEFAULT_WINDOWS_DOWNLOADS: DownloadEntry[] = [
     requirements: 'Windows 10 / 11, 64-bit (Portable Compressed Standalone Executable)',
     downloadUrl: '/download/KnowToMigrate.exe',
     platform: 'windows',
-    updateTimeText: 'Recently Updated 1min ago',
   },
 ]
 
@@ -82,7 +76,6 @@ const DEFAULT_ANDROID_DOWNLOADS: DownloadEntry[] = [
     downloadUrl: '/download/KnowToMigrate-1.0.5.apk',
     recommended: true,
     platform: 'android',
-    updateTimeText: 'Recently Updated 1min ago',
   },
 ]
 
@@ -156,10 +149,12 @@ function DownloadCard({
   entry,
   icon: Icon,
   isRecommendedDevice = false,
+  liveUpdatedTime,
 }: {
   entry: DownloadEntry
   icon: React.ElementType
   isRecommendedDevice?: boolean
+  liveUpdatedTime: string
 }) {
   const [status, setStatus] = useState<DownloadStatus>('idle')
   const [progress, setProgress] = useState<number | null>(null)
@@ -284,17 +279,22 @@ function DownloadCard({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-semibold text-white truncate">{entry.filename}</p>
+            <p className="text-sm font-semibold text-[#F5F5F5] truncate">{entry.filename}</p>
             {isRecommendedDevice && (
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#FF5A00]/20 text-[#FF8A00] border border-[#FF5A00]/40 flex items-center gap-1">
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#FF5A00]/15 text-[#FF8A00] border border-[#FF5A00]/30 flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5" /> Recommended
               </span>
             )}
           </div>
-          <p className="text-xs text-[#666666] mt-0.5">{entry.requirements} · {entry.size}</p>
-          <div className="flex items-center gap-1.5 text-[11px] text-[#4ADE80] mt-1 font-semibold">
-            <Clock className="w-3.5 h-3.5 text-[#4ADE80]" />
-            <span>{entry.updateTimeText || 'Recently Updated 1min ago'}</span>
+          <p className="text-xs text-[#9A9A9A] mt-1 leading-relaxed">
+            {entry.requirements} · <span className="text-[#D4D4D4] font-medium">{entry.size}</span>
+          </p>
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-[#34D399] bg-[#34D399]/10 border border-[#34D399]/25 shadow-[0_0_10px_rgba(52,211,153,0.1)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse shadow-[0_0_6px_#34D399]" />
+              <Clock className="w-3 h-3 text-[#34D399]" />
+              <span>{liveUpdatedTime}</span>
+            </span>
           </div>
         </div>
         <span className="text-xs bg-[#FF5A00]/10 text-[#FF5A00] border border-[#FF5A00]/20 rounded-full px-2 py-0.5 flex-shrink-0 font-medium">
@@ -369,7 +369,7 @@ export function DownloadPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'windows' | 'android'>('all')
   const [windowsDownloads, setWindowsDownloads] = useState<DownloadEntry[]>(DEFAULT_WINDOWS_DOWNLOADS)
   const [androidDownloads, setAndroidDownloads] = useState<DownloadEntry[]>(DEFAULT_ANDROID_DOWNLOADS)
-  const [publishedAt, setPublishedAt] = useState<string>('2026-10-22T06:22:22Z')
+  const [publishedAt, setPublishedAt] = useState<string>('2026-10-22T08:13:37Z')
   const liveUpdatedTime = useLiveTimeAgo(publishedAt)
 
   // Dynamically sync latest sizes, versions, and hashes from /update-manifest.json
@@ -490,10 +490,10 @@ export function DownloadPage() {
             <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest text-[#FF5A00] border border-[#FF5A00]/30 bg-[#FF5A00]/10">
               FREE &amp; OPEN SOURCE
             </span>
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#D4D4D4] border border-[#4ADE80]/30 bg-[#4ADE80]/10 shadow-[0_0_15px_rgba(74,222,128,0.15)]">
-              <span className="w-2 h-2 rounded-full bg-[#4ADE80] animate-pulse shadow-[0_0_8px_#4ADE80]" />
-              <Clock className="w-3.5 h-3.5 text-[#4ADE80]" />
-              <span className="text-[#4ADE80] font-semibold">{liveUpdatedTime}</span>
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#D4D4D4] border border-[#34D399]/30 bg-[#34D399]/10 shadow-[0_0_15px_rgba(52,211,153,0.15)]">
+              <span className="w-2 h-2 rounded-full bg-[#34D399] animate-pulse shadow-[0_0_8px_#34D399]" />
+              <Clock className="w-3.5 h-3.5 text-[#34D399]" />
+              <span className="text-[#34D399] font-semibold">{liveUpdatedTime}</span>
             </span>
           </div>
 
@@ -538,23 +538,26 @@ export function DownloadPage() {
                       )}
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                      <h2 className="text-xl font-bold text-[#F5F5F5] flex items-center gap-2">
                         KnowToMigrate for {platform.name}
                         <span className="text-xs bg-[#FF5A00]/15 text-[#FF8A00] border border-[#FF5A00]/30 font-semibold px-2 py-0.5 rounded-md">
                           v{suggestedEntry.version}
                         </span>
                       </h2>
-                      <p className="text-xs text-[#888888] mt-1 leading-relaxed">
+                      <p className="text-xs text-[#9A9A9A] mt-1 leading-relaxed">
                         {suggestedEntry.requirements}
                       </p>
-                      <p className="text-xs text-[#FF8A00] mt-1 font-medium flex items-center gap-1.5 flex-wrap">
-                        <span>File: {suggestedEntry.filename} · {suggestedEntry.size}</span>
-                        <span>·</span>
-                        <span className="text-[#4ADE80] flex items-center gap-1 font-semibold">
-                          <Clock className="w-3.5 h-3.5 text-[#4ADE80]" />
-                          {liveUpdatedTime}
+                      <div className="flex items-center gap-2 mt-2.5 flex-wrap text-xs">
+                        <span className="text-[#9A9A9A]">
+                          File: <span className="text-[#F5F5F5] font-medium">{suggestedEntry.filename}</span> · <span className="text-[#D4D4D4] font-medium">{suggestedEntry.size}</span>
                         </span>
-                      </p>
+                        <span className="text-white/20">·</span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-[#34D399] bg-[#34D399]/10 border border-[#34D399]/25 shadow-[0_0_10px_rgba(52,211,153,0.1)]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse shadow-[0_0_6px_#34D399]" />
+                          <Clock className="w-3 h-3 text-[#34D399]" />
+                          <span>{liveUpdatedTime}</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -563,6 +566,7 @@ export function DownloadPage() {
                     entry={suggestedEntry}
                     icon={platform.type === 'windows' ? Monitor : Smartphone}
                     isRecommendedDevice={true}
+                    liveUpdatedTime={liveUpdatedTime}
                   />
 
                   {/* Quick secondary links */}
@@ -750,6 +754,7 @@ export function DownloadPage() {
                       entry={entry}
                       icon={Monitor}
                       isRecommendedDevice={isWindowsDetected && entry.recommended}
+                      liveUpdatedTime={liveUpdatedTime}
                     />
                   </div>
                 ))}
@@ -799,6 +804,7 @@ export function DownloadPage() {
                       entry={entry}
                       icon={Smartphone}
                       isRecommendedDevice={isAndroidDetected && entry.recommended}
+                      liveUpdatedTime={liveUpdatedTime}
                     />
                   </div>
                 ))}

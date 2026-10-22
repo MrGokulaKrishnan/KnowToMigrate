@@ -4,7 +4,7 @@
     "version": "1.0.5",
     "minimumSupportedVersion": "1.0.0",
     "mandatory": false,
-    "publishedAt": "2026-10-22T06:22:22Z",
+    "publishedAt": "2026-10-22T08:13:37Z",
     "windows": {
         "architecture": "x64",
         "installerType": "exe",

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Shield, Wifi, Smartphone, Monitor, ArrowRight, CheckCircle, Zap, RefreshCw, Lock, LayoutGrid, Radio, Link2, Globe, Download } from 'lucide-react'
 import { usePlatformDetection } from '../utils/platform'
@@ -74,11 +74,20 @@ interface HomePageProps {
 
 export function HomePage({ onOpenAppPreview }: HomePageProps) {
   const platform = usePlatformDetection()
-  const liveUpdatedTime = useLiveTimeAgo('2026-10-22T06:22:22Z')
+  const [publishedAt, setPublishedAt] = useState<string>('2026-10-22T08:13:37Z')
+  const liveUpdatedTime = useLiveTimeAgo(publishedAt)
 
-  // Update document title
+  // Update document title and sync publishedAt from manifest
   useEffect(() => {
     document.title = 'KnowToMigrate  -  Move Anything. Anywhere. Seamlessly.'
+    fetch('/update-manifest.json?_cb=' + Date.now())
+      .then(res => res.json())
+      .then(manifest => {
+        if (manifest?.publishedAt) {
+          setPublishedAt(manifest.publishedAt)
+        }
+      })
+      .catch(() => {})
   }, [])
 
   const getHeroCta = () => {
@@ -120,7 +129,7 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
       }}>
         <strong>KnowToMigrate 1.0.5</strong> &mdash; Standalone high-speed encrypted local transfers for Windows and Android.
         &nbsp;&middot;&nbsp;
-        <span style={{ color: '#4ADE80', fontWeight: 600 }}>{liveUpdatedTime}</span>
+        <span style={{ color: '#34D399', fontWeight: 600 }}>{liveUpdatedTime}</span>
         &nbsp;&middot;&nbsp;
         <a
           href="https://github.com/MrGokulaKrishnan/KnowToMigrate"
