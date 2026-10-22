@@ -6,7 +6,13 @@ package com.knowtomigrate.app.ui.screens
  * AMOLED black, KM Orange accents, Liquid Glass surfaces, 3-tab floating bottom bar
  */
 
+import android.content.Context
+import android.net.Uri
+import android.net.wifi.WifiManager
 import android.os.Build
+import android.text.format.Formatter
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,20 +25,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.knowtomigrate.app.R
 import com.knowtomigrate.app.ui.components.*
 import com.knowtomigrate.app.ui.navigation.Screen
 import com.knowtomigrate.app.ui.theme.*
@@ -43,11 +53,41 @@ fun ReceiveScreen(navController: NavController) {
     val manager = remember { com.knowtomigrate.app.network.KtmAndroidManager.getInstance(context) }
     val serverProg by manager.serverProgress.collectAsState()
 
-    var isAcceptingFiles by remember { mutableStateOf(true) }
-    var isDetailsExpanded by remember { mutableStateOf(false) }
-    var saveFolder by remember { mutableStateOf("Downloads / KnowToMigrate") }
+    var isAcceptingFiles by rememberSaveable { mutableStateOf(true) }
+    var isDetailsExpanded by rememberSaveable { mutableStateOf(false) }
+    var saveFolder by rememberSaveable { mutableStateOf("Downloads / KnowToMigrate") }
+    var deviceName by rememberSaveable { mutableStateOf(Build.MODEL ?: "Android Phone") }
+    var showEditNameDialog by remember { mutableStateOf(false) }
+    var pendingDeviceName by remember { mutableStateOf(deviceName) }
 
-    // If active incoming transfer starts, navigate to TransferScreen
+    // SAF folder picker launcher
+    val folderPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            val segment = uri.lastPathSegment ?: "Selected Folder"
+            val cleanName = segment.substringAfterLast(":").ifEmpty { segment }
+            saveFolder = cleanName
+        }
+    }
+
+    // Local IP address detection
+    val localIpAddress = remember {
+        try {
+            val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+            val ipInt = wifiManager?.connectionInfo?.ipAddress ?: 0
+            if (ipInt != 0) {
+                @Suppress("DEPRECATION")
+                Formatter.formatIpAddress(ipInt)
+            } else {
+                "192.168.1.10"
+            }
+        } catch (_: Exception) {
+            "192.168.1.10"
+        }
+    }
+
+    // Navigate to active transfer if incoming transfer starts
     LaunchedEffect(serverProg.status) {
         if (serverProg.status == com.knowtomigrate.app.network.TransferStatus.TRANSFERRING) {
             navController.navigate(Screen.Transfer.withSession("incoming"))
@@ -74,7 +114,7 @@ fun ReceiveScreen(navController: NavController) {
                 .fillMaxSize()
                 .background(KmBlack)
                 .padding(paddingValues),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             // 1. Top row: Header & State text with toggle switch
@@ -88,18 +128,29 @@ fun ReceiveScreen(navController: NavController) {
                 ) {
                     Column {
                         Text(
-                            text = "Receive",
+                            text = stringResource(R.string.nav_receive),
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFFF5F5F5)
+                            color = KmTextPrimary
                         )
                         Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = if (isAcceptingFiles) "Accepting files" else "Not accepting files",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = if (isAcceptingFiles) KmOnline else KmTextMuted
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(7.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isAcceptingFiles) KmOnline else KmTextMuted)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = stringResource(
+                                    if (isAcceptingFiles) R.string.receive_status_active else R.string.receive_status_inactive
+                                ),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = if (isAcceptingFiles) KmOnline else KmTextMuted
+                            )
+                        }
                     }
 
                     Switch(
@@ -111,7 +162,8 @@ fun ReceiveScreen(navController: NavController) {
                             uncheckedThumbColor = KmTextMuted,
                             uncheckedTrackColor = KmBlackElevated,
                             uncheckedBorderColor = KmGlassBorder
-                        )
+                        ),
+                        modifier = Modifier.size(width = 52.dp, height = 48.dp)
                     )
                 }
             }
@@ -121,14 +173,20 @@ fun ReceiveScreen(navController: NavController) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .alpha(if (isAcceptingFiles) 1f else 0.42f)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(KmGlassBackground)
-                        .border(1.dp, KmGlassBorder, RoundedCornerShape(16.dp))
+                        .alpha(if (isAcceptingFiles) 1f else 0.38f)
+                        .clip(RoundedCornerShape(KmRadii.Card))
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    KmGlassSurfaceSecondary,
+                                    KmGlassBackground
+                                )
+                            )
+                        )
+                        .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.Card))
                         .drawBehind {
-                            // 1px top highlight at 28% white
                             drawLine(
-                                color = Color(0x47FFFFFF),
+                                color = Color(0x38FFFFFF),
                                 start = Offset(0f, 0.5f),
                                 end = Offset(size.width, 0.5f),
                                 strokeWidth = 1f
@@ -142,48 +200,75 @@ fun ReceiveScreen(navController: NavController) {
                         verticalArrangement = Arrangement.Center
                     ) {
                         if (isAcceptingFiles) {
-                            KmRadarWidget(size = 64.dp)
+                            KmRadarWidget(size = 56.dp)
                             Spacer(modifier = Modifier.height(14.dp))
+
+                            Text(
+                                text = stringResource(R.string.pairing_pin_title),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = KmTextMuted
+                            )
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            Text(
+                                text = "482 915",
+                                fontSize = 34.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace,
+                                letterSpacing = 4.sp,
+                                color = KmTextPrimary
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = stringResource(R.string.pairing_pin_caption),
+                                fontSize = 12.sp,
+                                color = KmTextMuted,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.CloudOff,
+                                contentDescription = null,
+                                tint = KmTextMuted,
+                                modifier = Modifier.size(44.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Text(
+                                text = stringResource(R.string.receive_turn_on_to_receive),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = KmTextSecondary
+                            )
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            Text(
+                                text = "Turn on receiving above to accept incoming files and display your pairing PIN.",
+                                fontSize = 12.sp,
+                                color = KmTextMuted,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
                         }
-
-                        Text(
-                            text = "Pairing PIN",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = KmTextMuted
-                        )
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        Text(
-                            text = "482 915",
-                            fontSize = 34.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 4.sp,
-                            color = Color(0xFFF5F5F5)
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Check this matches the PIN on the sending device before you accept.",
-                            fontSize = 12.sp,
-                            color = KmTextMuted,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 8.dp)
-                        )
                     }
                 }
             }
 
-            // 3. "This phone" row
+            // 3. "This phone" row (editable device name)
             item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(KmRadii.ListRow))
                         .background(KmGlassBackground)
-                        .border(1.dp, KmGlassBorder, RoundedCornerShape(14.dp))
+                        .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.ListRow))
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -204,18 +289,39 @@ fun ReceiveScreen(navController: NavController) {
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = Build.MODEL ?: "Android Device",
+                            text = deviceName,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFFF5F5F5)
+                            color = KmTextPrimary
                         )
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = if (isAcceptingFiles) "Visible to nearby devices" else "Hidden from nearby devices",
+                            text = stringResource(
+                                if (isAcceptingFiles) R.string.label_visible_nearby else R.string.label_hidden_nearby
+                            ),
                             fontSize = 12.sp,
                             color = KmTextMuted
                         )
                     }
-                    KmStatusDot(status = if (isAcceptingFiles) "online" else "offline")
+
+                    // Edit button (touch target >= 48dp)
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                pendingDeviceName = deviceName
+                                showEditNameDialog = true
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit device name",
+                            tint = KmTextSecondary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
 
@@ -224,10 +330,10 @@ fun ReceiveScreen(navController: NavController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(KmRadii.ListRow))
                         .background(KmGlassBackground)
-                        .border(1.dp, KmGlassBorder, RoundedCornerShape(14.dp))
-                        .padding(16.dp),
+                        .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.ListRow))
+                        .padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -240,7 +346,7 @@ fun ReceiveScreen(navController: NavController) {
                         Icon(
                             imageVector = Icons.Default.Folder,
                             contentDescription = null,
-                            tint = Color(0xFFF5F5F5),
+                            tint = KmTextPrimary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -250,84 +356,57 @@ fun ReceiveScreen(navController: NavController) {
                             text = saveFolder,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFFF5F5F5)
+                            color = KmTextPrimary
                         )
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "Shows in Gallery and Files",
+                            text = "Saved files show in Downloads and Files",
                             fontSize = 12.sp,
                             color = KmTextMuted
                         )
                     }
+
+                    // Change folder button (touch target >= 48dp)
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
+                            .height(48.dp)
+                            .clip(RoundedCornerShape(KmRadii.Button))
                             .background(Color(0x1AFFFFFF))
-                            .border(1.dp, KmGlassBorder, RoundedCornerShape(8.dp))
-                            .clickable {
-                                // Folder location
-                            }
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.Button))
+                            .clickable { folderPickerLauncher.launch(null) }
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "Change",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color(0xFFF5F5F5)
-                        )
-                    }
-                }
-            }
-
-            // 5. "Not encrypted yet" warning row
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(Color(0x0FFFC24D))
-                        .border(1.dp, Color(0x33FFC24D), RoundedCornerShape(14.dp))
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = null,
-                        tint = KmWarning,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Not encrypted yet",
                             fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = KmWarning
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "Transfers stay on your local network but are not encrypted. Do not use on public Wi-Fi.",
-                            fontSize = 11.sp,
-                            lineHeight = 15.sp,
-                            color = Color(0xFFCCCCCC)
+                            fontWeight = FontWeight.Medium,
+                            color = KmTextPrimary
                         )
                     }
                 }
             }
 
-            // 6. Details disclosure
+            // 5. Honest security status row
+            item {
+                KmSecurityNoticeRow()
+            }
+
+            // 6. Details disclosure (collapsed by default)
             item {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(KmRadii.ListRow))
                         .background(KmGlassBackground)
-                        .border(1.dp, KmGlassBorder, RoundedCornerShape(14.dp))
+                        .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.ListRow))
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .heightIn(min = 48.dp)
                             .clickable { isDetailsExpanded = !isDetailsExpanded }
-                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -335,7 +414,7 @@ fun ReceiveScreen(navController: NavController) {
                             text = "Details",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFFF5F5F5)
+                            color = KmTextPrimary
                         )
                         Icon(
                             imageVector = if (isDetailsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
@@ -350,31 +429,89 @@ fun ReceiveScreen(navController: NavController) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                             Spacer(modifier = Modifier.height(2.dp))
                             ReceiveDetailItem(
-                                label = "Unique ID",
+                                label = "Device ID",
                                 value = "android-${Build.MODEL.lowercase().replace(' ', '-')}"
                             )
                             ReceiveDetailItem(
-                                label = "Transfer Port",
+                                label = "Local IP",
+                                value = localIpAddress
+                            )
+                            ReceiveDetailItem(
+                                label = "Transfer port",
                                 value = "54124"
                             )
                             ReceiveDetailItem(
-                                label = "Discovery Port",
+                                label = "Discovery port",
                                 value = "54123"
                             )
                             ReceiveDetailItem(
-                                label = "Transport",
-                                value = "Local Wi-Fi / Direct LAN"
+                                label = "Network",
+                                value = "Local Wi-Fi"
                             )
                         }
                     }
                 }
             }
         }
+    }
+
+    // Edit Device Name Dialog
+    if (showEditNameDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditNameDialog = false },
+            title = {
+                Text(
+                    text = "Edit device name",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = KmTextPrimary
+                )
+            },
+            text = {
+                OutlinedTextField(
+                    value = pendingDeviceName,
+                    onValueChange = { pendingDeviceName = it },
+                    label = { Text("Device name", color = KmTextMuted) },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = KmTextPrimary,
+                        unfocusedTextColor = KmTextPrimary,
+                        focusedBorderColor = KmOrange,
+                        unfocusedBorderColor = KmGlassBorder,
+                        focusedLabelColor = KmOrange,
+                        unfocusedLabelColor = KmTextMuted,
+                        cursorColor = KmOrange
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val trimmed = pendingDeviceName.trim()
+                        if (trimmed.isNotEmpty()) {
+                            deviceName = trimmed
+                        }
+                        showEditNameDialog = false
+                    }
+                ) {
+                    Text("Save", color = KmOrange, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditNameDialog = false }) {
+                    Text("Cancel", color = KmTextMuted)
+                }
+            },
+            containerColor = KmBlackCard,
+            tonalElevation = 8.dp,
+            shape = RoundedCornerShape(KmRadii.Card)
+        )
     }
 }
 
@@ -394,7 +531,7 @@ private fun ReceiveDetailItem(label: String, value: String) {
             text = value,
             fontSize = 12.sp,
             fontFamily = FontFamily.Monospace,
-            color = Color(0xFFF5F5F5)
+            color = KmTextPrimary
         )
     }
 }
