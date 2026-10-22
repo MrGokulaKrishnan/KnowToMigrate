@@ -1,5 +1,11 @@
 package com.knowtomigrate.app.ui.navigation
 
+/*
+ * KnowToMigrate Navigation Graph
+ * Updated: 22 October 2026
+ * 3-Tab Bottom Navigation (Home, Send, Receive) + Top-Level Destinations (History, Settings, Move device)
+ */
+
 import android.net.Uri
 import androidx.compose.animation.*
 import androidx.compose.animation.core.EaseOutCubic
@@ -20,6 +26,7 @@ sealed class Screen(val route: String) {
         fun withSession(id: String) = "transfer/$id"
     }
     object Migration : Screen("migration")
+    val MoveDevice: Screen get() = Migration
     object History : Screen("history")
     object Settings : Screen("settings")
 }
@@ -28,10 +35,10 @@ sealed class Screen(val route: String) {
 fun KtmNavGraph(sharedUris: List<Uri> = emptyList()) {
     val navController = rememberNavController()
 
-    // When launched via Android Sharesheet with shared files, open immediately into Launch Transfer screen
+    // When launched via Android Sharesheet with shared files, open immediately into Send screen
     val startDest = if (sharedUris.isNotEmpty()) Screen.Send.route else Screen.Splash.route
 
-    // If shared files arrive while app is already running, navigate immediately to Launch Transfer
+    // If shared files arrive while app is already running, navigate immediately to Send
     LaunchedEffect(sharedUris) {
         if (sharedUris.isNotEmpty()) {
             navController.navigate(Screen.Send.route) {
@@ -67,13 +74,24 @@ fun KtmNavGraph(sharedUris: List<Uri> = emptyList()) {
         composable(Screen.Send.route) {
             SendScreen(navController, initialUris = sharedUris)
         }
-        composable(Screen.Receive.route) { ReceiveScreen(navController) }
+        composable(Screen.Receive.route) {
+            ReceiveScreen(navController)
+        }
         composable(Screen.Transfer.route) { backStackEntry ->
             val sessionId = backStackEntry.arguments?.getString("sessionId") ?: ""
             TransferScreen(navController, sessionId)
         }
-        composable(Screen.Migration.route) { MigrationScreen(navController) }
-        composable(Screen.History.route) { HistoryScreen(navController) }
-        composable(Screen.Settings.route) { SettingsScreen(navController) }
+        composable(Screen.Migration.route) {
+            MigrationScreen(navController)
+        }
+        composable("move_device") {
+            MigrationScreen(navController)
+        }
+        composable(Screen.History.route) {
+            HistoryScreen(navController)
+        }
+        composable(Screen.Settings.route) {
+            SettingsScreen(navController)
+        }
     }
 }
