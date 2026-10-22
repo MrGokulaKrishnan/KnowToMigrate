@@ -21,13 +21,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="App.xaml.cs" />
-    <Compile Remove="UpdaterWindow.xaml.cs" />
-    <None Remove="App.xaml" />
-    <None Remove="UpdaterWindow.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="..\windows-wpf\Assets\KnowToMigrate.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
