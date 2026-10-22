@@ -795,79 +795,92 @@
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" Text="History" FontSize="22" FontWeight="Bold" Foreground="#F5F5F5" Margin="4,4,0,14" />
+                            <Grid Grid.Row="0" Margin="4,4,0,14">
+                                <StackPanel>
+                                    <TextBlock Text="History" FontSize="22" FontWeight="Bold" Foreground="#F5F5F5" />
+                                    <TextBlock Text="Grouped by day. Verified with SHA-256 integrity checks." FontSize="12" Foreground="#8C8C8C" Margin="0,2,0,0" />
+                                </StackPanel>
+                                <Button Content="Clear history" Click="BtnClearLedger_Click" Style="{StaticResource KmGlassButton}" MinHeight="32" Padding="14,4" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            </Grid>
 
                             <Border Grid.Row="1" Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="18">
                                 <StackPanel>
-                                    <Grid Margin="0,0,0,12">
+                                    <!-- Table Columns Header -->
+                                    <Grid Margin="4,0,4,10" Opacity="0.6">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="2.5*" />
-                                            <ColumnDefinition Width="1*" />
                                             <ColumnDefinition Width="2*" />
                                             <ColumnDefinition Width="1*" />
+                                            <ColumnDefinition Width="1.5*" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Photos_March.zip" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1" Text="1.2 GB" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="2" Text="20 MB/s" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="Verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
-                                        </Border>
-                                    </Grid>
-                                    <Border Height="1" Background="#0FFFFFFF" Margin="0,4,0,12" />
-                                    <Grid Margin="0,0,0,12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="2.5*" />
-                                            <ColumnDefinition Width="1*" />
-                                            <ColumnDefinition Width="2*" />
-                                            <ColumnDefinition Width="1*" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Resume_2026.pdf" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1" Text="0.4 MB" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="2" Text="Yesterday" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="Verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
-                                        </Border>
-                                    </Grid>
-                                    <Border Height="1" Background="#0FFFFFFF" Margin="0,4,0,12" />
-                                    <Grid Margin="0,0,0,12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="2.5*" />
-                                            <ColumnDefinition Width="1*" />
-                                            <ColumnDefinition Width="2*" />
-                                            <ColumnDefinition Width="1*" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Lecture_notes/" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1" Text="320 MB" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="2" Text="Oct 19" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="Verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
-                                        </Border>
+                                        <TextBlock Grid.Column="0" Text="File" FontSize="11" Foreground="#8C8C8C" />
+                                        <TextBlock Grid.Column="1" Text="Direction" FontSize="11" Foreground="#8C8C8C" />
+                                        <TextBlock Grid.Column="2" Text="Size" FontSize="11" Foreground="#8C8C8C" />
+                                        <TextBlock Grid.Column="3" Text="Integrity" FontSize="11" Foreground="#8C8C8C" />
                                     </Grid>
 
-                                    <!-- Dynamic Ledger Items -->
-                                    <ListBox x:Name="ListHistory" Background="Transparent" BorderThickness="0" MaxHeight="220" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <!-- Dynamic History Items with Day Grouping -->
+                                    <ListBox x:Name="ListHistory" Background="Transparent" BorderThickness="0" MaxHeight="450" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.GroupStyle>
+                                            <GroupStyle>
+                                                <GroupStyle.HeaderTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="#06FFFFFF" BorderBrush="#0DFFFFFF" BorderThickness="0,0,0,1" Padding="4,8,4,4" Margin="0,8,0,4">
+                                                            <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" Foreground="#FF8A00" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </GroupStyle.HeaderTemplate>
+                                            </GroupStyle>
+                                        </ListBox.GroupStyle>
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="ListBoxItem">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ListBoxItem">
+                                                            <Border x:Name="RowBorder" Background="Transparent" BorderBrush="#0DFFFFFF" BorderThickness="0,0,0,1" Padding="4,8">
+                                                                <ContentPresenter />
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="RowBorder" Property="Background" Value="#08FFFFFF" />
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
-                                                <Grid Margin="0,4">
+                                                <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="2.5*" />
-                                                        <ColumnDefinition Width="1*" />
                                                         <ColumnDefinition Width="2*" />
                                                         <ColumnDefinition Width="1*" />
+                                                        <ColumnDefinition Width="1.5*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="{Binding FileName}" FontSize="12" Foreground="#F5F5F5" />
-                                                    <TextBlock Grid.Column="1" Text="{Binding FormattedSize}" FontSize="12" Foreground="#8C8C8C" />
-                                                    <TextBlock Grid.Column="2" Text="{Binding Timestamp, StringFormat='{}{0:HH:mm}'}" FontSize="12" Foreground="#8C8C8C" />
-                                                    <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="6,2" HorizontalAlignment="Left">
-                                                        <TextBlock Text="Verified" Foreground="#4ADE80" FontSize="10" />
+                                                    <TextBlock Grid.Column="0" Text="{Binding FileName}" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding DirectionDisplay}" FontSize="12" Foreground="{Binding DirectionBrush}" FontWeight="Medium" Margin="0,0,6,0" />
+                                                        <TextBlock Text="{Binding DeviceName}" FontSize="12" Foreground="#8C8C8C" TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="2" Text="{Binding FormattedSize}" FontSize="12" Foreground="#8C8C8C" VerticalAlignment="Center" />
+                                                    <Border Grid.Column="3" Background="{Binding StatusBadgeBgBrush}" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding StatusBadge}" Foreground="{Binding StatusBadgeBrush}" FontSize="11" FontWeight="SemiBold" />
                                                     </Border>
                                                 </Grid>
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                     </ListBox>
-                                    <StackPanel x:Name="PanelLedgerEmpty" Visibility="Collapsed">
-                                        <TextBlock Text="No past transfers" Foreground="#555555" FontSize="12" Margin="0,8,0,0" />
-                                    </StackPanel>
+
+                                    <!-- Empty State -->
+                                    <Border x:Name="PanelLedgerEmpty" Background="#04FFFFFF" BorderBrush="#0DFFFFFF" BorderThickness="1" CornerRadius="12" Padding="20,40" Margin="0,10,0,0" Visibility="Collapsed">
+                                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource KmIconFile}" Stroke="#555555" StrokeThickness="1.5" Width="30" Height="30" HorizontalAlignment="Center" Margin="0,0,0,12" />
+                                            <TextBlock Text="No past transfers" FontSize="14" FontWeight="Medium" Foreground="#8C8C8C" HorizontalAlignment="Center" />
+                                            <TextBlock Text="Transfers you send and receive will appear here grouped by day." FontSize="11" Foreground="#555555" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
                             </Border>
                         </Grid>

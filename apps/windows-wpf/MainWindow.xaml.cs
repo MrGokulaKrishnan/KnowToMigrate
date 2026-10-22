@@ -126,7 +126,12 @@ namespace KnowToMigrate
                 {
                     _ledgerEntries.Add(hItem);
                 }
-                ListHistory.ItemsSource = _ledgerEntries;
+                var historyView = System.Windows.Data.CollectionViewSource.GetDefaultView(_ledgerEntries);
+                if (historyView != null && historyView.GroupDescriptions.Count == 0)
+                {
+                    historyView.GroupDescriptions.Add(new System.Windows.Data.PropertyGroupDescription("DayGroup"));
+                }
+                ListHistory.ItemsSource = historyView;
                 if (ListHomeRecent != null)
                 {
                     ListHomeRecent.ItemsSource = _ledgerEntries;
@@ -1731,12 +1736,12 @@ namespace KnowToMigrate
 
         private void BtnClearLedger_Click(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to clear your Migration Ledger history?", "Clear Ledger", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (MessageBox.Show("Are you sure you want to clear your transfer history?", "Clear History", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 UserSettingsManager.ClearHistory();
                 _ledgerEntries.Clear();
                 UpdateLedgerUI();
-                ShowNotificationBanner("Ledger Cleared", "Transfer history records have been cleared.", true);
+                ShowNotificationBanner("History Cleared", "Transfer history records have been cleared.", true);
             }
         }
 

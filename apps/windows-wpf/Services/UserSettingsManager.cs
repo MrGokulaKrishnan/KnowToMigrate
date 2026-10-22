@@ -90,6 +90,31 @@ namespace KnowToMigrate.Services
 
         [JsonIgnore]
         public string VerifiedBadge => string.IsNullOrEmpty(Sha256) || Sha256 == "pending" ? "VERIFIED" : "SHA-256 VERIFIED";
+
+        [JsonIgnore]
+        public string DayGroup
+        {
+            get
+            {
+                var local = TimestampUtc.ToLocalTime();
+                if (local.Date == DateTime.Today) return "Today";
+                if (local.Date == DateTime.Today.AddDays(-1)) return "Yesterday";
+                return local.ToString("dd MMMM yyyy");
+            }
+        }
+
+        [JsonIgnore]
+        public string StatusBadge => Status == "Complete" ? "Verified" : Status;
+
+        [JsonIgnore]
+        public SolidColorBrush StatusBadgeBrush => Status == "Complete"
+            ? new SolidColorBrush(Color.FromRgb(74, 222, 128))
+            : new SolidColorBrush(Color.FromRgb(239, 68, 68));
+
+        [JsonIgnore]
+        public SolidColorBrush StatusBadgeBgBrush => Status == "Complete"
+            ? new SolidColorBrush(Color.FromArgb(38, 74, 222, 128))
+            : new SolidColorBrush(Color.FromArgb(38, 239, 68, 68));
     }
 
     public class TrustedDeviceItem
