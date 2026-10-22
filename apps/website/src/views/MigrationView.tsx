@@ -403,13 +403,13 @@ export const MigrationView: React.FC<MigrationViewProps> = ({ onStartMigrationTr
                 <Key className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-white text-sm">X25519 Ephemeral Key Agreement</h4>
+                <h4 className="font-bold text-white text-sm">Direct Device Pairing</h4>
                 <p className="text-xs text-gray-400">Zero cloud exchange. Direct local link.</p>
               </div>
             </div>
             <div className="p-4 rounded-xl bg-black/60 border border-white/5 flex items-center justify-between text-xs">
               <span className="text-gray-400">Session Security Token:</span>
-              <span className="font-mono text-[#22C55E] font-bold">KTM-SESSION-ECDH-VERIFIED</span>
+              <span className="font-mono text-[#22C55E] font-bold">KTM-LOCAL-SESSION-VERIFIED</span>
             </div>
           </div>
 

@@ -46,8 +46,8 @@ const features = [
   },
   {
     icon: Lock,
-    title: 'End-to-End Encryption',
-    description: 'All transfers are encrypted with AES-256-GCM using ephemeral X25519 ECDH key exchange. Even if intercepted on your local network, data cannot be read.',
+    title: 'Direct Local Transfer',
+    description: 'Files stream directly over your local Wi-Fi or Ethernet network without cloud servers or intermediaries, verified end-to-end with SHA-256 chunk digests.',
     badge: 'Security',
   },
   {

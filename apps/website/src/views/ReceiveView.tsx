@@ -136,7 +136,7 @@ export const ReceiveView: React.FC<ReceiveViewProps> = ({ onSimulateIncoming }) 
                 Session token expires in <strong className="text-white">09:24</strong>
               </p>
               <span className="inline-block text-[11px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-medium">
-                End-to-End Encrypted Session
+                Direct Local Network Session
               </span>
             </div>
           </div>

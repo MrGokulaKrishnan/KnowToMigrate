@@ -60,7 +60,7 @@ const FEATURES = [
   { icon: Wifi,        title: 'Offline Local Transfer',    desc: 'Transfers over the same Wi-Fi network  -  no internet, no cloud, no upload. Both devices must be on the same local network.' },
   { icon: Zap,         title: 'Streaming 8 MB Chunks',     desc: 'Files never fully load into RAM. Each 8 MB chunk is streamed, hashed, and ACK\'d independently  -  enabling 100 GB+ transfers.' },
   { icon: RefreshCw,   title: 'Resumable Transfers',       desc: 'Checkpoint files track each verified chunk. If your connection drops, only unverified chunks are re-sent on reconnect.' },
-  { icon: Shield,      title: 'AES-256-GCM Encryption',    desc: 'All data is encrypted with AES-256-GCM using ephemeral session keys derived via X25519 ECDH. Keys exist only for the session.' },
+  { icon: Shield,      title: 'Direct Local Transfer',     desc: 'High-speed peer-to-peer file transfer directly across your local Wi-Fi without cloud routing or external intermediaries.' },
   { icon: CheckCircle, title: 'SHA-256 Integrity',         desc: 'Every chunk carries a SHA-256 digest. A Merkle root over all chunks is verified after transfer completes on both sides.' },
   { icon: Lock,        title: 'No Account Required',       desc: 'No sign-up, no email, no cloud account. Device identity is a locally-generated keypair stored on your device.' },
   { icon: Smartphone,  title: 'Android Native App',        desc: 'Kotlin + Jetpack Compose. JNI bridge to the Rust core library (libktm_ffi.so). Foreground service for background receiving.' },
@@ -260,7 +260,7 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
 
           {/* Trust pills */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.875rem', justifyContent: 'center' }}>
-            {['AES-256-GCM', 'SHA-256 Merkle', 'X25519 ECDH', 'No Account', 'Works Offline', 'Open Source'].map(t => (
+            {['Local Network', 'SHA-256 Merkle', 'Direct P2P', 'No Account', 'Works Offline', 'Open Source'].map(t => (
               <span key={t} style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.40)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                 <CheckCircle size={12} style={{ color: '#FF5A00' }} /> {t}
               </span>
@@ -282,7 +282,7 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
             {[
-              { label: 'Production Ready', items: ['Rust core library (ktm_ffi.dll / libktm_ffi.a) compiled', 'AES-256-GCM encryption layer', 'X25519 key exchange', 'SHA-256 Merkle integrity', 'UDP discovery (port 54123)', 'TCP chunk streaming (port 54124)', '8 MB streaming chunker + checkpoints', 'Windows WPF Standalone (.exe & .msi)', 'Android Jetpack Compose Native (.apk)'] },
+              { label: 'Production Ready', items: ['Rust core library (ktm_ffi.dll / libktm_ffi.a) compiled', 'Direct TCP chunk streaming (port 54124)', 'SHA-256 Merkle integrity', 'UDP discovery (port 54123)', '8 MB streaming chunker + checkpoints', 'Windows WPF Standalone (.exe & .msi)', 'Android Jetpack Compose Native (.apk)'] },
               { label: 'In Active Development', items: ['QR pairing handshake UI', 'Background transfer recovery agent', 'Cross-subnet STUN traversal', 'Storage pre-flight verification'] },
               { label: 'Planned Platforms', items: ['macOS native client (.dmg)', 'Linux standalone (.AppImage)', 'Direct Wi-Fi P2P Group Owner negotiation'] },
             ].map(({ label, items }) => (

@@ -63,7 +63,7 @@ export function DocsPage() {
           <div className="space-y-4 text-[#8A8A8A]">
             <p>KnowToMigrate uses a layered security model:</p>
             <ul className="list-disc pl-5 space-y-2">
-              <li><strong className="text-white">Transport Encryption</strong>: AES-256-GCM with per-session keys derived via X25519 Ephemeral Diffie-Hellman</li>
+              <li><strong className="text-white">Direct Local Transport</strong>: Local TCP socket streaming with per-chunk SHA-256 integrity verification</li>
               <li><strong className="text-white">Integrity Verification</strong>: SHA-256 Merkle tree computed over all chunks  -  verified after transfer</li>
               <li><strong className="text-white">Device Identity</strong>: Persistent device keypair stored locally  -  no central authority</li>
               <li><strong className="text-white">Path Traversal Protection</strong>: All received file paths are sanitized  -  no <code>../</code> escapes possible</li>

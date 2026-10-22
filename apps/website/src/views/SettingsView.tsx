@@ -97,14 +97,14 @@ export const SettingsView: React.FC = () => {
           </div>
           <label className="flex items-center justify-between cursor-pointer">
             <div>
-              <p className="font-semibold text-white">AES-256-GCM Encryption</p>
-              <p className="text-xs text-gray-400">Enforce end-to-end authenticated encryption</p>
+              <p className="font-semibold text-white">Transfer Encryption (Planned)</p>
+              <p className="text-xs text-gray-400">Direct local transfer active (encryption specification in docs/SECURITY_PLAN.md)</p>
             </div>
             <input
               type="checkbox"
-              checked={encryptTransfers}
-              onChange={(e) => setEncryptTransfers(e.target.checked)}
-              className="w-5 h-5 accent-[#FF5A00] rounded cursor-pointer"
+              checked={false}
+              disabled
+              className="w-5 h-5 accent-[#FF5A00] rounded opacity-50 cursor-not-allowed"
             />
           </label>
           <label className="flex items-center justify-between cursor-pointer">

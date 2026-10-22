@@ -7,16 +7,16 @@ export function SecurityPage() {
         </span>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#fff', marginBottom: '0.75rem' }}>Security Model</h1>
         <p style={{ color: '#666', marginBottom: '3rem', lineHeight: 1.7 }}>
-          This page describes the cryptographic design of KnowToMigrate v1.0 (Public Beta). Because the product is in active development, this document is updated with each significant change.
+          This page describes the security and integrity architecture of KnowToMigrate. Direct local socket streaming currently features SHA-256 Merkle chunk verification; end-to-end transport encryption is specified in docs/SECURITY_PLAN.md for upcoming release.
         </p>
 
-        <Section title="Transport Encryption">
-          <p>All data transferred between KnowToMigrate devices is encrypted using <strong>AES-256-GCM</strong>.</p>
+        <Section title="Transport Security (Planned Architecture)">
+          <p>The planned cryptographic transfer pipeline specifies <strong>AES-256-GCM</strong> authenticated encryption:</p>
           <ul>
-            <li><strong>Key derivation:</strong> An ephemeral <strong>X25519 Elliptic-Curve Diffie-Hellman</strong> exchange is performed at session start. Neither device's long-term key is transmitted.</li>
+            <li><strong>Key derivation:</strong> An ephemeral <strong>X25519 Elliptic-Curve Diffie-Hellman</strong> exchange performed at session start. Neither device's long-term key is transmitted.</li>
             <li><strong>Session keys:</strong> Derived from the shared ECDH secret for that session only. Discarded after the session ends.</li>
             <li><strong>Nonce:</strong> 96-bit random nonce per AES-GCM encryption call.</li>
-            <li><strong>Library:</strong> Rust <code>aes-gcm 0.10</code> crate (RustCrypto)  -  no custom crypto.</li>
+            <li><strong>Library:</strong> Rust <code>aes-gcm</code> crate (RustCrypto)  -  no custom crypto.</li>
           </ul>
         </Section>
 

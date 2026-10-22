@@ -280,7 +280,7 @@ fun MigrationScreen(navController: NavController) {
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        text = "${selectedDevice?.ip ?: "LAN"} • Pluto Direct • AES-256-GCM",
+                                        text = "${selectedDevice?.ip ?: "LAN"} • Local network",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = KmTextMuted
                                     )

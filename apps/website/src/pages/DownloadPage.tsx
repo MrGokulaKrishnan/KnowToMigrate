@@ -672,7 +672,7 @@ export function DownloadPage() {
           {/* Trust badges */}
           <div className="flex flex-wrap justify-center gap-5 text-xs text-[#8A8A8A]">
             {[
-              { icon: Shield, text: 'AES-256-GCM Encrypted' },
+              { icon: Shield, text: 'Direct P2P Local Transfer' },
               { icon: CheckCircle, text: 'SHA-256 Integrity Verified' },
               { icon: CheckCircle, text: 'Zero Cloud Storage' },
               { icon: CheckCircle, text: 'Works 100% Offline' },

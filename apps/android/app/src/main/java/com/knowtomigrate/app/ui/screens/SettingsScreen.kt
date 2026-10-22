@@ -603,7 +603,7 @@ fun SettingsScreen(navController: NavController) {
                     HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsInfoRow(label = "Protocol Specification", value = "Pluto v2 Multi-Transport")
                     HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
-                    SettingsInfoRow(label = "Encryption Standard", value = "AES-256-GCM + X25519")
+                    SettingsInfoRow(label = "Encryption", value = "Not enabled yet")
                     HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
                     SettingsInfoRow(label = "Official Website", value = "knowtomigrate.web.app")
                 }

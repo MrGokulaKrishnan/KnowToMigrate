@@ -24,8 +24,8 @@ export function PrivacyPage() {
 
         <PSection title="Data stored locally on your device">
           <ul>
-            <li>Your device keypair (X25519 public/private key)  -  used for pairing. Stays on-device.</li>
-            <li>Your trusted device list  -  public key fingerprints of devices you've approved. Stays on-device.</li>
+            <li>Your device identifier and display name  -  used for local discovery. Stays on-device.</li>
+            <li>Your trusted device list  -  identifiers of devices you've approved. Stays on-device.</li>
             <li>Transfer history and checkpoint files  -  stored in the app's local data directory. Never synced.</li>
             <li>Your settings (device name, receive folder, visibility preference).</li>
           </ul>
@@ -34,8 +34,8 @@ export function PrivacyPage() {
         <PSection title="Network traffic">
           <p>During a local transfer, the following data is sent <em>only between your two devices on your local network</em>:</p>
           <ul>
-            <li>UDP discovery beacons (device name, public key fingerprint, port). Broadcast to your local subnet only.</li>
-            <li>Encrypted file chunks (AES-256-GCM). Recipient device only.</li>
+            <li>UDP discovery beacons (device name, identifier, port). Broadcast to your local subnet only.</li>
+            <li>Streamed file chunks with SHA-256 integrity digests. Recipient device only.</li>
             <li>Transfer manifest (file names, sizes). Recipient device only.</li>
           </ul>
           <p>None of this traffic is routed through our infrastructure.</p>
