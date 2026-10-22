@@ -185,10 +185,6 @@
                     <TextBlock x:Name="TxtDownloadSpeedEta" />
                     <TextBlock x:Name="TxtDownloadBytesCount" />
                     <TextBlock x:Name="TxtUpdateStatusSummary" />
-                    <TextBlock x:Name="TxtElapsed" />
-                    <TextBlock x:Name="TxtEta" />
-                    <TextBlock x:Name="TxtTransferredSize" />
-                    <TextBlock x:Name="TxtActiveTransport" />
                     <TextBlock x:Name="TxtBestTransportBadge" />
                     <TextBlock x:Name="TxtDirection" />
                     <TextBlock x:Name="TxtDiagSpeed" />
@@ -475,7 +471,7 @@
                                     <DockPanel>
                                         <!-- Action Buttons at Top -->
                                         <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
-                                            <TextBlock Text="Staged Items" FontSize="13" FontWeight="SemiBold" Foreground="#8C8C8C" VerticalAlignment="Center" />
+                                            <TextBlock Text="Staged items" FontSize="13" FontWeight="SemiBold" Foreground="#8C8C8C" VerticalAlignment="Center" />
                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                                 <Button Content="+ Files" Click="ChooseFiles_Click" Style="{StaticResource KmGlassButton}" MinHeight="32" Padding="12,4" Margin="0,0,6,0" FontSize="12" />
                                                 <Button Content="+ Folder" Click="ChooseFolder_Click" Style="{StaticResource KmGlassButton}" MinHeight="32" Padding="12,4" Margin="0,0,6,0" FontSize="12" />
@@ -483,88 +479,133 @@
                                             </StackPanel>
                                         </Grid>
 
-                                        <!-- Prototype File Rows -->
-                                        <StackPanel DockPanel.Dock="Top">
-                                            <Border Background="#05FFFFFF" BorderBrush="#10FFFFFF" BorderThickness="1" CornerRadius="12" Padding="12,10" Margin="0,0,0,8">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <CheckBox IsChecked="True" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                        <TextBlock Text="Photos_March.zip" FontSize="13" Foreground="#F5F5F5" FontWeight="Medium" />
-                                                        <TextBlock Text="1.2 GB" FontSize="11" Foreground="#8C8C8C" Margin="0,1,0,0" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
+                                        <!-- Real Staged Files List -->
+                                        <ListBox x:Name="ListStagedFiles" Background="Transparent" BorderThickness="0" MaxHeight="380" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                            <ListBox.ItemContainerStyle>
+                                                <Style TargetType="ListBoxItem">
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="ListBoxItem">
+                                                                <Border x:Name="ItemBorder" Background="#05FFFFFF" BorderBrush="#10FFFFFF" BorderThickness="1" CornerRadius="12" Padding="12,10" Margin="0,0,0,8">
+                                                                    <ContentPresenter />
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="ItemBorder" Property="Background" Value="#0DFFFFFF" />
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </ListBox.ItemContainerStyle>
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Path Grid.Column="0" Data="{StaticResource KmIconFile}" Stroke="#FF8A00" StrokeThickness="1.8" Width="18" Height="18" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding FileName}" FontSize="13" Foreground="#F5F5F5" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock Text="{Binding FormattedSize}" FontSize="11" Foreground="#8C8C8C" Margin="0,1,0,0" />
+                                                        </StackPanel>
+                                                        <Button Grid.Column="3" Content="&#x2715;" Tag="{Binding FullPath}" Click="RemoveStagedFile_Click" Style="{StaticResource KmGlassButton}" MinHeight="26" Width="26" Padding="0" FontSize="11" Foreground="#8C8C8C" VerticalAlignment="Center" Margin="8,0,0,0" ToolTip="Remove" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
 
-                                            <Border Background="#05FFFFFF" BorderBrush="#10FFFFFF" BorderThickness="1" CornerRadius="12" Padding="12,10" Margin="0,0,0,8">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <CheckBox IsChecked="True" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                        <TextBlock Text="Lecture_notes/" FontSize="13" Foreground="#F5F5F5" FontWeight="Medium" />
-                                                        <TextBlock Text="320 MB · folder" FontSize="11" Foreground="#8C8C8C" Margin="0,1,0,0" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
-
-                                            <Border Background="#05FFFFFF" BorderBrush="#10FFFFFF" BorderThickness="1" CornerRadius="12" Padding="12,10" Margin="0,0,0,8">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <CheckBox IsChecked="True" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                        <TextBlock Text="Resume_2026.pdf" FontSize="13" Foreground="#F5F5F5" FontWeight="Medium" />
-                                                        <TextBlock Text="0.4 MB" FontSize="11" Foreground="#8C8C8C" Margin="0,1,0,0" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
-
-                                            <Border Background="#05FFFFFF" BorderBrush="#10FFFFFF" BorderThickness="1" CornerRadius="12" Padding="12,10" Margin="0,0,0,8">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <CheckBox IsChecked="False" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                        <TextBlock Text="Videos_2025/" FontSize="13" Foreground="#F5F5F5" FontWeight="Medium" />
-                                                        <TextBlock Text="4.8 GB · folder" FontSize="11" Foreground="#8C8C8C" Margin="0,1,0,0" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
-                                        </StackPanel>
+                                        <!-- Empty State for Staged Items -->
+                                        <Border x:Name="PanelStagedEmpty" Background="#04FFFFFF" BorderBrush="#0DFFFFFF" BorderThickness="1" CornerRadius="12" Padding="16,36" Margin="0,4,0,0">
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Path Data="{StaticResource KmIconFile}" Stroke="#555555" StrokeThickness="1.5" Width="26" Height="26" HorizontalAlignment="Center" Margin="0,0,0,10" />
+                                                <TextBlock Text="No items staged for transfer" FontSize="13" FontWeight="Medium" Foreground="#8C8C8C" HorizontalAlignment="Center" />
+                                                <TextBlock Text="Use + Files or + Folder, or drag and drop from your computer." FontSize="11" Foreground="#555555" HorizontalAlignment="Center" Margin="0,4,0,0" TextWrapping="Wrap" TextAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
                                     </DockPanel>
                                 </Border>
 
-                                <!-- Right: Send To & Progress Pane -->
+                                <!-- Right: Send To, Advanced & Progress Pane -->
                                 <StackPanel Grid.Column="2">
-                                    <Border Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="18">
+                                    <!-- Send To Target Device Card -->
+                                    <Border Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="16">
                                         <StackPanel>
-                                            <TextBlock Text="Send to" FontSize="12" Foreground="#8C8C8C" />
-                                            <TextBlock x:Name="TxtSendTargetName" Text="Android phone" FontSize="16" FontWeight="Bold" Foreground="#F5F5F5" Margin="0,4,0,8" />
-                                            <TextBlock x:Name="TxtFileInfo" Text="Selected: 3 items · 1.5 GB" FontSize="12" Foreground="#8C8C8C" Margin="0,0,0,14" />
+                                            <TextBlock Text="Send to" FontSize="12" Foreground="#8C8C8C" Margin="0,0,0,8" />
+
+                                            <!-- Selectable Target Device Selector -->
+                                            <ComboBox x:Name="ComboSendDevices" SelectionChanged="ComboSendDevices_SelectionChanged"
+                                                      Background="#141414" Foreground="#F5F5F5" BorderBrush="#33FFFFFF" BorderThickness="1" MinHeight="40" Padding="10,6">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Path Data="{StaticResource KmIconDevice}" Stroke="#FF8A00" StrokeThickness="1.5" Width="14" Height="14" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                            <TextBlock Text="{Binding DeviceName}" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
+                                                            <TextBlock Text=" &#x00B7; " FontSize="12" Foreground="#666666" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding IpAddress}" FontSize="11" Foreground="#8C8C8C" VerticalAlignment="Center" />
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+
+                                            <TextBlock x:Name="TxtSendTargetName" Text="No device selected" FontSize="12" FontWeight="SemiBold" Foreground="#F5F5F5" Margin="2,8,0,2" />
+                                            <TextBlock x:Name="TxtFileInfo" Text="No files selected" FontSize="11" Foreground="#8C8C8C" Margin="2,0,0,14" />
+
+                                            <!-- Single Primary Button: Start transfer -->
                                             <Button x:Name="BtnTransfer" Click="TransferNow_Click" Style="{StaticResource KmPrimaryButton}" Content="Start transfer" MinHeight="44" />
+
+                                            <!-- Advanced Disclosure: Connect by IP Address -->
+                                            <Expander Header="Advanced" Foreground="#8C8C8C" FontSize="12" Margin="0,12,0,0" Background="Transparent" BorderThickness="0">
+                                                <Border Background="#06FFFFFF" BorderBrush="#14FFFFFF" BorderThickness="1" CornerRadius="12" Padding="12" Margin="0,6,0,0">
+                                                    <StackPanel>
+                                                        <TextBlock Text="Connect by IP address" FontSize="12" FontWeight="SemiBold" Foreground="#F5F5F5" Margin="0,0,0,4" />
+                                                        <TextBlock Text="Enter the IP address shown on the other device's Receive screen." FontSize="10" Foreground="#8C8C8C" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="6" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBox x:Name="TxtManualIp" Grid.Column="0" Text="192.168.1." Background="#0FFFFFFF" Foreground="#F5F5F5" BorderBrush="#26FFFFFF" BorderThickness="1" Padding="8,4" FontSize="12" VerticalContentAlignment="Center" />
+                                                            <Button Grid.Column="2" Content="Connect" Click="AddManualDevice_Click" Style="{StaticResource KmGlassButton}" MinHeight="32" Padding="12,2" FontSize="11" />
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </Border>
+                                            </Expander>
                                         </StackPanel>
                                     </Border>
 
                                     <!-- Real-time Progress Pane -->
-                                    <Border x:Name="PanelProgress" Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="18" Margin="0,14,0,0" Visibility="Visible">
+                                    <Border x:Name="PanelProgress" Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="16" Margin="0,14,0,0" Visibility="Collapsed">
                                         <StackPanel>
                                             <Grid>
-                                                <TextBlock x:Name="TxtProgressTitle" Text="Photos_March.zip" FontWeight="Bold" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
-                                                <TextBlock x:Name="TxtPercentage" Text="0%" FontSize="13" Foreground="#8C8C8C" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                                <TextBlock x:Name="TxtProgressTitle" Text="Preparing transfer..." FontWeight="Bold" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock x:Name="TxtPercentage" Text="0%" FontSize="13" FontWeight="SemiBold" Foreground="#FF8A00" HorizontalAlignment="Right" VerticalAlignment="Center" />
                                             </Grid>
-                                            <ProgressBar x:Name="ProgressBarTransfer" Style="{StaticResource KmGradientProgressBar}" Height="10" Margin="0,12,0,12" Value="0" />
-                                            <TextBlock x:Name="TxtSpeed" Text="Ready to transfer" FontSize="12" Foreground="#8C8C8C" />
-                                            <TextBlock x:Name="TxtStatus" Text="Pluto Engine Standby" FontSize="11" Foreground="#555555" Margin="0,2,0,0" />
+                                            <ProgressBar x:Name="ProgressBarTransfer" Style="{StaticResource KmGradientProgressBar}" Height="8" Margin="0,12,0,10" Value="0" />
+
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock x:Name="TxtTransferredSize" Text="0 B / 0 B" FontSize="12" Foreground="#F5F5F5" />
+                                                    <TextBlock x:Name="TxtSpeed" Text="0 MB/s" FontSize="11" Foreground="#8C8C8C" Margin="0,2,0,0" />
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                    <TextBlock x:Name="TxtEta" Text="--:-- remaining" FontSize="12" Foreground="#F5F5F5" HorizontalAlignment="Right" />
+                                                    <TextBlock x:Name="TxtElapsed" Text="00:00 elapsed" FontSize="11" Foreground="#8C8C8C" HorizontalAlignment="Right" Margin="0,2,0,0" />
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <TextBlock x:Name="TxtActiveTransport" Visibility="Collapsed" />
+                                            <TextBlock x:Name="TxtStatus" Text="Transferring over local network" FontSize="11" Foreground="#555555" Margin="0,4,0,0" />
+
                                             <Button x:Name="BtnCancelTransfer" Click="CancelTransfer_Click" Style="{StaticResource KmGlassButton}" Content="Cancel" Margin="0,12,0,0" MinHeight="36" />
                                         </StackPanel>
                                     </Border>
@@ -809,7 +850,6 @@
                                             <TextBlock x:Name="TxtSettingsReceiveFolder" Text="C:\Users\Downloads" FontSize="11" Foreground="#8C8C8C" Margin="0,2,0,0" />
                                             <TextBlock x:Name="TxtDownloadDir" Visibility="Collapsed" />
                                             <TextBox x:Name="TxtSettingsDeviceName" Visibility="Collapsed" />
-                                            <TextBox x:Name="TxtManualIp" Visibility="Collapsed" />
                                         </StackPanel>
                                         <Button Content="Change" Click="ChangeDownloadFolder_Click" Style="{StaticResource KmGlassButton}" MinHeight="34" Padding="14,4" HorizontalAlignment="Right" VerticalAlignment="Center" />
                                     </Grid>

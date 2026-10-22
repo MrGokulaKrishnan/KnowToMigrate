@@ -13,9 +13,18 @@ using KnowToMigrate.Services;
 
 namespace KnowToMigrate
 {
-    public partial class MainWindow : Window
+    public class StagedFileItem
+    {
+        public string FullPath { get; set; } = "";
+        public string FileName { get; set; } = "";
+        public string FormattedSize { get; set; } = "";
+        public bool IsDirectory { get; set; }
+    }
+
+    public partial class MainWindow : Window
     {
         private readonly List<string> _selectedFiles = new();
+        private readonly System.Collections.ObjectModel.ObservableCollection<StagedFileItem> _stagedItems = new();
         private CancellationTokenSource? _transferCts;
         private string? _forcedTransport = null;
         private bool _updatePendingAfterTransfer = false;
@@ -102,6 +111,14 @@ namespace KnowToMigrate
             {
                 KtmManager.Instance.Start();
                 ListDevices.ItemsSource = KtmManager.Instance.NearbyDevices;
+                if (ComboSendDevices != null)
+                {
+                    ComboSendDevices.ItemsSource = KtmManager.Instance.NearbyDevices;
+                }
+                if (ListStagedFiles != null)
+                {
+                    ListStagedFiles.ItemsSource = _stagedItems;
+                }
                                 // Initialize persistent Migration Ledger
                 var history = UserSettingsManager.LoadHistory();
                 _ledgerEntries.Clear();
@@ -911,20 +928,69 @@ namespace KnowToMigrate
         private void UpdateFileSelectionUI()
         {
             long totalBytes = 0;
+            _stagedItems.Clear();
+
             foreach (var f in _selectedFiles)
             {
-                if (File.Exists(f)) totalBytes += new FileInfo(f).Length;
-                else if (Directory.Exists(f))
+                bool isDir = Directory.Exists(f);
+                long size = 0;
+                if (!isDir && File.Exists(f))
                 {
-                    foreach (var sf in Directory.EnumerateFiles(f, "*", SearchOption.AllDirectories))
-                    {
-                        try { totalBytes += new FileInfo(sf).Length; } catch { }
-                    }
+                    try { size = new FileInfo(f).Length; } catch { }
+                    totalBytes += size;
                 }
+                else if (isDir)
+                {
+                    try
+                    {
+                        foreach (var sf in Directory.EnumerateFiles(f, "*", SearchOption.AllDirectories))
+                        {
+                            try { totalBytes += new FileInfo(sf).Length; } catch { }
+                        }
+                    }
+                    catch { }
+                }
+
+                string name = Path.GetFileName(f.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                if (string.IsNullOrEmpty(name)) name = f;
+
+                _stagedItems.Add(new StagedFileItem
+                {
+                    FullPath = f,
+                    FileName = name,
+                    FormattedSize = isDir ? "Folder" : KtmFormatting.FormatBytes(size),
+                    IsDirectory = isDir
+                });
             }
 
+            if (PanelStagedEmpty != null)
+                PanelStagedEmpty.Visibility = _selectedFiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (ListStagedFiles != null)
+                ListStagedFiles.Visibility = _selectedFiles.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
             TxtStatus.Text = $"{_selectedFiles.Count} item(s) staged for transfer";
-            TxtFileInfo.Text = $"{FormatBytes(totalBytes)} staged Â· Select a target device and click Transfer Now";
+            TxtFileInfo.Text = _selectedFiles.Count > 0
+                ? $"{KtmFormatting.FormatBytes(totalBytes)} staged · Ready to transfer"
+                : "No files selected";
+        }
+
+        private void RemoveStagedFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string path)
+            {
+                _selectedFiles.Remove(path);
+                UpdateFileSelectionUI();
+            }
+        }
+
+        private void ComboSendDevices_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ComboSendDevices.SelectedItem is DiscoveredDevice dev)
+            {
+                _selectedDevice = dev;
+                TxtSendTargetName.Text = dev.DeviceName;
+                UpdateFileSelectionUI();
+            }
         }
 
         private void AddManualDevice_Click(object sender, RoutedEventArgs e)
@@ -946,7 +1012,7 @@ namespace KnowToMigrate
                 return;
             }
 
-            var targetDevice = ListDevices.SelectedItem as DiscoveredDevice;
+            var targetDevice = _selectedDevice ?? ComboSendDevices.SelectedItem as DiscoveredDevice ?? ListDevices.SelectedItem as DiscoveredDevice;
             if (targetDevice == null)
             {
                 var onlineDevices = KtmManager.Instance.DiscoveryService.GetOnlineDevices();
@@ -1046,6 +1112,7 @@ namespace KnowToMigrate
         {
             if (ListDevices.SelectedItem is DiscoveredDevice dev)
             {
+                if (ComboSendDevices != null) ComboSendDevices.SelectedItem = dev;
                 string best = await KtmTransportManager.Instance.EvaluateAndSelectBestTransportAsync(dev);
                 string chosen = _forcedTransport ?? best;
                 TxtBestTransportBadge.Text = _forcedTransport == null
