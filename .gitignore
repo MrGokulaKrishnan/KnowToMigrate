@@ -31,6 +31,7 @@ test_wpf/
 *.cab
 .firebase/
 releases/
+release-binaries/
 tests/**/bin/
 tests/**/obj/
 
