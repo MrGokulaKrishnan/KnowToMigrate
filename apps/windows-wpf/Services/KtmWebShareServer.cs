@@ -179,10 +179,6 @@ namespace KnowToMigrate.Services
             var req = context.Request;
             var res = context.Response;
 
-            res.Headers.Add("Access-Control-Allow-Origin", "*");
-            res.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-            res.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
-
             if (req.HttpMethod == "OPTIONS")
             {
                 res.StatusCode = 200;
