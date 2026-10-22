@@ -142,6 +142,7 @@ namespace KnowToMigrate
                 if (TxtReceiveFolder != null) TxtReceiveFolder.Text = KtmManager.Instance.DownloadDirectory;
                 if (TxtReceiveLocalIp != null) TxtReceiveLocalIp.Text = KtmWebShareServer.Instance.GetPrimaryLocalIp() ?? "127.0.0.1";
                 if (TxtReceiveUniqueId != null) TxtReceiveUniqueId.Text = KtmManager.Instance.LocalDeviceId;
+                if (TxtSettingsLocalIp != null) TxtSettingsLocalIp.Text = KtmWebShareServer.Instance.GetPrimaryLocalIp() ?? "127.0.0.1";
                 TxtLocalInfo.Text = $"Device: {KtmManager.Instance.LocalDeviceName} ({KtmManager.Instance.LocalDeviceId})";
                 string currentVer = KtmUpdateService.CurrentVersion;
                 string updatedDateStr = DateTime.Now.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
@@ -447,7 +448,7 @@ namespace KnowToMigrate
                     DeviceName = string.IsNullOrEmpty(info.PeerName) ? "Nearby Device" : info.PeerName,
                     Direction = "in",
                     Status = "Complete",
-                    Transport = info.TransportType ?? "Pluto Wi-Fi Direct",
+                    Transport = info.TransportType ?? "Wi-Fi",
                     Sha256 = "verified",
                     FilePath = _lastReceivedFilePath
                 };
@@ -601,6 +602,19 @@ namespace KnowToMigrate
                 TxtListeningStatus.Text = isAccepting ? "Listening on Wi-Fi" : "Listening paused";
             }
         }
+
+        private void BtnOpenWebsite_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "https://knowtomigrate.com",
+                    UseShellExecute = true
+                });
+            }
+            catch { }
+        }
         private void DismissNotification_Click(object sender, RoutedEventArgs e)
         {
             PanelNotificationBanner.Visibility = Visibility.Collapsed;
@@ -637,7 +651,7 @@ namespace KnowToMigrate
                             DeviceName = _selectedDevice?.DeviceName ?? "Nearby Target",
                             Direction = "out",
                             Status = "Complete",
-                            Transport = _selectedDevice?.ActiveTransport ?? "Pluto Direct",
+                            Transport = _selectedDevice?.ActiveTransport ?? "Wi-Fi",
                             Sha256 = "verified",
                             FilePath = _selectedFiles.Count > 0 ? _selectedFiles[0] : null
                         };
@@ -1752,9 +1766,9 @@ namespace KnowToMigrate
                 string report = UserSettingsManager.ExportHistoryText();
                 string folder = KtmManager.Instance.DownloadDirectory;
                 if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-                string logPath = Path.Combine(folder, "Migration_Ledger_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".txt");
+                string logPath = Path.Combine(folder, "Transfer_History_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".txt");
                 File.WriteAllText(logPath, report, Encoding.UTF8);
-                MessageBox.Show("Migration Ledger audit log exported successfully!\r\n\r\nLocation: " + logPath, "Audit Log Exported", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Transfer history exported successfully!\r\n\r\nLocation: " + logPath, "History Exported", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
