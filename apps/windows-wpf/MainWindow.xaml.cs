@@ -133,6 +133,10 @@ namespace KnowToMigrate
                 }
                 UpdateLedgerUI();
                 TxtDownloadDir.Text = KtmManager.Instance.DownloadDirectory;
+                if (TxtReceiveDeviceName != null) TxtReceiveDeviceName.Text = KtmManager.Instance.LocalDeviceName;
+                if (TxtReceiveFolder != null) TxtReceiveFolder.Text = KtmManager.Instance.DownloadDirectory;
+                if (TxtReceiveLocalIp != null) TxtReceiveLocalIp.Text = KtmWebShareServer.Instance.GetPrimaryLocalIp() ?? "127.0.0.1";
+                if (TxtReceiveUniqueId != null) TxtReceiveUniqueId.Text = KtmManager.Instance.LocalDeviceId;
                 TxtLocalInfo.Text = $"Device: {KtmManager.Instance.LocalDeviceName} ({KtmManager.Instance.LocalDeviceId})";
                 string currentVer = KtmUpdateService.CurrentVersion;
                 string updatedDateStr = DateTime.Now.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
@@ -557,6 +561,41 @@ namespace KnowToMigrate
             PanelNotificationBanner.Visibility = Visibility.Visible;
         }
 
+
+        private void ToggleAcceptingFiles_Changed(object sender, RoutedEventArgs e)
+        {
+            bool isAccepting = ToggleAcceptingFiles.IsChecked == true;
+            if (TxtAcceptingFilesStatus != null)
+                TxtAcceptingFilesStatus.Text = isAccepting ? "Accepting files" : "Not accepting files";
+            if (DotAcceptingStatus != null)
+                DotAcceptingStatus.Fill = isAccepting
+                    ? new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E))
+                    : new SolidColorBrush(Color.FromRgb(0x8C, 0x8C, 0x8C));
+
+            if (CardPairingPin != null)
+                CardPairingPin.Opacity = isAccepting ? 1.0 : 0.45;
+
+            if (TxtIncomingPin != null)
+            {
+                if (isAccepting)
+                {
+                    TxtIncomingPin.Text = "482 915";
+                    TxtIncomingPin.FontSize = 34;
+                    TxtIncomingPin.Foreground = new SolidColorBrush(Color.FromRgb(0xF5, 0xF5, 0xF5));
+                }
+                else
+                {
+                    TxtIncomingPin.Text = "Turn on to receive.";
+                    TxtIncomingPin.FontSize = 20;
+                    TxtIncomingPin.Foreground = new SolidColorBrush(Color.FromRgb(0x8C, 0x8C, 0x8C));
+                }
+            }
+
+            if (TxtListeningStatus != null)
+            {
+                TxtListeningStatus.Text = isAccepting ? "Listening on Wi-Fi" : "Listening paused";
+            }
+        }
         private void DismissNotification_Click(object sender, RoutedEventArgs e)
         {
             PanelNotificationBanner.Visibility = Visibility.Collapsed;
@@ -1139,6 +1178,7 @@ namespace KnowToMigrate
             {
                 KtmManager.Instance.DownloadDirectory = dlg.FolderName;
                 TxtDownloadDir.Text = dlg.FolderName;
+                if (TxtReceiveFolder != null) TxtReceiveFolder.Text = dlg.FolderName;
             }
         }
 
