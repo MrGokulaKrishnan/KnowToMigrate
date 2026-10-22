@@ -25,18 +25,12 @@ android {
 
     signingConfigs {
         create("release") {
-            val envPath = System.getenv("KTM_KEYSTORE_PATH")
-            val keystoreFile = if (!envPath.isNullOrBlank()) file(envPath) else file("../knowtomigrate-release.jks")
-            if (keystoreFile.exists()) {
-                storeFile = keystoreFile
-                storePassword = System.getenv("KTM_KEYSTORE_PASSWORD") ?: "KnowToMigrate2026!"
-                keyAlias = System.getenv("KTM_KEY_ALIAS") ?: "knowtomigrate"
-                keyPassword = System.getenv("KTM_KEY_PASSWORD") ?: "KnowToMigrate2026!"
-                enableV1Signing = true
-                enableV2Signing = true
-            } else {
-                initWith(getByName("debug"))
-            }
+            storeFile = System.getenv("KTM_KEYSTORE_PATH")?.let { file(it) } ?: file("../knowtomigrate-release.jks")
+            storePassword = System.getenv("KTM_KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("KTM_KEY_ALIAS") ?: "knowtomigrate"
+            keyPassword = System.getenv("KTM_KEY_PASSWORD")
+            enableV1Signing = true
+            enableV2Signing = true
         }
     }
 
@@ -69,6 +63,17 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
+
+tasks.configureEach {
+    if ((name.startsWith("assemble") || name.startsWith("bundle")) && name.contains("Release")) {
+        doFirst {
+            val ks = android.signingConfigs.getByName("release")
+            check(ks.storeFile?.exists() == true && !ks.storePassword.isNullOrBlank() && !ks.keyPassword.isNullOrBlank()) {
+                "Release signing is not configured. Set KTM_KEYSTORE_PATH, KTM_KEYSTORE_PASSWORD and KTM_KEY_PASSWORD."
+            }
         }
     }
 }
