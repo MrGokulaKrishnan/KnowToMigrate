@@ -97,37 +97,73 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Floating Glass Navigation Rail (72px, 24px radius, 6 prototype icons) -->
-                <Border Grid.Column="0" Width="72" Margin="12,6,12,14" CornerRadius="24"
+                <!-- Floating Glass Navigation Rail (Expandable on hover or pin) -->
+                <Border x:Name="NavRailBorder" Grid.Column="0" Width="72" Margin="12,6,12,14" CornerRadius="24"
                         Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1"
-                        VerticalAlignment="Stretch">
+                        VerticalAlignment="Stretch"
+                        MouseEnter="NavRail_MouseEnter" MouseLeave="NavRail_MouseLeave">
                     <Border.Effect>
                         <DropShadowEffect Color="#000000" BlurRadius="25" ShadowDepth="8" Opacity="0.5" />
                     </Border.Effect>
-                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0,14,0,14">
-                        <Button x:Name="BtnNavHome" Tag="Home" Click="Nav_Click" Style="{StaticResource KmRailButton}" ToolTip="Home"
-                                Background="{StaticResource KmBrandGradient}">
-                            <Button.Effect>
-                                <DropShadowEffect Color="#FF5A00" BlurRadius="16" ShadowDepth="0" Opacity="0.45"/>
-                            </Button.Effect>
-                            <Path x:Name="PathNavHome" Data="{StaticResource KmIconHome}" Stroke="#0A0A0A" StrokeThickness="2" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button>
-                        <Button x:Name="BtnNavSend" Tag="Send" Click="Nav_Click" Style="{StaticResource KmRailButton}" ToolTip="Send">
-                            <Path x:Name="PathNavSend" Data="{StaticResource KmIconSend}" Stroke="#8C8C8C" StrokeThickness="2" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button>
-                        <Button x:Name="BtnNavReceive" Tag="Receive" Click="Nav_Click" Style="{StaticResource KmRailButton}" ToolTip="Receive">
-                            <Path x:Name="PathNavReceive" Data="{StaticResource KmIconReceive}" Stroke="#8C8C8C" StrokeThickness="2" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button>
-                        <Button x:Name="BtnNavMigration" Tag="Migration" Click="Nav_Click" Style="{StaticResource KmRailButton}" ToolTip="Device Migration">
-                            <Path x:Name="PathNavMigration" Data="{StaticResource KmIconMigrate}" Stroke="#8C8C8C" StrokeThickness="2" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button>
-                        <Button x:Name="BtnNavHistory" Tag="History" Click="Nav_Click" Style="{StaticResource KmRailButton}" ToolTip="History">
-                            <Path x:Name="PathNavHistory" Data="{StaticResource KmIconHistory}" Stroke="#8C8C8C" StrokeThickness="2" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button>
-                        <Button x:Name="BtnNavSettings" Tag="Settings" Click="Nav_Click" Style="{StaticResource KmRailButton}" ToolTip="Settings">
-                            <Path x:Name="PathNavSettings" Data="{StaticResource KmIconSettings}" Stroke="#8C8C8C" StrokeThickness="2" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button>
-                    </StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Top Monogram / Pin Toggle -->
+                        <Border Grid.Row="0" Margin="0,14,0,10" HorizontalAlignment="Center">
+                            <Button x:Name="BtnToggleRail" Click="BtnToggleRail_Click" Style="{StaticResource KmRailButton}" Width="48" Height="44" Margin="0" ToolTip="Toggle expanded rail">
+                                <Border Width="34" Height="32" CornerRadius="10" Background="#14FFFFFF" BorderBrush="#26FFFFFF" BorderThickness="1">
+                                    <TextBlock Text="KM" FontWeight="ExtraBold" FontSize="13" Foreground="#FF8A00" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Button>
+                        </Border>
+
+                        <!-- Nav Buttons -->
+                        <StackPanel Grid.Row="1" Orientation="Vertical" HorizontalAlignment="Center">
+                            <Button x:Name="BtnNavHome" Tag="Home" Click="Nav_Click" Style="{StaticResource KmRailButton}" ToolTip="Home"
+                                    Background="{StaticResource KmBrandGradient}">
+                                <Button.Effect>
+                                    <DropShadowEffect Color="#FF5A00" BlurRadius="16" ShadowDepth="0" Opacity="0.45"/>
+                                </Button.Effect>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path x:Name="PathNavHome" Data="{StaticResource KmIconHome}" Stroke="#0A0A0A" StrokeThickness="2" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtNavHome" Text="Home" FontSize="13" FontWeight="SemiBold" Foreground="#0A0A0A" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnNavSend" Tag="Send" Click="Nav_Click" Style="{StaticResource KmRailButton}" ToolTip="Send">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path x:Name="PathNavSend" Data="{StaticResource KmIconSend}" Stroke="#8C8C8C" StrokeThickness="2" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtNavSend" Text="Send" FontSize="13" FontWeight="SemiBold" Foreground="#8C8C8C" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnNavReceive" Tag="Receive" Click="Nav_Click" Style="{StaticResource KmRailButton}" ToolTip="Receive">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path x:Name="PathNavReceive" Data="{StaticResource KmIconReceive}" Stroke="#8C8C8C" StrokeThickness="2" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtNavReceive" Text="Receive" FontSize="13" FontWeight="SemiBold" Foreground="#8C8C8C" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnNavMigration" Tag="Migration" Click="Nav_Click" Style="{StaticResource KmRailButton}" ToolTip="Move device">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path x:Name="PathNavMigration" Data="{StaticResource KmIconMigrate}" Stroke="#8C8C8C" StrokeThickness="2" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtNavMigration" Text="Move device" FontSize="13" FontWeight="SemiBold" Foreground="#8C8C8C" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnNavHistory" Tag="History" Click="Nav_Click" Style="{StaticResource KmRailButton}" ToolTip="History">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path x:Name="PathNavHistory" Data="{StaticResource KmIconHistory}" Stroke="#8C8C8C" StrokeThickness="2" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtNavHistory" Text="History" FontSize="13" FontWeight="SemiBold" Foreground="#8C8C8C" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnNavSettings" Tag="Settings" Click="Nav_Click" Style="{StaticResource KmRailButton}" ToolTip="Settings">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path x:Name="PathNavSettings" Data="{StaticResource KmIconSettings}" Stroke="#8C8C8C" StrokeThickness="2" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtNavSettings" Text="Settings" FontSize="13" FontWeight="SemiBold" Foreground="#8C8C8C" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
                 </Border>
 
                 <!-- Hidden elements needed for background services compatibility -->
