@@ -1,10 +1,3 @@
-# Keep JNI native methods
--keep class com.knowtomigrate.app.jni.KtmJni { *; }
--keepclassmembers class com.knowtomigrate.app.jni.KtmJni {
-    native <methods>;
-    static <fields>;
-}
-
 # Keep data classes used for JSON parsing
 -keep class com.knowtomigrate.app.** { *; }
 
