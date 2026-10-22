@@ -1,23 +1,65 @@
 <Application x:Class="KnowToMigrate.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <!-- Dark AMOLED Theme Resources -->
+        <!-- ── Standardized Strings & Honest Security Constants ──────────── -->
+        <sys:String x:Key="StringAppName">KnowToMigrate</sys:String>
+        <sys:String x:Key="StringAppTagline">Move Anything. Anywhere. Seamlessly.</sys:String>
+        <sys:String x:Key="StringReleaseDate">22 October 2026</sys:String>
+        <sys:String x:Key="StringSecurityLabel">Not encrypted yet</sys:String>
+        <sys:String x:Key="StringSecurityCaption">Use on trusted networks only.</sys:String>
+        <sys:Boolean x:Key="BoolIsEncrypted">False</sys:Boolean>
+
+        <!-- Navigation String Resources -->
+        <sys:String x:Key="StringNavHome">Home</sys:String>
+        <sys:String x:Key="StringNavSend">Send</sys:String>
+        <sys:String x:Key="StringNavReceive">Receive</sys:String>
+        <sys:String x:Key="StringNavMoveDevice">Move device</sys:String>
+        <sys:String x:Key="StringNavHistory">History</sys:String>
+        <sys:String x:Key="StringNavSettings">Settings</sys:String>
+        <sys:String x:Key="StringSectionNearby">Nearby</sys:String>
+        <sys:String x:Key="StringNearbyDevices">Nearby devices</sys:String>
+        <sys:String x:Key="StringSectionRecent">Recent</sys:String>
+
+        <!-- ── Dark AMOLED Liquid Glass Palette ───────────────────────────── -->
         <SolidColorBrush x:Key="DarkBg" Color="#000000" />
         <SolidColorBrush x:Key="CardBg" Color="#0C0C0C" />
         <SolidColorBrush x:Key="ElevatedBg" Color="#121212" />
         <SolidColorBrush x:Key="BorderBrush" Color="#1C1C1C" />
         <SolidColorBrush x:Key="KmOrange" Color="#FF5A00" />
+        <SolidColorBrush x:Key="KmOrangeDark" Color="#FF4D00" />
+        <SolidColorBrush x:Key="KmOrangeLight" Color="#FF8A00" />
         <SolidColorBrush x:Key="KmOrangeGlow" Color="#FF8A00" />
-        <SolidColorBrush x:Key="TextPrimary" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="TextSecondary" Color="#8A8A8A" />
-        <SolidColorBrush x:Key="TextMuted" Color="#555555" />
 
-        <!-- Brand Gradients -->
+        <!-- High-Contrast Text Tokens (WCAG AA Compliant) -->
+        <SolidColorBrush x:Key="TextPrimary" Color="#F5F5F5" />
+        <SolidColorBrush x:Key="TextSecondary" Color="#8C8C8C" />
+        <SolidColorBrush x:Key="TextMuted" Color="#555555" />
+        <!-- Near-black text on brand orange gradient: 6.7:1 contrast ratio -->
+        <SolidColorBrush x:Key="TextOnBrand" Color="#0A0A0A" />
+        <SolidColorBrush x:Key="BrushTextOnBrand" Color="#0A0A0A" />
+
+        <!-- Status & Accent Colors -->
+        <SolidColorBrush x:Key="BrushSuccess" Color="#22C55E" />
+        <SolidColorBrush x:Key="BrushOnline" Color="#22C55E" />
+        <SolidColorBrush x:Key="BrushWarning" Color="#F59E0B" />
+        <SolidColorBrush x:Key="BrushError" Color="#EF4444" />
+        <SolidColorBrush x:Key="BrushTagGreen" Color="#4ADE80" />
+        <SolidColorBrush x:Key="BrushTagGreenBg" Color="#264ADE80" />
+
+        <!-- Glass Tokens -->
+        <SolidColorBrush x:Key="BrushGlass" Color="#09FFFFFF" />
+        <SolidColorBrush x:Key="BrushGlassPane" Color="#0AFFFFFF" />
+        <SolidColorBrush x:Key="BrushEdge" Color="#1FFFFFFF" />
+        <SolidColorBrush x:Key="BrushTextPrimary" Color="#F5F5F5" />
+        <SolidColorBrush x:Key="BrushTextMuted" Color="#8C8C8C" />
+
+        <!-- ── Brand Gradients ────────────────────────────────────────────── -->
         <LinearGradientBrush x:Key="KmBrandGradient" StartPoint="0,0" EndPoint="1,1">
             <GradientStop Color="#FF4D00" Offset="0"/>
-            <GradientStop Color="#FF6A00" Offset="0.5"/>
+            <GradientStop Color="#FF5A00" Offset="0.5"/>
             <GradientStop Color="#FF8A00" Offset="1"/>
         </LinearGradientBrush>
 
@@ -39,15 +81,27 @@
             <GradientStop Color="#00FFFFFF" Offset="0.6"/>
         </LinearGradientBrush>
 
-        <!-- Precision Vector Check Icon Geometry (Shared across Windows UI) -->
+        <!-- ── Geometries (Clean Vector Icons) ────────────────────────────── -->
+        <Geometry x:Key="KmIconHome">M 3,11 L 12,3 L 21,11 L 21,20 A 1,1 0 0 1 20,21 L 15,21 L 15,15 L 9,15 L 9,21 L 4,21 A 1,1 0 0 1 3,20 Z</Geometry>
+        <Geometry x:Key="KmIconSend">M 22,2 L 11,13 M 22,2 L 15,22 L 11,13 L 2,9 Z</Geometry>
+        <Geometry x:Key="KmIconReceive">M 12,3 L 12,15 M 7,10 L 12,15 L 17,10 M 4,21 L 20,21</Geometry>
+        <Geometry x:Key="KmIconMigrate">M 4,7 L 17,7 L 14,4 M 20,17 L 7,17 L 10,20</Geometry>
+        <Geometry x:Key="KmIconHistory">M 3,12 A 9,9 0 1 0 6,5.3 M 3,4 L 3,9 L 8,9 M 12,7 L 12,12 L 15,14</Geometry>
+        <Geometry x:Key="KmIconSettings">M 12,9 A 3,3 0 1 0 12,15 A 3,3 0 1 0 12,9 M 12,2 L 12,5 M 12,19 L 12,22 M 2,12 L 5,12 M 19,12 L 22,12 M 4.9,4.9 L 7,7 M 17,17 L 19.1,19.1 M 4.9,19.1 L 7,17 M 17,7 L 19.1,4.9</Geometry>
+        <Geometry x:Key="KmIconFile">M 14,2 L 6,2 A 2,2 0 0 0 4,4 L 4,20 A 2,2 0 0 0 6,22 L 18,22 A 2,2 0 0 0 20,20 L 20,8 Z M 14,2 L 14,8 L 20,8</Geometry>
+        <Geometry x:Key="KmIconDevice">M 3,6 A 2,2 0 0 1 5,4 L 19,4 A 2,2 0 0 1 21,6 L 21,14 A 2,2 0 0 1 19,16 L 5,16 A 2,2 0 0 1 3,14 Z M 9,20 L 15,20 M 12,16 L 12,20</Geometry>
+        <Geometry x:Key="KmIconCheck">M 5,12 L 10,17 L 19,7</Geometry>
         <Geometry x:Key="KmCheckIconGeometry">M 4.5,12 L 9.5,17 L 19.5,7</Geometry>
+        <Geometry x:Key="KmIconWarning">M 12,2 L 1,21 L 23,21 Z M 12,9 L 12,14 M 12,17 L 12,18.5</Geometry>
 
-        <!-- Primary Glossy Gradient Button Style (12px Radius, DPI-Safe MinHeight) -->
+        <!-- ── Reusable Component Styles ──────────────────────────────────── -->
+
+        <!-- Primary Glossy Gradient Button Style (#0A0A0A Text for 6.7:1 WCAG AA Contrast) -->
         <Style x:Key="KmPrimaryButton" TargetType="Button">
-            <Setter Property="Foreground" Value="#FFFFFF" />
-            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#0A0A0A" />
+            <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="MinHeight" Value="42" />
+            <Setter Property="MinHeight" Value="44" />
             <Setter Property="Padding" Value="20,10" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="TextBlock.TextAlignment" Value="Center" />
@@ -64,7 +118,7 @@
                                     <DropShadowEffect Color="#FF5A00" BlurRadius="14" ShadowDepth="0" Opacity="0.35"/>
                                 </Border.Effect>
                                 <Grid>
-                                    <!-- Glossy Sheen -->
+                                    <!-- Glossy Sheen Overlay -->
                                     <Border CornerRadius="11,11,0,0"
                                             VerticalAlignment="Top"
                                             Height="18"
@@ -96,7 +150,7 @@
 
         <!-- Glass Outlined Button Style (12px Radius, DPI-Safe MinHeight) -->
         <Style x:Key="KmGlassButton" TargetType="Button">
-            <Setter Property="Foreground" Value="#CCCCCC" />
+            <Setter Property="Foreground" Value="#F5F5F5" />
             <Setter Property="FontWeight" Value="Medium" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="MinHeight" Value="42" />
@@ -140,33 +194,25 @@
             </Setter>
         </Style>
 
-        <!-- Sidebar Navigation Button Style (10px Radius, DPI-Safe MinHeight) -->
-        <Style x:Key="KmNavButton" TargetType="Button">
-            <Setter Property="Foreground" Value="#AAAAAA" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="MinHeight" Value="42" />
-            <Setter Property="Margin" Value="0,0,0,6" />
-            <Setter Property="Padding" Value="14,8" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <!-- Rail Navigation Button Style (14px Radius) -->
+        <Style x:Key="KmRailButton" TargetType="Button">
+            <Setter Property="Width" Value="48" />
+            <Setter Property="Height" Value="48" />
+            <Setter Property="Margin" Value="0,0,0,10" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="#8C8C8C" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="NavBorder"
-                                Background="Transparent"
-                                BorderThickness="1"
-                                BorderBrush="Transparent"
-                                CornerRadius="10">
-                            <ContentPresenter HorizontalAlignment="Left"
-                                              VerticalAlignment="Center"
-                                              Margin="{TemplateBinding Padding}"/>
+                        <Border x:Name="RailBorder" CornerRadius="14" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="NavBorder" Property="Background" Value="#121212" />
-                                <Setter TargetName="NavBorder" Property="BorderBrush" Value="#222222" />
-                                <Setter Property="Foreground" Value="#FFFFFF" />
+                                <Setter TargetName="RailBorder" Property="Background" Value="#14FFFFFF" />
+                                <Setter Property="Foreground" Value="#F5F5F5" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -174,7 +220,7 @@
             </Setter>
         </Style>
 
-        <!-- Windows 11 TitleBar Window Control Buttons (Minimize, Maximize, Close) -->
+        <!-- Windows 11 TitleBar Window Control Buttons -->
         <Style x:Key="KmTitleBarButton" TargetType="Button">
             <Setter Property="Width" Value="46" />
             <Setter Property="Height" Value="34" />
@@ -222,7 +268,8 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <!-- Liquid Glass AMOLED Unique CheckBox Style (Implicit TargetType) -->
+
+        <!-- Liquid Glass CheckBox Style -->
         <Style TargetType="CheckBox">
             <Setter Property="Foreground" Value="#DDDDDD" />
             <Setter Property="FontSize" Value="13" />
@@ -239,7 +286,6 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <!-- Custom CheckBox Container -->
                             <Border x:Name="CheckBorder"
                                     Grid.Column="0"
                                     Width="20"
@@ -252,7 +298,6 @@
                                     HorizontalAlignment="Center"
                                     SnapsToDevicePixels="True">
                                 <Grid>
-                                    <!-- Glossy Sheen Overlay on Top Half -->
                                     <Border x:Name="CheckGloss"
                                             CornerRadius="4,4,0,0"
                                             Height="9"
@@ -260,10 +305,9 @@
                                             Background="{StaticResource GlossySheenBrush}"
                                             Opacity="0" />
 
-                                    <!-- Unique Optically Centered Vector Checkmark -->
                                     <Path x:Name="CheckMark"
                                           Data="M 3.8,10.2 L 7.8,14.2 L 15.6,5.6"
-                                          Stroke="#FFFFFF"
+                                          Stroke="#0A0A0A"
                                           StrokeThickness="2.2"
                                           StrokeStartLineCap="Round"
                                           StrokeEndLineCap="Round"
@@ -275,7 +319,6 @@
                                 </Grid>
                             </Border>
 
-                            <!-- Label Content -->
                             <ContentPresenter Grid.Column="1"
                                               Margin="10,0,0,0"
                                               VerticalAlignment="Center"
@@ -300,52 +343,6 @@
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.4" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Glass Tokens matching the exact prototype -->
-        <SolidColorBrush x:Key="BrushGlass" Color="#09FFFFFF" />
-        <SolidColorBrush x:Key="BrushGlassPane" Color="#0AFFFFFF" />
-        <SolidColorBrush x:Key="BrushEdge" Color="#1FFFFFFF" />
-        <SolidColorBrush x:Key="BrushTextPrimary" Color="#F5F5F5" />
-        <SolidColorBrush x:Key="BrushTextMuted" Color="#8C8C8C" />
-        <SolidColorBrush x:Key="BrushTagGreen" Color="#4ADE80" />
-        <SolidColorBrush x:Key="BrushTagGreenBg" Color="#264ADE80" />
-
-        <!-- Prototype Geometries (Converted from exact SVG symbols) -->
-        <Geometry x:Key="KmIconHome">M 3,11 L 12,3 L 21,11 L 21,20 A 1,1 0 0 1 20,21 L 15,21 L 15,15 L 9,15 L 9,21 L 4,21 A 1,1 0 0 1 3,20 Z</Geometry>
-        <Geometry x:Key="KmIconSend">M 22,2 L 11,13 M 22,2 L 15,22 L 11,13 L 2,9 Z</Geometry>
-        <Geometry x:Key="KmIconReceive">M 12,3 L 12,15 M 7,10 L 12,15 L 17,10 M 4,21 L 20,21</Geometry>
-        <Geometry x:Key="KmIconMigrate">M 4,7 L 17,7 L 14,4 M 20,17 L 7,17 L 10,20</Geometry>
-        <Geometry x:Key="KmIconHistory">M 3,12 A 9,9 0 1 0 6,5.3 M 3,4 L 3,9 L 8,9 M 12,7 L 12,12 L 15,14</Geometry>
-        <Geometry x:Key="KmIconSettings">M 12,9 A 3,3 0 1 0 12,15 A 3,3 0 1 0 12,9 M 12,2 L 12,5 M 12,19 L 12,22 M 2,12 L 5,12 M 19,12 L 22,12 M 4.9,4.9 L 7,7 M 17,17 L 19.1,19.1 M 4.9,19.1 L 7,17 M 17,7 L 19.1,4.9</Geometry>
-        <Geometry x:Key="KmIconFile">M 14,2 L 6,2 A 2,2 0 0 0 4,4 L 4,20 A 2,2 0 0 0 6,22 L 18,22 A 2,2 0 0 0 20,20 L 20,8 Z M 14,2 L 14,8 L 20,8</Geometry>
-        <Geometry x:Key="KmIconDevice">M 3,6 A 2,2 0 0 1 5,4 L 19,4 A 2,2 0 0 1 21,6 L 21,14 A 2,2 0 0 1 19,16 L 5,16 A 2,2 0 0 1 3,14 Z M 9,20 L 15,20 M 12,16 L 12,20</Geometry>
-        <Geometry x:Key="KmIconCheck">M 5,12 L 10,17 L 19,7</Geometry>
-
-        <!-- Prototype Rail Navigation Button Style (48x48, 14px Radius) -->
-        <Style x:Key="KmRailButton" TargetType="Button">
-            <Setter Property="Width" Value="48" />
-            <Setter Property="Height" Value="48" />
-            <Setter Property="Margin" Value="0,0,0,10" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Foreground" Value="#8C8C8C" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="RailBorder" CornerRadius="14" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="RailBorder" Property="Background" Value="#0DFFFFFF" />
-                                <Setter Property="Foreground" Value="#F5F5F5" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

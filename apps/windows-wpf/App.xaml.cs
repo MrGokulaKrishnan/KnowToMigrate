@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
@@ -6,6 +6,14 @@ using System.Windows.Threading;
 
 namespace KnowToMigrate
 {
+    public static class KtmUiConstants
+    {
+        public const bool IsEncrypted = false;
+        public const string SecurityLabel = "Not encrypted yet";
+        public const string SecurityCaption = "Use on trusted networks only.";
+        public const string ReleaseDate = "22 October 2026";
+    }
+
     public partial class App : Application
     {
         [System.Runtime.InteropServices.DllImport("shell32.dll", SetLastError = true)]
