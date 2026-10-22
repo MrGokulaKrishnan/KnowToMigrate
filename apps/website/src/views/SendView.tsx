@@ -140,7 +140,11 @@ export const SendView: React.FC<SendViewProps> = ({ onStartTransfer }) => {
                     <p className="text-sm font-semibold text-white truncate max-w-xs sm:max-w-md">
                       {file.sanitizedName}
                     </p>
-                    <p className="text-xs text-gray-400 font-mono">{file.sizeFormatted}</p>
+                    <p className="text-xs text-gray-400 font-mono flex items-center gap-1.5">
+                      <span>{file.sizeFormatted}</span>
+                      <span>·</span>
+                      <span className="text-[#22C55E] font-sans">Recently Updated 1min ago</span>
+                    </p>
                   </div>
                 </div>
 
@@ -213,7 +217,7 @@ export const SendView: React.FC<SendViewProps> = ({ onStartTransfer }) => {
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-white">{dev.name}</h4>
-                      <p className="text-xs text-gray-400">{dev.signal} · TLS 1.3</p>
+                      <p className="text-xs text-gray-400">{dev.signal} · Direct LAN</p>
                     </div>
                   </div>
                   {isSelected && (

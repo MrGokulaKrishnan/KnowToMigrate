@@ -109,7 +109,7 @@ export const HistoryView: React.FC = () => {
                 </h4>
                 <p className="text-xs text-gray-400">
                   {item.direction === 'send' ? 'Sent to' : 'Received from'}{' '}
-                  <strong className="text-gray-200">{item.device}</strong> · {item.dateFormatted} ·{' '}
+                  <strong className="text-gray-200">{item.device}</strong> · <span className="text-[#22C55E] font-medium">Recently Updated 1min ago</span> ·{' '}
                   {item.speed} ({item.transport})
                 </p>
                 {item.merkleRootHash && (

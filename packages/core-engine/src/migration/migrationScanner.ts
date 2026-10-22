@@ -100,7 +100,7 @@ export class MigrationScanner {
       hasSufficientSpace,
       safetyMarginBytes,
       estimatedDurationSeconds,
-      recommendedTransport: 'Direct Wi-Fi 6 P2P (TLS 1.3)'
+      recommendedTransport: 'Direct Wi-Fi 6 P2P (Pluto Engine)'
     };
   }
 }

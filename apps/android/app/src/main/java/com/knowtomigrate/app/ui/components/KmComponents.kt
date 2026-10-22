@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import com.knowtomigrate.app.ui.theme.*
 import kotlin.math.cos
@@ -1308,6 +1310,442 @@ fun KmTransportButton(
                 maxLines = 1,
                 softWrap = false
             )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Exact Prototype Components (Monogram, Radar, Action Tiles, Sliding Lens Nav)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+fun KmMonogramLogo(
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(44.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(Color(0xFFFF4D00), Color(0xFFFF5A00), Color(0xFFFF8A00))
+                )
+            )
+            .drawBehind {
+                drawLine(
+                    color = Color(0x73FFFFFF),
+                    start = Offset(8.dp.toPx(), 1.dp.toPx()),
+                    end = Offset(size.width - 8.dp.toPx(), 1.dp.toPx()),
+                    strokeWidth = 1.dp.toPx()
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "KM",
+            color = Color(0xFF0A0A0A),
+            fontSize = 17.sp,
+            fontWeight = FontWeight.ExtraBold
+        )
+    }
+}
+
+@Composable
+fun KmRadarWidget(
+    modifier: Modifier = Modifier,
+    size: Dp = 86.dp
+) {
+    val transition = rememberInfiniteTransition(label = "radar")
+    val anim1 by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2600, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "ring1"
+    )
+    val anim2 by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2600, delayMillis = 866, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "ring2"
+    )
+    val anim3 by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2600, delayMillis = 1733, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "ring3"
+    )
+
+    Canvas(modifier = modifier.size(size)) {
+        val center = Offset(this.size.width / 2f, this.size.height / 2f)
+        val maxRadius = this.size.minDimension / 2f
+
+        listOf(anim1, anim2, anim3).forEach { progress ->
+            val scale = 0.25f + progress * 0.75f
+            val alpha = (1f - progress) * 0.9f
+            if (alpha > 0f) {
+                drawCircle(
+                    color = Color(0xFFFF5A00).copy(alpha = alpha.coerceIn(0f, 1f)),
+                    radius = maxRadius * scale,
+                    center = center,
+                    style = Stroke(width = 1.5.dp.toPx())
+                )
+            }
+        }
+
+        val dotRadius = 7.dp.toPx()
+        drawCircle(
+            color = Color(0x66FF5A00),
+            radius = dotRadius * 1.8f,
+            center = center
+        )
+        drawCircle(
+            color = Color(0xFFFF5A00),
+            radius = dotRadius,
+            center = center
+        )
+    }
+}
+
+@Composable
+fun KmActionTile(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0x09FFFFFF))
+            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(16.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = Color(0xFFF5F5F5),
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = title,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFF5F5F5)
+            )
+            Text(
+                text = subtitle,
+                fontSize = 12.sp,
+                color = Color(0xFF8C8C8C)
+            )
+        }
+    }
+}
+
+@Composable
+fun KmRecentTransferRow(
+    filename: String,
+    subtitle: String,
+    isVerified: Boolean = true,
+    isFolder: Boolean = false,
+    onClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0x09FFFFFF))
+            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(14.dp))
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0x0DFFFFFF)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isFolder) {
+                Icon(
+                    imageVector = Icons.Default.Folder,
+                    contentDescription = null,
+                    tint = Color(0xFF8C8C8C),
+                    modifier = Modifier.size(18.dp)
+                )
+            } else if (isVerified) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color(0xFF22C55E),
+                    modifier = Modifier.size(18.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Description,
+                    contentDescription = null,
+                    tint = Color(0xFF8C8C8C),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = filename,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFFF5F5F5),
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
+            Text(
+                text = subtitle,
+                fontSize = 12.sp,
+                color = Color(0xFF8C8C8C),
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 1.dp)
+            )
+        }
+
+        if (isVerified) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Verified",
+                color = Color(0xFF22C55E),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+@Composable
+fun KmCustomCheckbox(
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(22.dp)
+            .clip(RoundedCornerShape(7.dp))
+            .then(
+                if (isChecked) {
+                    Modifier.background(
+                        Brush.linearGradient(
+                            listOf(Color(0xFFFF4D00), Color(0xFFFF5A00))
+                        )
+                    )
+                } else {
+                    Modifier
+                        .background(Color.Transparent)
+                        .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(7.dp))
+                }
+            )
+            .clickable { onCheckedChange(!isChecked) },
+        contentAlignment = Alignment.Center
+    ) {
+        if (isChecked) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = Color(0xFF0A0A0A),
+                modifier = Modifier.size(14.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun KmCircularProgressRing(
+    progress: Float,
+    percentageText: String,
+    speedText: String,
+    filenameText: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(200.dp)
+                .padding(12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val strokeWidthPx = 12.dp.toPx()
+                val radius = (size.minDimension - strokeWidthPx) / 2f
+                val center = Offset(size.width / 2f, size.height / 2f)
+
+                drawCircle(
+                    color = Color(0x14FFFFFF),
+                    radius = radius,
+                    center = center,
+                    style = Stroke(width = strokeWidthPx)
+                )
+
+                if (progress > 0f) {
+                    drawArc(
+                        brush = Brush.sweepGradient(
+                            listOf(Color(0xFFFF8A00), Color(0xFFFF5A00), Color(0xFFFF4D00), Color(0xFFFF8A00))
+                        ),
+                        startAngle = -90f,
+                        sweepAngle = (progress * 360f).coerceIn(0f, 360f),
+                        useCenter = false,
+                        topLeft = Offset(center.x - radius, center.y - radius),
+                        size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2),
+                        style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
+                    )
+                }
+            }
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = percentageText,
+                    fontSize = 34.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFF5F5F5)
+                )
+                Text(
+                    text = speedText,
+                    fontSize = 12.sp,
+                    color = Color(0xFF8C8C8C),
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            text = filenameText,
+            fontSize = 13.sp,
+            color = Color(0xFF8C8C8C),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+    }
+}
+
+@Composable
+fun KmFloatingBottomBar(
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val items = listOf(
+        Pair("Home", Icons.Default.Home),
+        Pair("Send", Icons.AutoMirrored.Filled.Send),
+        Pair("Receive", Icons.Default.ArrowDownward),
+        Pair("History", Icons.Default.History)
+    )
+
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 14.dp, vertical = 14.dp)
+    ) {
+        val totalWidth = maxWidth
+        val tabWidth = (totalWidth - 12.dp) / 4
+
+        val lensOffset by animateDpAsState(
+            targetValue = 6.dp + (tabWidth * selectedIndex),
+            animationSpec = spring(dampingRatio = 0.75f, stiffness = 500f),
+            label = "lens_x"
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(68.dp)
+                .clip(RoundedCornerShape(34.dp))
+                .background(Color(0xE6141414))
+                .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(34.dp))
+        ) {
+            Box(
+                modifier = Modifier
+                    .offset(x = lensOffset)
+                    .padding(vertical = 6.dp)
+                    .width(tabWidth)
+                    .height(56.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(Color(0xFFFF8A00), Color(0xFFFF5A00), Color(0xFFFF4D00))
+                        )
+                    )
+                    .drawBehind {
+                        drawLine(
+                            color = Color(0x80FFFFFF),
+                            start = Offset(12.dp.toPx(), 1.dp.toPx()),
+                            end = Offset(size.width - 12.dp.toPx(), 1.dp.toPx()),
+                            strokeWidth = 1.dp.toPx()
+                        )
+                    }
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                items.forEachIndexed { index, item ->
+                    val isSelected = selectedIndex == index
+                    val contentColor = if (isSelected) Color(0xFF0A0A0A) else Color(0xFF8C8C8C)
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable(
+                                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                                indication = null
+                            ) { onSelect(index) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            Icon(
+                                imageVector = item.second,
+                                contentDescription = item.first,
+                                tint = contentColor,
+                                modifier = Modifier.size(19.dp)
+                            )
+                            Text(
+                                text = item.first,
+                                fontSize = 10.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = contentColor
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

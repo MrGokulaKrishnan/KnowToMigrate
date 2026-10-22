@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-apk:
-    name: Build Android APK
+    name: Build Android Release APK
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,37 +24,52 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install NDK & CMake
-        run: |
-          sdkmanager --install "ndk;26.1.10909125" "cmake;3.22.1"
-
-      - name: Build Debug APK
+      - name: Run Unit Tests
         working-directory: apps/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew test --no-daemon
+
+      - name: Build Release APK
+        working-directory: apps/android
+        env:
+          KTM_KEYSTORE_PATH: ${{ secrets.KTM_KEYSTORE_PATH }}
+          KTM_KEYSTORE_PASSWORD: ${{ secrets.KTM_KEYSTORE_PASSWORD }}
+          KTM_KEY_ALIAS: ${{ secrets.KTM_KEY_ALIAS }}
+          KTM_KEY_PASSWORD: ${{ secrets.KTM_KEY_PASSWORD }}
+        run: |
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Extract Project Version
+        id: get_version
+        run: |
+          VERSION=$(jq -r .version version.json)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Stage Release Artifacts
         run: |
+          VERSION="${{ steps.get_version.outputs.VERSION }}"
           mkdir -p releases/android
-          cp apps/android/app/build/outputs/apk/debug/app-debug.apk releases/android/KnowToMigrate-1.0.0.apk
-          sha256sum releases/android/KnowToMigrate-1.0.0.apk > releases/android/KnowToMigrate-1.0.0.apk.sha256
-          echo "APK SHA256:"
-          cat releases/android/KnowToMigrate-1.0.0.apk.sha256
+          APK_SRC=$(find apps/android/app/build/outputs/apk/ -name "*.apk" | head -n 1)
+          cp "$APK_SRC" "releases/android/KnowToMigrate-${VERSION}.apk"
+          cd releases/android
+          sha256sum "KnowToMigrate-${VERSION}.apk" > "KnowToMigrate-${VERSION}.apk.sha256"
+          echo "APK SHA-256 Checksum:"
+          cat "KnowToMigrate-${VERSION}.apk.sha256"
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: KnowToMigrate-Android-Release
           path: |
-            releases/android/KnowToMigrate-1.0.0.apk
-            releases/android/KnowToMigrate-1.0.0.apk.sha256
+            releases/android/KnowToMigrate-*.apk
+            releases/android/KnowToMigrate-*.apk.sha256
 
       - name: Create GitHub Release (on tag)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            releases/android/KnowToMigrate-1.0.0.apk
-            releases/android/KnowToMigrate-1.0.0.apk.sha256
+            releases/android/KnowToMigrate-*.apk
+            releases/android/KnowToMigrate-*.apk.sha256
           generate_release_notes: true

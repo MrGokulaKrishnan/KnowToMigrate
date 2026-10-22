@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -33,6 +33,7 @@ namespace KnowToMigrate
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            UpdateMigrationStepUI();
             // CRITICAL FIX: Apply saved/validated window bounds in Loaded (after Activate),
             // never in the constructor. This prevents clipping caused by CenterScreen
             // resolving to wrong coordinates before the window is fully shown.
@@ -98,10 +99,10 @@ namespace KnowToMigrate
                 string updatedDateStr = DateTime.Now.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
                 TxtSidebarVersion.Text = $"Standalone v{currentVer}";
                 TxtSidebarFooterVersion.Text = $"KnowToMigrate Â· v{currentVer}";
-                TxtUpdatedOn.Text = $"Updated On: {updatedDateStr}";
+                TxtUpdatedOn.Text = "Recently Updated 1min ago";
                 TxtCurrentVersionBadge.Text = $"v{currentVer} (Current)";
                 TxtAboutVersion.Text = $"v{currentVer} (Production Release)";
-                TxtAboutDateUpdated.Text = updatedDateStr;
+                TxtAboutDateUpdated.Text = "Recently Updated 1min ago";
 
                 KtmManager.Instance.NearbyDevices.CollectionChanged += (s, e) => UpdateDiscoveryStatus();
                 UpdateDiscoveryStatus();
@@ -570,6 +571,7 @@ namespace KnowToMigrate
             if (sender is Button btn && btn.Tag is string tag)
             {
                 ViewHome.Visibility = Visibility.Collapsed;
+                ViewSend.Visibility = Visibility.Collapsed;
                 ViewReceive.Visibility = Visibility.Collapsed;
                 ViewWebShare.Visibility = Visibility.Collapsed;
                 ViewMigration.Visibility = Visibility.Collapsed;
@@ -583,6 +585,10 @@ namespace KnowToMigrate
                         ViewHome.Visibility = Visibility.Visible;
                         HighlightNav(BtnNavHome);
                         break;
+                    case "Send":
+                        ViewSend.Visibility = Visibility.Visible;
+                        HighlightNav(BtnNavSend);
+                        break;
                     case "Receive":
                         ViewReceive.Visibility = Visibility.Visible;
                         HighlightNav(BtnNavReceive);
@@ -595,6 +601,7 @@ namespace KnowToMigrate
                     case "Migration":
                         ViewMigration.Visibility = Visibility.Visible;
                         HighlightNav(BtnNavMigration);
+                        UpdateMigrationStepUI();
                         break;
                     case "History":
                         ViewHistory.Visibility = Visibility.Visible;
@@ -616,23 +623,133 @@ namespace KnowToMigrate
 
         private void HighlightNav(Button active)
         {
-            Button[] buttons = { BtnNavHome, BtnNavReceive, BtnNavWebShare, BtnNavMigration, BtnNavHistory, BtnNavSecurity, BtnNavSettings };
-            foreach (var b in buttons)
+            var railActiveBrush = (LinearGradientBrush)Application.Current.Resources["KmBrandGradient"];
+            var textMutedBrush = (SolidColorBrush)Application.Current.Resources["BrushTextMuted"];
+            var darkIconBrush = new SolidColorBrush(Color.FromRgb(10, 10, 10));
+
+            var pairs = new (Button btn, System.Windows.Shapes.Path path)[]
             {
+                (BtnNavHome, PathNavHome),
+                (BtnNavSend, PathNavSend),
+                (BtnNavReceive, PathNavReceive),
+                (BtnNavMigration, PathNavMigration),
+                (BtnNavHistory, PathNavHistory),
+                (BtnNavSettings, PathNavSettings)
+            };
+
+            foreach (var (b, p) in pairs)
+            {
+                if (b == null) continue;
                 if (b == active)
                 {
-                    b.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(26, 13, 0));
-                    b.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 138, 0));
-                    b.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 90, 0));
-                    b.BorderThickness = new Thickness(1);
+                    b.Background = railActiveBrush;
+                    b.Effect = new System.Windows.Media.Effects.DropShadowEffect
+                    {
+                        Color = Color.FromRgb(255, 90, 0),
+                        BlurRadius = 16,
+                        ShadowDepth = 0,
+                        Opacity = 0.45
+                    };
+                    if (p != null) p.Stroke = darkIconBrush;
                 }
                 else
                 {
-                    b.Background = System.Windows.Media.Brushes.Transparent;
-                    b.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(204, 204, 204));
-                    b.BorderThickness = new Thickness(0);
+                    b.Background = Brushes.Transparent;
+                    b.Effect = null;
+                    if (p != null) p.Stroke = textMutedBrush;
                 }
             }
+        }
+
+        private void HomeDropZone_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            ChooseFiles_Click(sender, e);
+            if (_selectedFiles.Count > 0)
+            {
+                Nav_Click(BtnNavSend, new RoutedEventArgs());
+            }
+        }
+
+        private void ClearSelectedFiles_Click(object sender, RoutedEventArgs e)
+        {
+            _selectedFiles.Clear();
+            UpdateFileSelectionUI();
+        }
+
+        private readonly string[] _migrationSteps = new[]
+        {
+            "Scan", "Photos", "Videos", "Documents", "Downloads",
+            "Music", "Contacts", "Apps list", "Preflight", "Transfer"
+        };
+        private int _currentMigrationStep = 1; // 0-indexed, Step 2: Photos
+
+        private void UpdateMigrationStepUI()
+        {
+            if (TxtMigrationStepLabel != null)
+            {
+                TxtMigrationStepLabel.Text = $"Step {_currentMigrationStep + 1} of 10 · {_migrationSteps[_currentMigrationStep]}";
+            }
+            if (PanelMigrationSteps != null)
+            {
+                PanelMigrationSteps.Children.Clear();
+                var activeGrad = (LinearGradientBrush)Application.Current.Resources["KmBrandGradient"];
+                var glassBg = (SolidColorBrush)Application.Current.Resources["BrushGlass"];
+                var edgeBrush = (SolidColorBrush)Application.Current.Resources["BrushEdge"];
+                var textPrimary = (SolidColorBrush)Application.Current.Resources["BrushTextPrimary"];
+                var textMuted = (SolidColorBrush)Application.Current.Resources["BrushTextMuted"];
+                var darkText = new SolidColorBrush(Color.FromRgb(10, 10, 10));
+
+                for (int i = 0; i < _migrationSteps.Length; i++)
+                {
+                    var pill = new Border
+                    {
+                        CornerRadius = new CornerRadius(999),
+                        Padding = new Thickness(12, 6, 12, 6),
+                        Margin = new Thickness(0, 0, 8, 8)
+                    };
+                    var tb = new TextBlock
+                    {
+                        Text = $"{i + 1}. {_migrationSteps[i]}",
+                        FontSize = 12
+                    };
+
+                    if (i == _currentMigrationStep)
+                    {
+                        pill.Background = activeGrad;
+                        tb.Foreground = darkText;
+                        tb.FontWeight = FontWeights.Bold;
+                    }
+                    else if (i < _currentMigrationStep)
+                    {
+                        pill.Background = glassBg;
+                        pill.BorderBrush = edgeBrush;
+                        pill.BorderThickness = new Thickness(1);
+                        tb.Foreground = textPrimary;
+                    }
+                    else
+                    {
+                        pill.Background = glassBg;
+                        pill.BorderBrush = edgeBrush;
+                        pill.BorderThickness = new Thickness(1);
+                        tb.Foreground = textMuted;
+                    }
+
+                    pill.Child = tb;
+                    PanelMigrationSteps.Children.Add(pill);
+                }
+            }
+        }
+
+        private void BtnMigrationBack_Click(object sender, RoutedEventArgs e)
+        {
+            _currentMigrationStep = Math.Max(0, _currentMigrationStep - 1);
+            UpdateMigrationStepUI();
+        }
+
+        private void BtnMigrationNext_Click(object sender, RoutedEventArgs e)
+        {
+            _currentMigrationStep = Math.Min(_migrationSteps.Length - 1, _currentMigrationStep + 1);
+            UpdateMigrationStepUI();
         }
 
         private void DropZone_DragOver(object sender, DragEventArgs e)
@@ -654,6 +771,7 @@ namespace KnowToMigrate
                     _selectedFiles.Clear();
                     _selectedFiles.AddRange(files);
                     UpdateFileSelectionUI();
+                    Nav_Click(BtnNavSend, new RoutedEventArgs());
                 }
             }
         }

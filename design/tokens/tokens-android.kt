@@ -67,6 +67,8 @@ object KtmColors {
     val TextSecondary = Color(0xFFD4D4D4)
     val TextMuted     = Color(0xFF8A8A8A)
     val TextDisabled  = Color(0xFF555555)
+    /** Near-black label text on orange gradient for WCAG AA 6.7:1 contrast */
+    val TextOnBrand   = Color(0xFF0A0A0A)
 
     // --------------------------------------------------------
     // Status
@@ -75,13 +77,15 @@ object KtmColors {
     val StatusWarning = Color(0xFFF59E0B)
     val StatusError   = Color(0xFFEF4444)
     val StatusInfo    = Color(0xFF38BDF8)
+    /** Green status dot indicator for online/trusted devices */
+    val StatusOnline  = Color(0xFF22C55E)
 
     // --------------------------------------------------------
     // Glass
     // --------------------------------------------------------
-    val GlassBackground      = Color(0x0AFFFFFF) // rgba(255,255,255,0.04)
-    val GlassBorder          = Color(0x14FFFFFF) // rgba(255,255,255,0.08)
-    val GlassHighlight       = Color(0x1FFFFFFF) // rgba(255,255,255,0.12)
+    val GlassBackground      = Color(0x09FFFFFF) // rgba(255,255,255,0.035)
+    val GlassBorder          = Color(0x1FFFFFFF) // rgba(255,255,255,0.12)
+    val GlassHighlight       = Color(0x47FFFFFF) // rgba(255,255,255,0.28)
     val GlassOrangeGlow      = Color(0x26FF5A00) // rgba(255,90,0,0.15)
     val GlassOrangeGlowStrong= Color(0x40FF5A00) // rgba(255,90,0,0.25)
 

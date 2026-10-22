@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KnowToMigrate Prototype</title>
+<style>
+:root{--o1:#FF4D00;--o2:#FF5A00;--o3:#FF8A00;--txt:#F5F5F5;--mut:#8C8C8C;--glass:rgba(255,255,255,.035);--edge:rgba(255,255,255,.12);--hi:inset 0 1px 0 rgba(255,255,255,.28)}
+*{box-sizing:border-box;margin:0}
+html,body{min-height:100%;background:#000;color:var(--txt);font-family:-apple-system,"Segoe UI",Roboto,system-ui,sans-serif}
+body{display:flex;flex-direction:column;align-items:center;gap:18px;padding:28px 12px 40px;overflow-x:auto}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(640px 420px at 12% 8%,rgba(255,90,0,.16),transparent 60%),radial-gradient(520px 380px at 92% 92%,rgba(255,138,0,.1),transparent 60%)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+[hidden]{display:none!important}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.glass{background:var(--glass);border:1px solid var(--edge);border-radius:16px;backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);box-shadow:var(--hi),0 10px 30px rgba(0,0,0,.5)}
+.grad{background:linear-gradient(135deg,var(--o1),var(--o2) 50%,var(--o3));color:#0a0a0a;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 20px rgba(255,90,0,.35);border-radius:12px;padding:12px 18px;font-weight:600}
+.grad:disabled{opacity:.4;box-shadow:none}
+.sec{background:var(--glass);border:1px solid var(--edge);border-radius:12px;padding:12px 18px;font-weight:600;box-shadow:var(--hi)}
+.muted{color:var(--mut);font-size:12px}
+.seg{display:flex;gap:4px;padding:4px;border-radius:999px;background:var(--glass);border:1px solid var(--edge);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.seg button{padding:8px 22px;border-radius:999px;color:var(--mut);font-weight:600}
+.seg button.on{background:linear-gradient(135deg,var(--o1),var(--o2) 50%,var(--o3));color:#0a0a0a}
+.chk{width:22px;height:22px;border-radius:7px;border:1px solid var(--edge);display:grid;place-items:center;flex:none}
+.chk .ic{width:14px;height:14px;opacity:0}
+.chk.on{background:linear-gradient(135deg,var(--o1),var(--o2));border-color:transparent;color:#0a0a0a}
+.chk.on .ic{opacity:1}
+.chkrow{cursor:pointer}
+.tag{font-size:11px;color:#22C55E}
+.radar{position:relative;width:86px;height:86px;flex:none}
+.radar i{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,90,0,.6);animation:pulse 2.6s ease-out infinite;opacity:0}
+.radar i:nth-child(2){animation-delay:.87s}.radar i:nth-child(3){animation-delay:1.73s}
+.radar span{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px;border-radius:50%;background:var(--o2);box-shadow:0 0 14px var(--o2)}
+@keyframes pulse{0%{transform:scale(.25);opacity:.9}100%{transform:scale(1);opacity:0}}
+@media (prefers-reduced-motion:reduce){.radar i{animation:none;opacity:.35;transform:scale(.7)}}
+@media (prefers-reduced-transparency:reduce){.glass,.seg,.bnav{backdrop-filter:none;-webkit-backdrop-filter:none;background:#111}}
+.mono{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-weight:800;color:#0a0a0a;background:linear-gradient(135deg,var(--o1),var(--o2) 50%,var(--o3));box-shadow:inset 0 1px 0 rgba(255,255,255,.45);flex:none}
+.pin{font-size:30px;letter-spacing:4px;font-weight:700;margin:10px 0}
+
+/* Android */
+.phone{width:372px;height:780px;border-radius:44px;border:10px solid #111;background:#000;position:relative;overflow:hidden;box-shadow:0 0 0 1px #222,0 30px 60px rgba(0,0,0,.7)}
+.status{position:absolute;top:0;left:0;right:0;height:36px;display:flex;justify-content:space-between;align-items:center;padding:0 24px;font-size:12px;font-weight:600;z-index:2}
+.scr{position:absolute;inset:0;padding:46px 16px 100px;overflow-y:auto;display:none}
+.scr.on{display:block}
+.scr h1{font-size:24px;margin:6px 0 4px}
+.card{padding:16px;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px}
+.iconbox{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.05);flex:none}
+.grow{flex:1;min-width:0}
+.tiles{display:flex;gap:12px;margin-bottom:12px}
+.tile{padding:16px;text-align:left;display:flex;flex-direction:column;gap:8px;flex:1}
+.sub{color:var(--mut);font-size:12px;margin:6px 2px 8px}
+.bnav{position:absolute;left:14px;right:14px;bottom:16px;height:68px;border-radius:34px;display:grid;grid-template-columns:repeat(4,1fr);padding:6px;background:rgba(20,20,20,.55);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--edge);box-shadow:var(--hi),0 12px 30px rgba(0,0,0,.6);z-index:3}
+.lens{position:absolute;top:6px;bottom:6px;width:calc((100% - 12px)/4);left:calc(6px + (100% - 12px) * var(--i,0) / 4);border-radius:28px;background:linear-gradient(160deg,var(--o3),var(--o2) 50%,var(--o1));box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 18px rgba(255,90,0,.45);transition:left .45s cubic-bezier(.3,1.35,.5,1)}
+.bnav button{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;color:var(--mut);transition:color .3s}
+.bnav button.on{color:#0a0a0a;font-weight:700}
+.ring{position:relative;width:200px;height:200px;margin:12px auto}
+.ring svg{width:200px;height:200px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:12;stroke-linecap:round}
+.ring .track{stroke:rgba(255,255,255,.08)}
+.ring .bar{stroke:url(#gOr);transition:stroke-dashoffset .15s linear}
+.ring .big{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-size:34px;font-weight:700}
+
+/* Windows */
+.win{width:980px;height:600px;border-radius:20px;background:linear-gradient(180deg,#0d0d0d,#040404);border:1px solid #1e1e1e;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 70px rgba(0,0,0,.7)}
+.tbar{height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 14px 0 16px;font-size:12px;color:var(--mut);flex:none}
+.dots{display:flex;gap:6px}.dots i{width:12px;height:12px;border-radius:50%;background:#222;display:block}
+.wbody{flex:1;display:flex;min-height:0}
+.rail{width:72px;margin:6px 0 14px 12px;padding:12px 0;display:flex;flex-direction:column;align-items:center;gap:10px;border-radius:24px;flex:none}
+.rail button{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:var(--mut)}
+.rail button:hover:not(.on){background:rgba(255,255,255,.05);color:var(--txt)}
+.rail button.on{background:linear-gradient(135deg,var(--o1),var(--o2) 50%,var(--o3));color:#0a0a0a;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 16px rgba(255,90,0,.35)}
+.main{flex:1;padding:18px 22px 20px 16px;overflow:auto;min-width:0}
+.wscr{display:none}
+.wscr.on{display:block}
+.wh{font-size:22px;font-weight:700;margin:4px 0 14px}
+.g2{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+.pane{padding:18px}
+.drop{border:1.5px dashed rgba(255,138,0,.45);border-radius:16px;height:190px;display:grid;place-items:center;text-align:center;cursor:pointer;background:radial-gradient(360px 200px at 50% 0%,rgba(255,90,0,.14),transparent 70%)}
+.frow{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px}
+.frow.chkrow:hover{background:rgba(255,255,255,.03)}
+.bar2{height:10px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden;margin:12px 0}
+.bar2 i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--o1),var(--o2),var(--o3));box-shadow:0 0 14px rgba(255,90,0,.6);transition:width .15s linear}
+.steps{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 16px}
+.steps span{padding:7px 12px;border-radius:999px;font-size:12px;background:var(--glass);border:1px solid var(--edge);color:var(--mut)}
+.steps span.done{color:var(--txt)}
+.steps span.cur{background:linear-gradient(135deg,var(--o1),var(--o2) 50%,var(--o3));color:#0a0a0a;font-weight:700;border-color:transparent}
+.tog{width:44px;height:24px;border-radius:999px;background:rgba(255,255,255,.12);position:relative;flex:none;transition:background .25s;cursor:pointer}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#eee;transition:transform .25s}
+.tog.on{background:linear-gradient(135deg,var(--o1),var(--o2))}
+.tog.on::after{transform:translateX(20px)}
+.setrow{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table td{padding:11px 8px;border-bottom:1px solid rgba(255,255,255,.06)}
+.table td.m{color:var(--mut)}
+.btnrow{display:flex;gap:10px;margin-top:14px}
+.btnrow>*{flex:1}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="gOr" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF8A00"/><stop offset=".5" stop-color="#FF5A00"/><stop offset="1" stop-color="#FF4D00"/>
+    </linearGradient>
+  </defs>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></symbol>
+  <symbol id="i-recv" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 21h16"/></symbol>
+  <symbol id="i-hist" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2"/></symbol>
+  <symbol id="i-move" viewBox="0 0 24 24"><path d="M4 7h13l-3-3M20 17H7l3 3"/></symbol>
+  <symbol id="i-set" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+  <symbol id="i-dev" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M9 20h6M12 16v4"/></symbol>
+</svg>
+
+<div class="seg" role="tablist">
+  <button class="on" data-p="android" onclick="plat('android')">Android</button>
+  <button data-p="windows" onclick="plat('windows')">Windows</button>
+</div>
+<p class="muted">Interactive prototype with sample data. Click through the screens.</p>
+
+<!-- ANDROID -->
+<div id="android" class="phone">
+  <div class="status"><span>9:41</span><span>5G 84%</span></div>
+
+  <div class="scr on" data-scope="and" data-screen="home">
+    <div style="display:flex;gap:12px;align-items:center;margin:6px 0 14px">
+      <div class="mono">KM</div>
+      <div><div style="font-weight:700">KnowToMigrate</div><div class="muted">Wi-Fi LAN · Ready</div></div>
+    </div>
+    <div class="glass card" style="display:flex;gap:16px;align-items:center">
+      <div class="radar"><i></i><i></i><i></i><span></span></div>
+      <div><div style="font-weight:600">1 device nearby</div><div class="muted">Windows PC · Trusted</div></div>
+    </div>
+    <div class="tiles">
+      <button class="glass tile" onclick="go('and','send')"><svg class="ic"><use href="#i-send"/></svg><b>Send</b><span class="muted">Files and folders</span></button>
+      <button class="glass tile" onclick="go('and','receive')"><svg class="ic"><use href="#i-recv"/></svg><b>Receive</b><span class="muted">Wait for a PC</span></button>
+    </div>
+    <div class="sub">Recent</div>
+    <div class="glass row"><div class="iconbox"><svg class="ic"><use href="#i-check"/></svg></div><div class="grow"><div>Photos_March.zip</div><div class="muted">1.2 GB · Sent 10:42 · Verified</div></div></div>
+    <div class="glass row"><div class="iconbox"><svg class="ic"><use href="#i-file"/></svg></div><div class="grow"><div>Lecture_notes/</div><div class="muted">320 MB · Yesterday</div></div></div>
+  </div>
+
+  <div class="scr" data-scope="and" data-screen="send">
+    <h1>Send</h1>
+    <div class="muted" style="margin-bottom:12px">To Windows PC</div>
+    <div class="glass chkrow row" data-chk><div class="chk on"><svg class="ic"><use href="#i-check"/></svg></div><div class="grow"><div>Photos_March.zip</div><div class="muted">1.2 GB</div></div></div>
+    <div class="glass chkrow row" data-chk><div class="chk on"><svg class="ic"><use href="#i-check"/></svg></div><div class="grow"><div>Lecture_notes/</div><div class="muted">320 MB · folder</div></div></div>
+    <div class="glass chkrow row" data-chk><div class="chk on"><svg class="ic"><use href="#i-check"/></svg></div><div class="grow"><div>Resume_2026.pdf</div><div class="muted">0.4 MB</div></div></div>
+    <button class="grad" style="width:100%;margin-top:10px" onclick="startAnd()">Send 3 items</button>
+  </div>
+
+  <div class="scr" data-scope="and" data-screen="receive">
+    <h1>Receive</h1>
+    <div class="glass card" style="text-align:center;padding:24px 16px">
+      <div class="radar" style="margin:6px auto 14px"><i></i><i></i><i></i><span></span></div>
+      <div style="font-weight:600">Waiting for a device</div>
+      <div class="muted">Keep this screen open</div>
+      <div class="pin">482 915</div>
+      <div class="muted">Confirm this PIN on the sending device</div>
+    </div>
+    <button class="sec" style="width:100%" onclick="go('and','home')">Stop receiving</button>
+  </div>
+
+  <div class="scr" data-scope="and" data-screen="transfer">
+    <h1>Sending</h1>
+    <div class="muted">To Windows PC · 3 items</div>
+    <div class="glass card" style="margin-top:14px">
+      <div class="ring">
+        <svg viewBox="0 0 200 200"><circle class="track" cx="100" cy="100" r="88"/><circle class="bar" id="aBar" cx="100" cy="100" r="88" stroke-dasharray="552.92" stroke-dashoffset="552.92"/></svg>
+        <div class="big"><div><span id="aPct">0</span>%<div class="muted" id="aSpd" style="font-size:12px;font-weight:400">Ready</div></div></div>
+      </div>
+      <div class="muted" id="aFile" style="text-align:center">Not started</div>
+    </div>
+    <div class="btnrow">
+      <button class="sec" onclick="cancelAnd()">Cancel</button>
+      <button class="grad" id="aDone" disabled onclick="go('and','history')">Done</button>
+    </div>
+  </div>
+
+  <div class="scr" data-scope="and" data-screen="history">
+    <h1>History</h1>
+    <div class="muted" style="margin-bottom:12px">Metadata only. File contents are never logged.</div>
+    <div class="glass row"><div class="iconbox"><svg class="ic"><use href="#i-check"/></svg></div><div class="grow"><div>Photos_March.zip</div><div class="muted">1.2 GB · 20 MB/s · 10:42</div></div><span class="tag">Verified</span></div>
+    <div class="glass row"><div class="iconbox"><svg class="ic"><use href="#i-check"/></svg></div><div class="grow"><div>Resume_2026.pdf</div><div class="muted">0.4 MB · Yesterday</div></div><span class="tag">Verified</span></div>
+    <div class="glass row"><div class="iconbox"><svg class="ic"><use href="#i-file"/></svg></div><div class="grow"><div>Lecture_notes/</div><div class="muted">320 MB · Oct 19</div></div></div>
+  </div>
+
+  <nav class="bnav">
+    <div class="lens" id="lens"></div>
+    <button class="on" data-scope="and" data-nav="home" onclick="go('and','home')"><svg class="ic"><use href="#i-home"/></svg>Home</button>
+    <button data-scope="and" data-nav="send" onclick="go('and','send')"><svg class="ic"><use href="#i-send"/></svg>Send</button>
+    <button data-scope="and" data-nav="receive" onclick="go('and','receive')"><svg class="ic"><use href="#i-recv"/></svg>Receive</button>
+    <button data-scope="and" data-nav="history" onclick="go('and','history')"><svg class="ic"><use href="#i-hist"/></svg>History</button>
+  </nav>
+</div>
+
+<!-- WINDOWS -->
+<div id="windows" class="win" hidden>
+  <div class="tbar"><span>KnowToMigrate</span><div class="dots"><i></i><i></i><i></i></div></div>
+  <div class="wbody">
+    <nav class="rail glass">
+      <button class="on" title="Home" data-scope="win" data-nav="home" onclick="go('win','home')"><svg class="ic"><use href="#i-home"/></svg></button>
+      <button title="Send" data-scope="win" data-nav="send" onclick="go('win','send')"><svg class="ic"><use href="#i-send"/></svg></button>
+      <button title="Receive" data-scope="win" data-nav="receive" onclick="go('win','receive')"><svg class="ic"><use href="#i-recv"/></svg></button>
+      <button title="Migrate" data-scope="win" data-nav="migrate" onclick="go('win','migrate')"><svg class="ic"><use href="#i-move"/></svg></button>
+      <button title="History" data-scope="win" data-nav="history" onclick="go('win','history')"><svg class="ic"><use href="#i-hist"/></svg></button>
+      <button title="Settings" data-scope="win" data-nav="settings" onclick="go('win','settings')"><svg class="ic"><use href="#i-set"/></svg></button>
+    </nav>
+
+    <main class="main">
+      <div class="wscr on" data-scope="win" data-screen="home">
+        <div class="wh">Home</div>
+        <div class="g2">
+          <div class="glass pane" style="padding:12px">
+            <div class="drop" onclick="go('win','send')">
+              <div><svg class="ic" style="width:30px;height:30px;margin:0 auto 8px;color:var(--o3)"><use href="#i-file"/></svg><div style="font-weight:600">Drop files or folders here</div><div class="muted">or click to choose what to send</div></div>
+            </div>
+          </div>
+          <div class="glass pane">
+            <div style="font-weight:600;margin-bottom:10px">Nearby</div>
+            <div class="frow"><svg class="ic"><use href="#i-dev"/></svg><div style="flex:1">Android phone<div class="muted">Wi-Fi LAN · Trusted</div></div><span class="tag">Online</span></div>
+            <div class="frow"><svg class="ic"><use href="#i-dev"/></svg><div style="flex:1">Work laptop<div class="muted">Wi-Fi LAN</div></div><span class="muted">Idle</span></div>
+          </div>
+        </div>
+        <div class="glass pane" style="margin-top:14px">
+          <div style="font-weight:600;margin-bottom:8px">Recent transfers</div>
+          <table class="table">
+            <tr><td>Photos_March.zip</td><td class="m">To Android phone</td><td class="m">1.2 GB</td><td><span class="tag">SHA-256 verified</span></td></tr>
+            <tr><td>Resume_2026.pdf</td><td class="m">From Android phone</td><td class="m">0.4 MB</td><td><span class="tag">SHA-256 verified</span></td></tr>
+            <tr><td>Lecture_notes/</td><td class="m">To Work laptop</td><td class="m">320 MB</td><td><span class="tag">SHA-256 verified</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="wscr" data-scope="win" data-screen="send">
+        <div class="wh">Send</div>
+        <div class="g2">
+          <div class="glass pane" style="padding:8px">
+            <div class="frow chkrow" data-chk><div class="chk on"><svg class="ic"><use href="#i-check"/></svg></div><div style="flex:1">Photos_March.zip<div class="muted">1.2 GB</div></div></div>
+            <div class="frow chkrow" data-chk><div class="chk on"><svg class="ic"><use href="#i-check"/></svg></div><div style="flex:1">Lecture_notes/<div class="muted">320 MB · folder</div></div></div>
+            <div class="frow chkrow" data-chk><div class="chk on"><svg class="ic"><use href="#i-check"/></svg></div><div style="flex:1">Resume_2026.pdf<div class="muted">0.4 MB</div></div></div>
+            <div class="frow chkrow" data-chk><div class="chk"><svg class="ic"><use href="#i-check"/></svg></div><div style="flex:1">Videos_2025/<div class="muted">4.8 GB · folder</div></div></div>
+          </div>
+          <div>
+            <div class="glass pane">
+              <div class="muted">Send to</div>
+              <div style="font-weight:600;margin:4px 0 10px">Android phone</div>
+              <div class="muted">Selected: 3 items · 1.5 GB</div>
+              <button class="grad" style="width:100%;margin-top:14px" onclick="startWin()">Start transfer</button>
+            </div>
+            <div class="glass pane" id="wProg" style="margin-top:14px;display:none">
+              <div style="display:flex;justify-content:space-between"><b id="wFile">Photos_March.zip</b><span id="wPct">0%</span></div>
+              <div class="bar2"><i id="wBar"></i></div>
+              <div class="muted" id="wSpd">Connecting</div>
+              <button class="sec" style="margin-top:12px" onclick="cancelWin()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wscr" data-scope="win" data-screen="receive">
+        <div class="wh">Receive</div>
+        <div class="g2">
+          <div class="glass pane" style="text-align:center;padding:30px">
+            <div class="radar" style="margin:0 auto 16px;width:120px;height:120px"><i></i><i></i><i></i><span></span></div>
+            <div style="font-weight:600">Listening on Wi-Fi LAN</div>
+            <div class="muted">Visible to nearby devices as This PC</div>
+          </div>
+          <div class="glass pane">
+            <div class="muted">Pairing PIN</div>
+            <div class="pin" style="font-size:34px">482 915</div>
+            <div class="muted">Confirm the same PIN on the sending device before you accept.</div>
+            <div class="btnrow"><button class="sec">Reject</button><button class="grad">Accept</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wscr" data-scope="win" data-screen="migrate">
+        <div class="wh">Device migration</div>
+        <div class="muted" id="stepLbl"></div>
+        <div class="steps" id="steps"></div>
+        <div class="glass pane">
+          <div style="display:flex;justify-content:space-between"><b>Pre-flight storage check</b><span class="muted">18.2 GB needed · 64 GB free</span></div>
+          <div class="bar2"><i style="width:28%"></i></div>
+          <div class="muted">Scan first, then choose what to move.</div>
+        </div>
+        <div class="btnrow" style="max-width:420px">
+          <button class="sec" onclick="step(-1)">Back</button>
+          <button class="grad" onclick="step(1)">Next</button>
+        </div>
+      </div>
+
+      <div class="wscr" data-scope="win" data-screen="history">
+        <div class="wh">History</div>
+        <div class="glass pane">
+          <table class="table">
+            <tr><td>Photos_March.zip</td><td class="m">1.2 GB</td><td class="m">20 MB/s</td><td><span class="tag">Verified</span></td></tr>
+            <tr><td>Resume_2026.pdf</td><td class="m">0.4 MB</td><td class="m">Yesterday</td><td><span class="tag">Verified</span></td></tr>
+            <tr><td>Lecture_notes/</td><td class="m">320 MB</td><td class="m">Oct 19</td><td><span class="tag">Verified</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="wscr" data-scope="win" data-screen="settings">
+        <div class="wh">Settings</div>
+        <div class="glass pane">
+          <div class="setrow"><div>Auto-accept trusted devices<div class="muted">Still asks for PIN confirmation</div></div><div class="tog"></div></div>
+          <div class="setrow"><div>Keep both files on duplicate<div class="muted">Otherwise replace the existing file</div></div><div class="tog on"></div></div>
+          <div class="setrow"><div>Notify when a transfer arrives<div class="muted">Flashes the taskbar icon</div></div><div class="tog on"></div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
+const C = 552.92;
+let tmr = null;
+
+function plat(p){
+  $$('.seg button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
+  $('#android').hidden = p !== 'android';
+  $('#windows').hidden = p !== 'windows';
+}
+
+function go(sc, name){
+  $$(`[data-scope="${sc}"][data-screen]`).forEach(s => s.classList.toggle(sc === 'and' ? 'on' : 'on', s.dataset.screen === name));
+  $$(`[data-scope="${sc}"][data-nav]`).forEach(b => b.classList.toggle('on', b.dataset.nav === name));
+  if (sc === 'and'){
+    const i = ['home','send','receive','history'].indexOf(name);
+    if (i >= 0) $('#lens').style.setProperty('--i', i);
+  }
+}
+
+function sim(onTick, onDone){
+  clearInterval(tmr);
+  let p = 0;
+  tmr = setInterval(() => {
+    p = Math.min(100, p + 1 + Math.random() * 3.5);
+    onTick(Math.round(p));
+    if (p >= 100){ clearInterval(tmr); tmr = null; onDone && onDone(); }
+  }, 140);
+}
+
+function startAnd(){
+  go('and','transfer');
+  $('#aDone').disabled = true;
+  $('#aSpd').textContent = 'Connecting';
+  sim(p => {
+    $('#aBar').setAttribute('stroke-dashoffset', C * (1 - p / 100));
+    $('#aPct').textContent = p;
+    $('#aSpd').textContent = (p * 0.9).toFixed(1) + ' MB/s';
+    $('#aFile').textContent = p < 60 ? 'Photos_March.zip' : p < 90 ? 'Lecture_notes/' : 'Resume_2026.pdf';
+  }, () => {
+    $('#aSpd').textContent = 'Verified with SHA-256';
+    $('#aFile').textContent = '3 items received by PC';
+    $('#aDone').disabled = false;
+  });
+}
+
+function cancelAnd(){
+  clearInterval(tmr); tmr = null;
+  $('#aPct').textContent = 0;
+  $('#aBar').setAttribute('stroke-dashoffset', C);
+  go('and','send');
+}
+
+const winFiles = ['Photos_March.zip','Lecture_notes/','Resume_2026.pdf'];
+function startWin(){
+  $('#wProg').style.display = 'block';
+  $('#wSpd').textContent = 'Connecting';
+  sim(p => {
+    $('#wBar').style.width = p + '%';
+    $('#wPct').textContent = p + '%';
+    $('#wFile').textContent = p < 60 ? winFiles[0] : p < 90 ? winFiles[1] : winFiles[2];
+    $('#wSpd').textContent = (p * 0.9).toFixed(1) + ' MB/s';
+  }, () => {
+    $('#wSpd').textContent = 'Verified with SHA-256';
+  });
+}
+
+function cancelWin(){
+  clearInterval(tmr); tmr = null;
+  $('#wProg').style.display = 'none';
+  $('#wBar').style.width = '0';
+}
+
+const steps = ['Scan','Photos','Videos','Documents','Downloads','Music','Contacts','Apps list','Preflight','Transfer'];
+let st = 1;
+function renderSteps(){
+  $('#steps').innerHTML = steps.map((s, i) =>
+    `<span class="${i < st ? 'done' : ''} ${i === st ? 'cur' : ''}">${i + 1}. ${s}</span>`).join('');
+  $('#stepLbl').textContent = `Step ${st + 1} of 10 · ${steps[st]}`;
+}
+function step(d){ st = Math.max(0, Math.min(9, st + d)); renderSteps(); }
+renderSteps();
+
+$$('[data-chk]').forEach(r => r.addEventListener('click', () => r.querySelector('.chk').classList.toggle('on')));
+$$('.tog').forEach(t => t.addEventListener('click', () => t.classList.toggle('on')));
+</script>
+</body>
+</html>

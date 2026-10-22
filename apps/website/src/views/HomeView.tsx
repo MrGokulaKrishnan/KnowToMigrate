@@ -182,9 +182,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-white/5">
-                <span className="text-gray-400">Encryption</span>
+                <span className="text-gray-400">Security & Integrity</span>
                 <span className="font-medium text-[#22C55E] flex items-center gap-1">
-                  <ShieldCheck className="w-4 h-4 text-[#22C55E]" /> TLS 1.3 + AES-GCM
+                  <ShieldCheck className="w-4 h-4 text-[#22C55E]" /> AES-256-GCM + SHA-256
                 </span>
               </div>
               <div className="flex justify-between items-center py-2">

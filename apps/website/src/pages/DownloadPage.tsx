@@ -13,7 +13,8 @@ import {
   Laptop,
   ArrowRight,
   Zap,
-  Globe
+  Globe,
+  Clock
 } from 'lucide-react'
 import { usePlatformDetection, PlatformType } from '../utils/platform'
 
@@ -27,9 +28,34 @@ export interface DownloadEntry {
   downloadUrl: string
   recommended?: boolean
   platform: 'windows' | 'android'
+  updateTimeText?: string
 }
 
-export const RELEASE_DATE = '04 October 2026'
+export const RELEASE_DATE = 'Recently Updated 1min ago'
+
+export function formatRelativeTime(dateInput?: string | number | Date): string {
+  if (!dateInput) return 'Recently Updated 1min ago'
+  const date = new Date(dateInput)
+  const now = new Date()
+  const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+  if (isNaN(diffSec) || diffSec <= 90) {
+    return 'Recently Updated 1min ago'
+  }
+  const diffMin = Math.floor(diffSec / 60)
+  if (diffMin < 60) {
+    return `Recently Updated ${diffMin}min ago`
+  }
+  const diffHours = Math.floor(diffMin / 60)
+  if (diffHours < 24) {
+    return `Recently Updated ${diffHours}h ago`
+  }
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays < 7) {
+    return `Recently Updated ${diffDays}d ago`
+  }
+  return `Updated on ${date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
+}
 
 const DEFAULT_WINDOWS_DOWNLOADS: DownloadEntry[] = [
   {
@@ -37,31 +63,34 @@ const DEFAULT_WINDOWS_DOWNLOADS: DownloadEntry[] = [
     filename: 'KnowToMigrate-Setup.exe',
     version: '1.0.5',
     size: '63.4 MB',
-    sha256: '0af66ecff7a114d2b66bd17b1814ec1f612c54dd0ab78199e7060efcb315e135',
+    sha256: '28bfeae352e78e3b2acbaaa62376dfb9261df3e7b76ddd1a814f846305bca0bd',
     requirements: 'Windows 10 / 11, 64-bit (Official Setup Installer with Start Menu & Desktop Shortcut)',
-    downloadUrl: '/download/KnowToMigrate-Setup.exe.bin',
+    downloadUrl: '/download/KnowToMigrate-Setup.exe',
     recommended: true,
     platform: 'windows',
+    updateTimeText: 'Recently Updated 1min ago',
   },
   {
     id: 'win-msi',
     filename: 'KnowToMigrate-1.0.5-x64.msi',
     version: '1.0.5',
     size: '63.4 MB',
-    sha256: '88a452e85e7e4cb8b194b9b3dd7feb9e17326af076417315c3dccf26817a2e25',
+    sha256: 'c19d7a1ec56f07d87d399e88f2717e0d6c4bcc633d705cfb760fe1dc6397f1c3',
     requirements: 'Windows 10 / 11, 64-bit (Standard Enterprise Windows Installer Package)',
-    downloadUrl: '/download/KnowToMigrate-1.0.5-x64.msi.bin',
+    downloadUrl: '/download/KnowToMigrate-1.0.5-x64.msi',
     platform: 'windows',
+    updateTimeText: 'Recently Updated 1min ago',
   },
   {
     id: 'win-portable',
     filename: 'KnowToMigrate.exe',
     version: '1.0.5',
     size: '69.1 MB',
-    sha256: '9ecea10a8d2c5807dfaae0684f090b657de55c73d6c5708c980c1184a67454cd',
+    sha256: '2f5c193a01d61e08da9abfd79108d56ed7a4ac9eadacede9be94c96d19b21c69',
     requirements: 'Windows 10 / 11, 64-bit (Portable Compressed Standalone Executable)',
-    downloadUrl: '/download/KnowToMigrate.exe.bin',
+    downloadUrl: '/download/KnowToMigrate.exe',
     platform: 'windows',
+    updateTimeText: 'Recently Updated 1min ago',
   },
 ]
 
@@ -71,11 +100,12 @@ const DEFAULT_ANDROID_DOWNLOADS: DownloadEntry[] = [
     filename: 'KnowToMigrate-1.0.5.apk',
     version: '1.0.5',
     size: '11.0 MB',
-    sha256: '2d5ed75499aa55689513a70d4dafd3526a9f7547078045b49d1c551842ddd784',
+    sha256: '17b849cc2feca3118d46a33f1f83308f7590be29ba8d6ead41da0058333108ef',
     requirements: 'Android 8.0+ (API 26+) — Independent APK with built-in self-updater',
-    downloadUrl: '/download/KnowToMigrate-1.0.5.apk.bin',
+    downloadUrl: '/download/KnowToMigrate-1.0.5.apk',
     recommended: true,
     platform: 'android',
+    updateTimeText: 'Recently Updated 1min ago',
   },
 ]
 
@@ -163,6 +193,27 @@ function DownloadCard({
     setProgress(0)
 
     const downloadUrl = entry.downloadUrl
+
+    // For Android APK or mobile browsers: use native direct browser download
+    // This allows the Android OS DownloadManager to stream directly to disk without Blob memory truncation
+    if (entry.filename.endsWith('.apk') || /Android/i.test(navigator.userAgent)) {
+      setStatus('downloading')
+      setProgress(100)
+      const a = document.createElement('a')
+      a.href = downloadUrl
+      a.download = entry.filename
+      a.setAttribute('target', '_blank')
+      a.setAttribute('rel', 'noopener noreferrer')
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setStatus('complete')
+      setTimeout(() => {
+        setStatus('idle')
+        setProgress(null)
+      }, 3500)
+      return
+    }
 
     try {
       await new Promise(r => setTimeout(r, 200))
@@ -264,6 +315,10 @@ function DownloadCard({
             )}
           </div>
           <p className="text-xs text-[#666666] mt-0.5">{entry.requirements} · {entry.size}</p>
+          <div className="flex items-center gap-1.5 text-[11px] text-[#22C55E] mt-1 font-medium">
+            <Clock className="w-3 h-3 text-[#22C55E]" />
+            <span>{entry.updateTimeText || 'Recently Updated 1min ago'}</span>
+          </div>
         </div>
         <span className="text-xs bg-[#FF5A00]/10 text-[#FF5A00] border border-[#FF5A00]/20 rounded-full px-2 py-0.5 flex-shrink-0 font-medium">
           v{entry.version}
@@ -344,13 +399,9 @@ export function DownloadPage() {
     fetch('/update-manifest.json?_cb=' + Date.now())
       .then(res => res.json())
       .then(manifest => {
+        const timeAgoText = formatRelativeTime(manifest?.publishedAt)
         if (manifest?.publishedAt) {
-          try {
-            const d = new Date(manifest.publishedAt)
-            if (!isNaN(d.getTime())) {
-              setLastUpdated(d.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }))
-            }
-          } catch {}
+          setLastUpdated(timeAgoText)
         }
         if (manifest?.windows) {
           const win = manifest.windows
@@ -358,33 +409,36 @@ export function DownloadPage() {
             {
               id: 'win-setup',
               filename: win.filename || 'KnowToMigrate-Setup.exe',
-              version: win.version || '1.0.2',
+              version: win.version || '1.0.5',
               size: win.size ? formatBytes(win.size) : '63.4 MB',
               sha256: win.sha256 || DEFAULT_WINDOWS_DOWNLOADS[0].sha256,
               requirements: 'Windows 10 / 11, 64-bit (Official Setup Installer with Start Menu & Desktop Shortcut)',
-              downloadUrl: '/download/KnowToMigrate-Setup.exe.bin',
+              downloadUrl: '/download/KnowToMigrate-Setup.exe',
               recommended: true,
               platform: 'windows',
+              updateTimeText: timeAgoText,
             },
             {
               id: 'win-msi',
               filename: win.msi?.filename || 'KnowToMigrate-1.0.5-x64.msi',
-              version: win.version || '1.0.2',
+              version: win.version || '1.0.5',
               size: win.msi?.size ? formatBytes(win.msi.size) : '63.4 MB',
               sha256: win.msi?.sha256 || DEFAULT_WINDOWS_DOWNLOADS[1].sha256,
               requirements: 'Windows 10 / 11, 64-bit (Standard Enterprise Windows Installer Package)',
-              downloadUrl: win.msi?.filename ? `/download/${win.msi.filename}.bin` : '/download/KnowToMigrate-1.0.5-x64.msi.bin',
+              downloadUrl: '/download/KnowToMigrate-1.0.5-x64.msi',
               platform: 'windows',
+              updateTimeText: timeAgoText,
             },
             {
               id: 'win-portable',
               filename: win.standalone?.filename || 'KnowToMigrate.exe',
-              version: win.version || '1.0.2',
+              version: win.version || '1.0.5',
               size: win.standalone?.size ? formatBytes(win.standalone.size) : '69.1 MB',
               sha256: win.standalone?.sha256 || DEFAULT_WINDOWS_DOWNLOADS[2].sha256,
               requirements: 'Windows 10 / 11, 64-bit (Portable Compressed Standalone Executable)',
-              downloadUrl: '/download/KnowToMigrate.exe.bin',
+              downloadUrl: '/download/KnowToMigrate.exe',
               platform: 'windows',
+              updateTimeText: timeAgoText,
             },
           ])
         }
@@ -394,14 +448,15 @@ export function DownloadPage() {
           setAndroidDownloads([
             {
               id: 'android-apk',
-              filename: and.filename || 'KnowToMigrate-1.0.0.apk',
-              version: and.versionName || '1.0.0',
+              filename: and.filename || 'KnowToMigrate-1.0.5.apk',
+              version: and.versionName || '1.0.5',
               size: and.size ? formatBytes(and.size) : '11.0 MB',
               sha256: and.sha256 || DEFAULT_ANDROID_DOWNLOADS[0].sha256,
-              requirements: 'Android 8.0+ (API 26+) — Enable "Install from unknown sources" in Settings',
-              downloadUrl: '/download/KnowToMigrate-1.0.0.apk.bin',
+              requirements: 'Android 8.0+ (API 26+) — Independent APK with built-in self-updater',
+              downloadUrl: '/download/KnowToMigrate-1.0.5.apk',
               recommended: true,
               platform: 'android',
+              updateTimeText: timeAgoText,
             },
           ])
         }
@@ -464,7 +519,8 @@ export function DownloadPage() {
             </span>
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#D4D4D4] border border-white/[0.08] bg-white/[0.03]">
               <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
-              Date Updated: {lastUpdated}
+              <Clock className="w-3.5 h-3.5 text-[#22C55E]" />
+              <span className="text-[#22C55E] font-medium">{lastUpdated}</span>
             </span>
           </div>
 
@@ -518,8 +574,13 @@ export function DownloadPage() {
                       <p className="text-xs text-[#888888] mt-1 leading-relaxed">
                         {suggestedEntry.requirements}
                       </p>
-                      <p className="text-xs text-[#FF8A00] mt-1 font-medium">
-                        File: {suggestedEntry.filename} · {suggestedEntry.size}
+                      <p className="text-xs text-[#FF8A00] mt-1 font-medium flex items-center gap-1.5 flex-wrap">
+                        <span>File: {suggestedEntry.filename} · {suggestedEntry.size}</span>
+                        <span>·</span>
+                        <span className="text-[#22C55E] flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-[#22C55E]" />
+                          {suggestedEntry.updateTimeText || 'Recently Updated 1min ago'}
+                        </span>
                       </p>
                     </div>
                   </div>

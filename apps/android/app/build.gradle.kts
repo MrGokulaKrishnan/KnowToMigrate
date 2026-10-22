@@ -26,12 +26,14 @@ android {
     signingConfigs {
         create("release") {
             val envPath = System.getenv("KTM_KEYSTORE_PATH")
-            val keystoreFile = if (!envPath.isNullOrBlank()) file(envPath) else null
-            if (keystoreFile != null && keystoreFile.exists()) {
+            val keystoreFile = if (!envPath.isNullOrBlank()) file(envPath) else file("../knowtomigrate-release.jks")
+            if (keystoreFile.exists()) {
                 storeFile = keystoreFile
-                storePassword = System.getenv("KTM_KEYSTORE_PASSWORD") ?: ""
-                keyAlias = System.getenv("KTM_KEY_ALIAS") ?: ""
-                keyPassword = System.getenv("KTM_KEY_PASSWORD") ?: ""
+                storePassword = System.getenv("KTM_KEYSTORE_PASSWORD") ?: "KnowToMigrate2026!"
+                keyAlias = System.getenv("KTM_KEY_ALIAS") ?: "knowtomigrate"
+                keyPassword = System.getenv("KTM_KEY_PASSWORD") ?: "KnowToMigrate2026!"
+                enableV1Signing = true
+                enableV2Signing = true
             } else {
                 initWith(getByName("debug"))
             }

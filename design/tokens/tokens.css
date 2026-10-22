@@ -41,6 +41,7 @@
   --ktm-text-secondary: #D4D4D4;
   --ktm-text-muted:    #8A8A8A;
   --ktm-text-disabled: #555555;
+  --ktm-text-on-brand: #0A0A0A;
 
   /* ----------------------------------------------------------
      STATUS COLORS
@@ -49,13 +50,14 @@
   --ktm-status-warning: #F59E0B;
   --ktm-status-error:   #EF4444;
   --ktm-status-info:    #38BDF8;
+  --ktm-status-online:  #22C55E;
 
   /* ----------------------------------------------------------
      GLASS COLORS
      ---------------------------------------------------------- */
-  --ktm-glass-bg:               rgba(255, 255, 255, 0.04);
-  --ktm-glass-border:           rgba(255, 255, 255, 0.08);
-  --ktm-glass-highlight:        rgba(255, 255, 255, 0.12);
+  --ktm-glass-bg:               rgba(255, 255, 255, 0.035);
+  --ktm-glass-border:           rgba(255, 255, 255, 0.12);
+  --ktm-glass-highlight:        inset 0 1px 0 rgba(255, 255, 255, 0.28);
   --ktm-glass-orange-glow:      rgba(255, 90, 0, 0.15);
   --ktm-glass-orange-glow-strong: rgba(255, 90, 0, 0.25);
 
@@ -318,6 +320,45 @@
 .ktm-focus-ring:focus-visible {
   outline: var(--ktm-focus-ring-width) solid var(--ktm-focus-ring-color);
   outline-offset: 2px;
+}
+
+/* Primary Button with WCAG AA compliance (near-black text on orange) */
+.ktm-btn-primary {
+  background: var(--ktm-gradient-brand);
+  color: var(--ktm-text-on-brand);
+  border-radius: var(--ktm-btn-radius);
+  height: var(--ktm-btn-height);
+  padding: 0 var(--ktm-btn-padding-x);
+  font-weight: 600;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 6px 20px rgba(255, 90, 0, 0.35);
+  border: 0;
+  cursor: pointer;
+}
+
+/* Secondary Glass Button */
+.ktm-btn-secondary {
+  background: var(--ktm-glass-bg);
+  border: 1px solid var(--ktm-glass-border);
+  color: var(--ktm-text-primary);
+  border-radius: var(--ktm-btn-radius);
+  height: var(--ktm-btn-height);
+  padding: 0 var(--ktm-btn-padding-x);
+  font-weight: 600;
+  box-shadow: var(--ktm-glass-highlight);
+  cursor: pointer;
+}
+
+/* ============================================================
+   REDUCED TRANSPARENCY
+   ============================================================ */
+@media (prefers-reduced-transparency: reduce) {
+  .ktm-glass-surface,
+  .ktm-glass-card,
+  .ktm-btn-secondary {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: #111111 !important;
+  }
 }
 
 /* ============================================================

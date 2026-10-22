@@ -397,14 +397,19 @@ namespace KnowToMigrate.Services
                     throw new InvalidDataException($"Downloaded file size ({new FileInfo(targetFilePath).Length}) does not match expected size ({winDetails.Size})");
                 }
 
-                if (!string.IsNullOrEmpty(winDetails.Sha256))
+                // Mandatory SHA-256 cryptographic check (fail-closed)
+                if (string.IsNullOrWhiteSpace(winDetails.Sha256) || winDetails.Sha256.Trim().Length != 64)
                 {
-                    if (!VerifySha256(targetFilePath, winDetails.Sha256))
-                    {
-                        throw new InvalidDataException("SHA-256 cryptographic verification failed. Download rejected.");
-                    }
-                    Log("[INFO] SHA-256 hash verified successfully.");
+                    try { File.Delete(targetFilePath); } catch { }
+                    throw new InvalidDataException("Update rejected: Manifest is missing a mandatory 64-hex SHA-256 verification hash.");
                 }
+
+                if (!VerifySha256(targetFilePath, winDetails.Sha256.Trim()))
+                {
+                    try { File.Delete(targetFilePath); } catch { }
+                    throw new InvalidDataException("SHA-256 cryptographic verification failed. Download rejected.");
+                }
+                Log("[INFO] SHA-256 hash verified successfully.");
 
                 DownloadStatus = UpdateDownloadStatus.ReadyToInstall;
                 OnDownloadProgressChanged?.Invoke(DownloadStatus, new UpdateDownloadProgress { BytesDownloaded = totalBytes, TotalBytes = totalBytes });

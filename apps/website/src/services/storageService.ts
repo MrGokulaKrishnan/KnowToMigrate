@@ -157,7 +157,12 @@ export class StorageService {
   public static getDeviceId(): string {
     let id = localStorage.getItem(STORAGE_KEYS.DEVICE_ID);
     if (!id) {
-      id = 'KTM-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Date.now().toString(16).slice(-4).toUpperCase();
+      const randBuf = new Uint8Array(4);
+      if (typeof window !== 'undefined' && window.crypto) {
+        window.crypto.getRandomValues(randBuf);
+      }
+      const randHex = Array.from(randBuf, b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+      id = `KTM-${randHex || 'DEV'}-${Date.now().toString(16).slice(-4).toUpperCase()}`;
       localStorage.setItem(STORAGE_KEYS.DEVICE_ID, id);
     }
     return id;

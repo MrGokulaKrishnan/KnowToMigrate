@@ -53,7 +53,7 @@ $publishDir = Join-Path $RepoRoot "releases\windows\publish"
 if (!(Test-Path $publishDir)) { New-Item -ItemType Directory -Path $publishDir -Force | Out-Null }
 
 $wpfProj = Join-Path $RepoRoot "apps\windows-wpf\KnowToMigrate.csproj"
-& $DotnetExe publish $wpfProj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o $publishDir
+& $DotnetExe publish $wpfProj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o $publishDir
 if ($LASTEXITCODE -ne 0) { Write-Error "WPF application publish failed with exit code $LASTEXITCODE" }
 
 # 4. Compile Standalone Native C# Updater (55 KB zero-dependency WinForms)
@@ -115,9 +115,13 @@ if (Test-Path $androidRelDir) {
     } | Remove-Item -Force
 }
 
+Copy-Item -Path $setupOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-Setup.exe") -Force
 Copy-Item -Path $setupOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-Setup.exe.bin") -Force
+Copy-Item -Path $msiOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-$TargetVersion-x64.msi") -Force
 Copy-Item -Path $msiOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-$TargetVersion-x64.msi.bin") -Force
+Copy-Item -Path $standaloneOut -Destination (Join-Path $webDownloadDir "KnowToMigrate.exe") -Force
 Copy-Item -Path $standaloneOut -Destination (Join-Path $webDownloadDir "KnowToMigrate.exe.bin") -Force
+Copy-Item -Path $standaloneOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-$TargetVersion-x64.exe") -Force
 Copy-Item -Path $standaloneOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-$TargetVersion-x64.exe.bin") -Force
 
 Write-Host "  Setup EXE:   $setupSize bytes | SHA256: $setupHash" -ForegroundColor Gray
@@ -126,6 +130,8 @@ Write-Host "  Standalone:  $standaloneSize bytes | SHA256: $standaloneHash" -For
 
 # 6. Build and Stage Android APK
 Write-Host "`nBuilding Android APK..." -ForegroundColor Green
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-17"
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 $androidDir = Join-Path $RepoRoot "apps\android"
 Push-Location $androidDir
 & .\gradlew.bat assembleRelease
@@ -145,6 +151,8 @@ $apkSize = 0
 if (Test-Path $apkSrc) {
     $apkHash = (Get-FileHash -Path $apkSrc -Algorithm SHA256).Hash.ToLowerInvariant()
     $apkSize = (Get-Item $apkSrc).Length
+    Copy-Item -Path $apkSrc -Destination (Join-Path $webDownloadDir "KnowToMigrate-$TargetVersion.apk") -Force
+    Copy-Item -Path $apkSrc -Destination (Join-Path $webDownloadDir "KnowToMigrate.apk") -Force
     Copy-Item -Path $apkSrc -Destination (Join-Path $webDownloadDir "KnowToMigrate-$TargetVersion.apk.bin") -Force
     Copy-Item -Path $apkSrc -Destination (Join-Path $webDownloadDir "KnowToMigrate.apk.bin") -Force
     Write-Host "  Android APK: $apkSize bytes | SHA256: $apkHash" -ForegroundColor Gray
@@ -176,7 +184,7 @@ if ($apkSize -gt 0) {
     $manifest.android.versionName = $TargetVersion
     $manifest.android.size = $apkSize
     $manifest.android.sha256 = $apkHash
-    $manifest.android.url = "https://knowtomigrate.web.app/download/KnowToMigrate-$TargetVersion.apk.bin"
+    $manifest.android.url = "https://knowtomigrate.web.app/download/KnowToMigrate-$TargetVersion.apk"
     $manifest.android.filename = "KnowToMigrate-$TargetVersion.apk"
 }
 
@@ -211,7 +219,7 @@ if (Test-Path $androidStablePath) {
     if ($apkSize -gt 0) {
         $as.sizeBytes = $apkSize
         $as.sha256 = $apkHash
-        $as.apkUrl = "https://knowtomigrate.web.app/download/KnowToMigrate-$TargetVersion.apk.bin"
+        $as.apkUrl = "https://knowtomigrate.web.app/download/KnowToMigrate-$TargetVersion.apk"
     }
     Write-Utf8NoBom -Path $androidStablePath -Content ($as | ConvertTo-Json -Depth 6)
     Write-Host "  Updated $androidStablePath (UTF-8 without BOM)" -ForegroundColor Gray

@@ -15,7 +15,13 @@ export const ReceiveView: React.FC<ReceiveViewProps> = ({ onSimulateIncoming }) 
   const toast = useToast();
   const [showIncomingModal, setShowIncomingModal] = useState(false);
   const [pinCopied, setPinCopied] = useState(false);
-  const [pairingPin] = useState(() => `${Math.floor(100 + Math.random() * 900)} - ${Math.floor(100 + Math.random() * 900)}`);
+  const [pairingPin] = useState(() => {
+    const array = new Uint32Array(2);
+    window.crypto.getRandomValues(array);
+    const p1 = 100 + (array[0] % 900);
+    const p2 = 100 + (array[1] % 900);
+    return `${p1} - ${p2}`;
+  });
 
   const handleCopyPin = () => {
     navigator.clipboard.writeText(pairingPin.replace(/\s+/g, ''));

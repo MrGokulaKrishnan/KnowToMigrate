@@ -114,7 +114,7 @@ export class FileValidator {
     }
 
     return {
-      id: 'file-' + Math.random().toString(36).substring(2, 9),
+      id: 'file-' + (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : Date.now().toString(16)),
       originalName: file.name,
       sanitizedName: sanitized,
       sizeBytes: file.size,

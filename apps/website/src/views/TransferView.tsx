@@ -94,7 +94,7 @@ export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, 
           </div>
           <h2 className="text-2xl font-black text-white mt-1.5">Direct P2P Streaming in Progress</h2>
           <p className="text-sm text-gray-400">
-            Target: <strong className="text-white">{targetDevice}</strong> · Direct Wi-Fi 6 (TLS 1.3)
+            Target: <strong className="text-white">{targetDevice}</strong> · Direct Wi-Fi 6 · Pluto Engine
           </p>
         </div>
 

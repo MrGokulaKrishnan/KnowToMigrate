@@ -50,6 +50,8 @@ namespace KnowToMigrate.Design.Tokens
         public static readonly Color TextSecondary = Color.FromArgb(255, 212, 212, 212);
         public static readonly Color TextMuted     = Color.FromArgb(255, 138, 138, 138);
         public static readonly Color TextDisabled  = Color.FromArgb(255, 85,  85,  85);
+        /// <summary>Near-black text on brand orange for WCAG AA compliance (6.7:1 ratio)</summary>
+        public static readonly Color TextOnBrand   = Color.FromArgb(255, 10,  10,  10);
 
         // --------------------------------------------------------
         // Status
@@ -58,16 +60,18 @@ namespace KnowToMigrate.Design.Tokens
         public static readonly Color StatusWarning = Color.FromArgb(255, 245, 158, 11);
         public static readonly Color StatusError   = Color.FromArgb(255, 239, 68,  68);
         public static readonly Color StatusInfo    = Color.FromArgb(255, 56,  189, 248);
+        /// <summary>Online status dot indicator for trusted/active devices</summary>
+        public static readonly Color StatusOnline  = Color.FromArgb(255, 34,  197, 94);
 
         // --------------------------------------------------------
         // Glass  (Alpha = 0–255, derived from opacity fractions)
         // --------------------------------------------------------
-        /// <summary>rgba(255,255,255,0.04) — glass surface background</summary>
-        public static readonly Color GlassBackground       = Color.FromArgb(10,  255, 255, 255);
-        /// <summary>rgba(255,255,255,0.08) — glass border</summary>
-        public static readonly Color GlassBorder           = Color.FromArgb(20,  255, 255, 255);
-        /// <summary>rgba(255,255,255,0.12) — glass highlight</summary>
-        public static readonly Color GlassHighlight        = Color.FromArgb(31,  255, 255, 255);
+        /// <summary>rgba(255,255,255,0.035) — glass surface background</summary>
+        public static readonly Color GlassBackground       = Color.FromArgb(9,   255, 255, 255);
+        /// <summary>rgba(255,255,255,0.12) — glass border</summary>
+        public static readonly Color GlassBorder           = Color.FromArgb(31,  255, 255, 255);
+        /// <summary>rgba(255,255,255,0.28) — glass top highlight</summary>
+        public static readonly Color GlassHighlight        = Color.FromArgb(71,  255, 255, 255);
         /// <summary>rgba(255,90,0,0.15) — orange glow overlay</summary>
         public static readonly Color GlassOrangeGlow       = Color.FromArgb(38,  255, 90,  0);
         /// <summary>rgba(255,90,0,0.25) — stronger orange glow</summary>
@@ -82,7 +86,9 @@ namespace KnowToMigrate.Design.Tokens
         public static SolidColorBrush BrushTextPrimary         => new(TextPrimary);
         public static SolidColorBrush BrushTextSecondary       => new(TextSecondary);
         public static SolidColorBrush BrushTextMuted           => new(TextMuted);
+        public static SolidColorBrush BrushTextOnBrand         => new(TextOnBrand);
         public static SolidColorBrush BrushStatusSuccess       => new(StatusSuccess);
+        public static SolidColorBrush BrushStatusOnline        => new(StatusOnline);
         public static SolidColorBrush BrushStatusError         => new(StatusError);
         public static SolidColorBrush BrushStatusWarning       => new(StatusWarning);
         public static SolidColorBrush BrushStatusInfo          => new(StatusInfo);

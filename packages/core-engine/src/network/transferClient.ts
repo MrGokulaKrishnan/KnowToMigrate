@@ -201,13 +201,17 @@ export class TransferClient extends EventEmitter {
         totalTransferred += chunk.length;
         const now = Date.now();
 
-        // Calculate metrics
+        // Calculate metrics with EMA to avoid tiny trailing files skewing the speed to near-zero
         const elapsedSec = (now - startTime) / 1000 || 0.001;
         const intervalSec = (now - lastTime) / 1000 || 0.001;
-        const currentSpeed = (totalTransferred - lastTransferred) / intervalSec;
-        const speedMbps = (currentSpeed * 8) / (1024 * 1024);
+        const instantSpeed = (totalTransferred - lastTransferred) / intervalSec;
+        const avgSpeed = totalTransferred / elapsedSec;
+        const avgSpeedMbps = (avgSpeed * 8) / (1024 * 1024);
+        const displaySpeedMbps = totalTransferred >= totalBytes 
+          ? Math.round(avgSpeedMbps * 10) / 10 
+          : Math.round(avgSpeedMbps * 10) / 10;
         const remainingBytes = Math.max(0, totalBytes - totalTransferred);
-        const etaSeconds = currentSpeed > 0 ? Math.round(remainingBytes / currentSpeed) : 0;
+        const etaSeconds = avgSpeed > 0 ? Math.round(remainingBytes / avgSpeed) : 0;
 
         lastTime = now;
         lastTransferred = totalTransferred;
@@ -223,8 +227,8 @@ export class TransferClient extends EventEmitter {
           completedFiles: fIdx,
           totalBytes,
           transferredBytes: totalTransferred,
-          speedBytesPerSec: currentSpeed,
-          speedMbps: Math.round(speedMbps * 10) / 10,
+          speedBytesPerSec: avgSpeed,
+          speedMbps: displaySpeedMbps,
           etaSeconds,
           chunksTotal: manifests.reduce((acc, m) => acc + m.chunks.length, 0),
           chunksVerified: chunkHashes.length,

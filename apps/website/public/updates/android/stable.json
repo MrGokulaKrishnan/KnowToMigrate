@@ -1,23 +1,23 @@
 {
-    "product":  "KnowToMigrate",
-    "platform":  "android",
-    "channel":  "stable",
-    "versionCode":  10005,
-    "versionName":  "1.0.5",
-    "minimumSupportedVersionCode":  10000,
-    "apkUrl":  "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5.apk.bin",
-    "sizeBytes":  11540988,
-    "sha256":  "2d5ed75499aa55689513a70d4dafd3526a9f7547078045b49d1c551842ddd784",
-    "releaseDate":  "2026-10-04",
-    "mandatory":  false,
-    "title":  "KnowToMigrate 1.0.5",
-    "releaseNotes":  [
-                         "Fixed file verification and byte alignment in Pluto transfer engine",
-                         "Independent Android APK Self-Updater with UTF-8 BOM sanitation and SHA-256 verification",
-                         "Liquid Glass navigation bar and responsive non-clipping action button",
-                         "Persistent Migration Ledger with cryptographic audit log, export, and quick folder reveal",
-                         "Universal Web Share with live QR code pairing and seamless multi-device browser transfers",
-                         "Windows Security Center real-time socket telemetry and Pluto Auto diagnostics",
-                         "Liquid Glass AMOLED custom CheckBox unique UI upgrade"
-                     ]
+    "product": "KnowToMigrate",
+    "platform": "android",
+    "channel": "stable",
+    "versionCode": 10005,
+    "versionName": "1.0.5",
+    "minimumSupportedVersionCode": 10000,
+    "apkUrl": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5.apk",
+    "sizeBytes": 11554975,
+    "sha256": "17b849cc2feca3118d46a33f1f83308f7590be29ba8d6ead41da0058333108ef",
+    "releaseDate": "2026-10-22",
+    "mandatory": false,
+    "title": "KnowToMigrate 1.0.5",
+    "releaseNotes": [
+        "Fixed file verification and byte alignment in Pluto transfer engine",
+        "Independent Android APK Self-Updater with UTF-8 BOM sanitation and SHA-256 verification",
+        "Liquid Glass navigation bar and responsive non-clipping action button",
+        "Persistent Migration Ledger with cryptographic audit log, export, and quick folder reveal",
+        "Universal Web Share with live QR code pairing and seamless multi-device browser transfers",
+        "Windows Security Center real-time socket telemetry and Pluto Auto diagnostics",
+        "Liquid Glass AMOLED custom CheckBox unique UI upgrade"
+    ]
 }

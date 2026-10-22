@@ -2,12 +2,65 @@
   "hosting": {
     "public": "apps/website/dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [{ "source": "**", "destination": "/index.html" }],
+    "rewrites": [
+      { "source": "/download/KnowToMigrate-1.0.5.apk", "destination": "/download/KnowToMigrate-1.0.5.apk.bin" },
+      { "source": "/download/KnowToMigrate.apk", "destination": "/download/KnowToMigrate.apk.bin" },
+      { "source": "/download/KnowToMigrate-Setup.exe", "destination": "/download/KnowToMigrate-Setup.exe.bin" },
+      { "source": "/download/KnowToMigrate-1.0.5-x64.msi", "destination": "/download/KnowToMigrate-1.0.5-x64.msi.bin" },
+      { "source": "/download/KnowToMigrate.exe", "destination": "/download/KnowToMigrate.exe.bin" },
+      { "source": "/download/KnowToMigrate-1.0.5-x64.exe", "destination": "/download/KnowToMigrate-1.0.5-x64.exe.bin" },
+      { "source": "**", "destination": "/index.html" }
+    ],
     "headers": [
       {
-        "source": "**/*.@(msi|exe|apk)",
+        "source": "/download/*apk*",
         "headers": [
+          { "key": "Content-Type", "value": "application/vnd.android.package-archive" },
           { "key": "Content-Disposition", "value": "attachment" },
+          { "key": "Cache-Control", "value": "public, max-age=86400" }
+        ]
+      },
+      {
+        "source": "/download/KnowToMigrate-1.0.5.apk*",
+        "headers": [
+          { "key": "Content-Type", "value": "application/vnd.android.package-archive" },
+          { "key": "Content-Disposition", "value": "attachment; filename=\"KnowToMigrate-1.0.5.apk\"" },
+          { "key": "Cache-Control", "value": "public, max-age=86400" }
+        ]
+      },
+      {
+        "source": "/download/KnowToMigrate.apk*",
+        "headers": [
+          { "key": "Content-Type", "value": "application/vnd.android.package-archive" },
+          { "key": "Content-Disposition", "value": "attachment; filename=\"KnowToMigrate.apk\"" },
+          { "key": "Cache-Control", "value": "public, max-age=86400" }
+        ]
+      },
+      {
+        "source": "/download/KnowToMigrate-Setup.exe*",
+        "headers": [
+          { "key": "Content-Disposition", "value": "attachment; filename=\"KnowToMigrate-Setup.exe\"" },
+          { "key": "Cache-Control", "value": "public, max-age=86400" }
+        ]
+      },
+      {
+        "source": "/download/KnowToMigrate-1.0.5-x64.msi*",
+        "headers": [
+          { "key": "Content-Disposition", "value": "attachment; filename=\"KnowToMigrate-1.0.5-x64.msi\"" },
+          { "key": "Cache-Control", "value": "public, max-age=86400" }
+        ]
+      },
+      {
+        "source": "/download/KnowToMigrate.exe*",
+        "headers": [
+          { "key": "Content-Disposition", "value": "attachment; filename=\"KnowToMigrate.exe\"" },
+          { "key": "Cache-Control", "value": "public, max-age=86400" }
+        ]
+      },
+      {
+        "source": "/download/KnowToMigrate-1.0.5-x64.exe*",
+        "headers": [
+          { "key": "Content-Disposition", "value": "attachment; filename=\"KnowToMigrate-1.0.5-x64.exe\"" },
           { "key": "Cache-Control", "value": "public, max-age=86400" }
         ]
       },

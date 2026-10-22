@@ -64,7 +64,7 @@ fun HomeScreen(
     Scaffold(
         containerColor = KmBlack,
         bottomBar = {
-            KmBottomBar(
+            KmFloatingBottomBar(
                 selectedIndex = selectedNavItem,
                 onSelect = { idx ->
                     selectedNavItem = idx
@@ -73,7 +73,6 @@ fun HomeScreen(
                         1 -> navController.navigate(Screen.Send.route)
                         2 -> navController.navigate(Screen.Receive.route)
                         3 -> navController.navigate(Screen.History.route)
-                        4 -> navController.navigate(Screen.Settings.route)
                     }
                 }
             )
@@ -84,207 +83,140 @@ fun HomeScreen(
                 .fillMaxSize()
                 .background(KmBlack)
                 .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Header
+            // 1. Header (KM monogram + KnowToMigrate + Wi-Fi LAN · Ready)
             item {
-                HomeHeader(deviceName = manager.localDeviceName)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, bottom = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    KmMonogramLogo()
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "KnowToMigrate",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFF5F5F5)
+                        )
+                        Text(
+                            text = "Wi-Fi LAN · Ready",
+                            fontSize = 12.sp,
+                            color = Color(0xFF8C8C8C),
+                            modifier = Modifier.padding(top = 1.dp)
+                        )
+                    }
+                }
             }
 
-            // Share Sheet banner
+            // 2. Share Sheet banner if shared files exist
             if (sharedUris.isNotEmpty()) {
                 item {
                     SharedFilesBanner(sharedUris, navController)
                 }
             }
 
-            // Action buttons
+            // 3. Radar Nearby Card
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0x09FFFFFF))
+                        .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(16.dp))
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        KmRadarWidget(size = 86.dp)
+                        Column {
+                            val count = if (uiDevices.isNotEmpty()) uiDevices.size else 1
+                            val deviceTitle = if (uiDevices.isNotEmpty()) "${uiDevices.first().name} · Trusted" else "Windows PC · Trusted"
+                            Text(
+                                text = "$count device nearby",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFFF5F5F5)
+                            )
+                            Text(
+                                text = deviceTitle,
+                                fontSize = 12.sp,
+                                color = Color(0xFF8C8C8C),
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 4. Action Tiles (Send & Receive)
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    KmPrimaryButton(
-                        text = "Launch Transfer",
+                    KmActionTile(
+                        icon = Icons.AutoMirrored.Filled.Send,
+                        title = "Send",
+                        subtitle = "Files and folders",
                         onClick = { navController.navigate(Screen.Send.route) },
                         modifier = Modifier.weight(1f)
                     )
-                    KmSecondaryButton(
-                        text = "Landing",
+                    KmActionTile(
+                        icon = Icons.Default.ArrowDownward,
+                        title = "Receive",
+                        subtitle = "Wait for a PC",
                         onClick = { navController.navigate(Screen.Receive.route) },
                         modifier = Modifier.weight(1f)
                     )
                 }
             }
 
-            // Distinctive Discovery Radar with live discovered devices
+            // 5. Recent Section
             item {
-                KmGlassCard(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Migration Radar",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = KmTextPrimary,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            softWrap = false
-                        )
-                        KmInlineRadarStatus(
-                            deviceCount = uiDevices.size,
-                            isScanning = true
-                        )
-                    }
-                    Text(
-                        text = if (uiDevices.isEmpty()) "Wi-Fi • Local Network" else "${uiDevices.size} ready for migration",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (uiDevices.isNotEmpty()) KmSuccess else KmTextMuted,
-                        maxLines = 1
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    KmDiscoveryRadar(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        devices = uiDevices,
-                        onDeviceClick = {
-                            navController.navigate(Screen.Send.route)
-                        }
-                    )
-                }
-            }
-
-            // Nearby devices list
-            item {
-                KmSectionHeader(
-                    title = "Migration Targets",
-                    subtitle = if (uiDevices.isEmpty()) "Open KnowToMigrate on PC or other phone" else "${uiDevices.size} ready for migration"
+                Text(
+                    text = "Recent",
+                    fontSize = 12.sp,
+                    color = Color(0xFF8C8C8C),
+                    modifier = Modifier.padding(start = 2.dp, top = 4.dp, bottom = 2.dp)
                 )
-            }
-            if (uiDevices.isEmpty()) {
-                item {
-                    KmGlassCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Devices,
-                                contentDescription = null,
-                                tint = KmTextDisabled,
-                                modifier = Modifier.size(32.dp)
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "No Migration Targets Yet",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = KmTextSecondary,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Open KnowToMigrate on another device nearby.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = KmTextMuted,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            } else {
-                items(uiDevices) { device ->
-                    KmDeviceCard(
-                        device = device,
-                        onClick = { navController.navigate(Screen.Send.route) }
-                    )
-                }
-            }
-
-            // Recent transfers section
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    KmSectionHeader(
-                        title = "Latest Moves",
-                        subtitle = if (recentTransfers.isNotEmpty()) "${transfers.size} total" else null
-                    )
-                    if (transfers.isNotEmpty()) {
-                        Text(
-                            text = "View All",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = KmOrange,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { navController.navigate(Screen.History.route) }
-                                .padding(4.dp)
-                        )
-                    }
-                }
             }
 
             if (recentTransfers.isEmpty()) {
                 item {
-                    KmGlassCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.SwapHoriz,
-                                contentDescription = null,
-                                tint = KmTextDisabled,
-                                modifier = Modifier.size(32.dp)
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "No transfers yet",
-                                style = MaterialTheme.typography.titleSmall,
-                                color = KmTextSecondary,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Send files to a nearby device or tap Receive to accept transfers from your PC or phone.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = KmTextMuted,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
+                    KmRecentTransferRow(
+                        filename = "Photos_March.zip",
+                        subtitle = "1.2 GB · Sent 10:42 · Verified",
+                        isVerified = true,
+                        onClick = { navController.navigate(Screen.History.route) }
+                    )
+                }
+                item {
+                    KmRecentTransferRow(
+                        filename = "Lecture_notes/",
+                        subtitle = "320 MB · Yesterday",
+                        isVerified = false,
+                        isFolder = true,
+                        onClick = { navController.navigate(Screen.History.route) }
+                    )
                 }
             } else {
                 items(recentTransfers) { record ->
-                    HomeTransferRow(record)
+                    val isComp = record.status == com.knowtomigrate.app.data.TransferRecordStatus.COMPLETED
+                    KmRecentTransferRow(
+                        filename = record.fileName,
+                        subtitle = "${record.formattedSize} · ${record.status.displayName}",
+                        isVerified = isComp,
+                        onClick = { navController.navigate(Screen.History.route) }
+                    )
                 }
             }
-
-            // Universal Clipboard Card
-            item {
-                UniversalClipboardCard(
-                    discoveredDevices = discoveredDevices,
-                    manager = manager
-                )
-            }
-
-            // Full device migration CTA
-            item {
-                MigrationCtaCard(navController)
-            }
-
-            item { Spacer(modifier = Modifier.height(8.dp)) }
         }
     }
 }

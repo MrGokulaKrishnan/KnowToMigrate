@@ -97,7 +97,7 @@ export const SettingsView: React.FC = () => {
           </div>
           <label className="flex items-center justify-between cursor-pointer">
             <div>
-              <p className="font-semibold text-white">TLS 1.3 &amp; AES-256-GCM</p>
+              <p className="font-semibold text-white">AES-256-GCM Encryption</p>
               <p className="text-xs text-gray-400">Enforce end-to-end authenticated encryption</p>
             </div>
             <input

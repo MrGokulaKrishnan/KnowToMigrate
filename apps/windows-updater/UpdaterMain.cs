@@ -631,18 +631,22 @@ namespace KnowToMigrate.Updater
                     throw new FileNotFoundException(string.Format("Update package not found at '{0}'", _packagePath));
                 }
 
-                if (!string.IsNullOrEmpty(_expectedSha256))
+                // Mandatory SHA-256 verification (fail-closed)
+                if (string.IsNullOrWhiteSpace(_expectedSha256) || _expectedSha256.Trim().Length != 64)
                 {
-                    string computedHash = CalculateSha256(_packagePath);
-                    Program.Log("[INFO] Computed SHA-256: " + computedHash);
-                    Program.Log("[INFO] Expected SHA-256: " + _expectedSha256);
-
-                    if (!string.Equals(computedHash, _expectedSha256, StringComparison.OrdinalIgnoreCase))
-                    {
-                        throw new InvalidDataException("SHA-256 checksum mismatch. Download package rejected.");
-                    }
-                    Program.Log("[INFO] SHA-256 verified successfully.");
+                    throw new InvalidDataException("Cryptographic verification failed: Mandatory 64-hex SHA-256 checksum was not supplied to updater.");
                 }
+
+                string computedHash = CalculateSha256(_packagePath);
+                Program.Log("[INFO] Computed SHA-256: " + computedHash);
+                Program.Log("[INFO] Expected SHA-256: " + _expectedSha256);
+
+                if (!string.Equals(computedHash, _expectedSha256.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    try { File.Delete(_packagePath); } catch { }
+                    throw new InvalidDataException("SHA-256 checksum mismatch. Download package rejected and purged.");
+                }
+                Program.Log("[INFO] SHA-256 verified successfully.");
 
                 // Step 3: Execute installation
                 UpdateStatus("Installing update...", string.Format("Applying KnowToMigrate v{0}...", _targetVersion));

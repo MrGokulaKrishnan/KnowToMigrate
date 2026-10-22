@@ -1,6 +1,9 @@
-﻿use std::ffi::{CStr, CString, c_char, c_int};
+use std::collections::HashMap;
+use std::ffi::{CStr, CString, c_char, c_int};
 use std::panic::catch_unwind;
 use std::ptr;
+use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering};
 
 // ============================================================
 // KTM Handle â€” opaque pointer exposed to C callers
@@ -10,6 +13,7 @@ pub struct KtmHandle {
     pub device_id: String,
     pub version: String,
     pub runtime: Option<tokio::runtime::Runtime>,
+    pub cancel_flags: Mutex<HashMap<String, Arc<AtomicBool>>>,
 }
 
 impl KtmHandle {
@@ -25,6 +29,7 @@ impl KtmHandle {
             device_id,
             version: env!("CARGO_PKG_VERSION").to_string(),
             runtime,
+            cancel_flags: Mutex::new(HashMap::new()),
         }
     }
 }
@@ -199,36 +204,47 @@ pub unsafe extern "C" fn ktm_send_file(
         let sid_clone = session_id.clone();
         let cb_ptr = progress_callback as usize;
 
-        if let Some(rt) = &h.runtime {
-            let sid2 = sid_clone.clone();
-            rt.spawn(async move {
-                use ktm_transfer::client::TransferClient;
-                use std::path::Path;
+        let rt = match &h.runtime {
+            Some(r) => r,
+            None => return ptr::null_mut(),
+        };
 
-                let client = TransferClient::new(
-                    &ip,
-                    target_port,
-                    &sid2,
-                    &device_id,
-                    "KnowToMigrate",
-                );
-
-                let _ = client.send_files(&[Path::new(&path_str)], move |prog| {
-                    if let (Ok(sid_c), ) = (CString::new(prog.session_id.as_str()), ) {
-                        let cb: TransferProgressCallback = unsafe { std::mem::transmute(cb_ptr) };
-                        unsafe {
-                            cb(
-                                sid_c.as_ptr(),
-                                prog.bytes_sent,
-                                prog.total_bytes,
-                                prog.speed_bps,
-                                prog.eta_secs,
-                            )
-                        };
-                    }
-                }).await;
-            });
+        let sid2 = sid_clone.clone();
+        let cancel_flag = Arc::new(AtomicBool::new(false));
+        if let Ok(mut map) = h.cancel_flags.lock() {
+            map.insert(sid_clone.clone(), cancel_flag.clone());
         }
+
+        rt.spawn(async move {
+            use ktm_transfer::client::TransferClient;
+            use std::path::Path;
+
+            let client = TransferClient::new(
+                &ip,
+                target_port,
+                &sid2,
+                &device_id,
+                "KnowToMigrate",
+            );
+
+            let _ = client.send_files(&[Path::new(&path_str)], move |prog| {
+                if cancel_flag.load(Ordering::SeqCst) {
+                    return;
+                }
+                if let (Ok(sid_c), ) = (CString::new(prog.session_id.as_str()), ) {
+                    let cb: TransferProgressCallback = unsafe { std::mem::transmute(cb_ptr) };
+                    unsafe {
+                        cb(
+                            sid_c.as_ptr(),
+                            prog.bytes_sent,
+                            prog.total_bytes,
+                            prog.speed_bps,
+                            prog.eta_secs,
+                        )
+                    };
+                }
+            }).await;
+        });
 
         CString::new(session_id).map(|s| s.into_raw()).unwrap_or(ptr::null_mut())
     });
@@ -315,10 +331,21 @@ pub unsafe extern "C" fn ktm_receive_start(
 /// Cancel a transfer session by ID.
 #[no_mangle]
 pub unsafe extern "C" fn ktm_cancel(
-    _handle: *mut KtmHandle,
-    _session_id: *const c_char,
+    handle: *mut KtmHandle,
+    session_id: *const c_char,
 ) {
-    // TODO: implement per-session cancellation tokens in v1.1
+    if handle.is_null() || session_id.is_null() {
+        return;
+    }
+    let _ = catch_unwind(|| {
+        let h = &*handle;
+        let sid = CStr::from_ptr(session_id).to_string_lossy().to_string();
+        if let Ok(map) = h.cancel_flags.lock() {
+            if let Some(flag) = map.get(&sid) {
+                flag.store(true, Ordering::SeqCst);
+            }
+        }
+    });
 }
 
 // ============================================================

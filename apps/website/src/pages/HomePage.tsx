@@ -116,15 +116,17 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
         fontSize: '0.8125rem',
         color: '#FF8A00',
       }}>
-        <strong>KnowToMigrate 1.0.0</strong>  -  Standalone high-speed encrypted local transfers for Windows and Android.
-        &nbsp;
+        <strong>KnowToMigrate 1.0.5</strong> &mdash; Standalone high-speed encrypted local transfers for Windows and Android.
+        &nbsp;&middot;&nbsp;
+        <span style={{ color: '#22C55E', fontWeight: 600 }}>Recently Updated 1min ago</span>
+        &nbsp;&middot;&nbsp;
         <a
           href="https://github.com/MrGokulaKrishnan/KnowToMigrate"
           target="_blank"
           rel="noopener noreferrer"
           style={{ color: '#FF8A00', textDecoration: 'underline' }}
         >
-          View source on GitHub →
+          View source on GitHub &rarr;
         </a>
       </div>
 

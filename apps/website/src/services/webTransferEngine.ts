@@ -107,7 +107,10 @@ export class WebTransferEngine {
     files: ValidatedFileItem[],
     direction: 'send' | 'receive' = 'send'
   ): Promise<string> {
-    this.sessionId = 'KTM-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Date.now().toString(16).slice(-4).toUpperCase();
+    const randBuf = new Uint8Array(4);
+    window.crypto.getRandomValues(randBuf);
+    const randHex = Array.from(randBuf, b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+    this.sessionId = `KTM-${randHex}-${Date.now().toString(16).slice(-4).toUpperCase()}`;
     this.targetDevice = targetDevice;
     this.direction = direction;
     this.files = files.length > 0 ? files : [this.createFallbackItem()];
@@ -153,9 +156,10 @@ export class WebTransferEngine {
         if (i < targetVerified) {
           if (this.chunkStates[i] !== 'verified') {
             this.chunkStates[i] = 'verified';
-            this.chunkHashes.push(
-              'chk_' + i + '_' + Math.random().toString(16).substring(2, 10)
-            );
+            const chunkRand = new Uint8Array(4);
+            window.crypto.getRandomValues(chunkRand);
+            const chunkHex = Array.from(chunkRand, b => b.toString(16).padStart(2, '0')).join('');
+            this.chunkHashes.push(`chk_${i}_${chunkHex}`);
           }
         } else if (i === targetVerified) {
           this.chunkStates[i] = 'in_flight';

@@ -1,5 +1,7 @@
 # KNOW TO MIGRATE ⚡
 > **"Move Anything. Anywhere. Seamlessly."**
+> 
+> *Last updated: 22 October 2026*
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-orange.svg)](LICENSE)
 [![Protocol](https://img.shields.io/badge/protocol-KTM%20v2.0-FF5A00.svg)](docs/PROTOCOL.md)
@@ -11,14 +13,14 @@
 
 ## Key Features
 
-- ⚡ **Zero-Compression Streaming**: Never buffers entire files into memory; streams 8MB chunks with backpressure. 1TB+ tested.
+- ⚡ **Zero-Compression Streaming**: Never buffers entire files into memory; streams 8MB chunks with backpressure.
 - 📁 **Deep Folder Structure Preservation**: Recursively preserves directory hierarchies, timestamps, and attributes without requiring ZIP compression.
 - 🔁 **Cryptographic Chunk Resume**: Verified chunks are committed to `.ktm-checkpoint.json`. Transfers resume from the exact last verified chunk without re-transmitting previous data.
-- 🔒 **Ironclad Security**: TLS 1.3 transport, per-session AES-256-GCM authenticated encryption, and dual-layer SHA-256 Merkle root verification.
-- 🛡️ **Path Traversal Sandboxing**: `PathGuard` eliminates directory traversal escapes (`../`) and Windows reserved filename injections (`CON`, `PRN`, `AUX`, `NUL`).
+- 🔒 **Ironclad Security**: Direct LAN socket framing, per-session AES-256-GCM authenticated encryption, and dual-layer SHA-256 Merkle root verification.
+- 🛡️ **Path Traversal Sandboxing**: `PathGuard` eliminates directory traversal escapes (`../`) and Windows reserved filename injections (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`).
 - 🧙‍♂️ **Smart Device Migration Wizard**: Guided 10-step wizard scanning Photos, 4K Videos, Documents, Downloads, Music, and Contacts with pre-flight storage validation.
 - 🌐 **Zero-Install Web Receiver**: Drop files to colleagues using only a browser through WebRTC DataChannels and the Web Crypto API.
-- 📶 **Dynamic Network Pathing**: Direct Wi-Fi 6 P2P $\to$ Internet P2P (WebRTC STUN) $\to$ Zero-knowledge Encrypted Fallback Relay.
+- 📶 **Dynamic Network Pathing**: Direct Wi-Fi 6 P2P $\to$ Internet P2P (WebRTC STUN) $\to$ Authenticated Zero-knowledge Fallback Relay.
 
 ---
 
@@ -31,10 +33,12 @@ KnowToMigrate/
 │   ├── core-engine/       # Streaming chunker, AES-256-GCM crypto, UDP discovery, TCP server/client
 │   └── design-system/     # Liquid Glass tokens, KM orange palette, and animations
 ├── apps/
-│   ├── desktop/           # Windows Desktop app (React 18 + Vite + Tailwind CSS + Electron)
+│   ├── windows-wpf/       # Native Windows desktop app (WPF / .NET 8 C# + Win32 Mica/Acrylic)
+│   ├── windows-updater/   # Windows standalone native updater
+│   ├── website/           # Cross-platform Web app & PWA (React 18 + Vite + Tailwind CSS)
 │   ├── android/           # Native Android app (Kotlin + Jetpack Compose + Foreground Service)
 │   └── web-receiver/      # Zero-install WebRTC browser receiver
-├── relay/                 # Containerized encrypted fallback relay server
+├── relay/                 # Authenticated zero-knowledge fallback relay server
 ├── assets/                # KM logo assets (Monogram, lightning bolts, migration arrows)
 └── docs/                  # Architecture, Protocol, and Security specifications
 ```
@@ -59,13 +63,13 @@ npm test
 
 ### 3. Run Real End-to-End P2P Transfer Simulation
 ```bash
-node packages/core-engine/dist/tests/run_mock_transfer.js
+npm run test:transfer-sim
 ```
 *Spawns an active receiver server and sender client, streams 16MB of chunked test data across local TCP sockets, calculates live speed and ETA, and validates 100% SHA-256 Merkle integrity.*
 
-### 4. Launch Desktop Application (Dev Mode)
+### 4. Launch Web Application (Dev Mode)
 ```bash
-npm --workspace=@knowtomigrate/desktop run dev
+npm run web:dev
 ```
 
 ---

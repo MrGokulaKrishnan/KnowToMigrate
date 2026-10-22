@@ -36,3 +36,5 @@ tests/**/obj/
 
 .kotlin/
 apps/android/.kotlin/
+*.jks
+*.keystore

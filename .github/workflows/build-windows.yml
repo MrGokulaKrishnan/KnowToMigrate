@@ -22,6 +22,14 @@ jobs:
       - name: Install WiX Toolset
         run: dotnet tool install --global wix
 
+      - name: Extract Project Version
+        id: get_version
+        shell: pwsh
+        run: |
+          $ver = (Get-Content version.json -Raw | ConvertFrom-Json).version
+          Write-Host "Detected project version: $ver"
+          "VERSION=$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
       - name: Restore NuGet packages
         run: |
           dotnet restore apps/windows-wpf/KnowToMigrate.csproj
@@ -53,38 +61,53 @@ jobs:
       - name: Stage Release EXE
         shell: pwsh
         run: |
-          Copy-Item releases/windows/publish/KnowToMigrate.exe releases/windows/KnowToMigrate-1.0.0-x64.exe -Force
+          $ver = "${{ steps.get_version.outputs.VERSION }}"
+          Copy-Item releases/windows/publish/KnowToMigrate.exe "releases/windows/KnowToMigrate-$ver-x64.exe" -Force
+          Copy-Item releases/windows/publish/KnowToMigrate.exe "releases/windows/KnowToMigrate-Setup.exe" -Force
 
       - name: Build MSI Installer
-        run: wix build Package.wxs -o releases/windows/KnowToMigrate-1.0.0-x64.msi
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.get_version.outputs.VERSION }}"
+          wix build Package.wxs -o "releases/windows/KnowToMigrate-$ver-x64.msi"
 
       - name: Compute SHA-256 Checksums
         shell: pwsh
         run: |
-          $exeHash = (Get-FileHash releases/windows/KnowToMigrate-1.0.0-x64.exe -Algorithm SHA256).Hash
-          $msiHash = (Get-FileHash releases/windows/KnowToMigrate-1.0.0-x64.msi -Algorithm SHA256).Hash
-          $exeHash | Out-File releases/windows/KnowToMigrate-1.0.0-x64.exe.sha256
-          $msiHash | Out-File releases/windows/KnowToMigrate-1.0.0-x64.msi.sha256
-          Write-Host "EXE SHA256: $exeHash"
-          Write-Host "MSI SHA256: $msiHash"
+          $ver = "${{ steps.get_version.outputs.VERSION }}"
+          $exePath = "releases/windows/KnowToMigrate-$ver-x64.exe"
+          $msiPath = "releases/windows/KnowToMigrate-$ver-x64.msi"
+          
+          if (Test-Path $exePath) {
+            $exeHash = (Get-FileHash $exePath -Algorithm SHA256).Hash.ToLowerInvariant()
+            $exeHash | Out-File "$exePath.sha256" -NoNewline
+            Write-Host "EXE SHA256 ($exePath): $exeHash"
+          }
+          if (Test-Path $msiPath) {
+            $msiHash = (Get-FileHash $msiPath -Algorithm SHA256).Hash.ToLowerInvariant()
+            $msiHash | Out-File "$msiPath.sha256" -NoNewline
+            Write-Host "MSI SHA256 ($msiPath): $msiHash"
+          }
 
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: KnowToMigrate-Windows-Release
           path: |
-            releases/windows/KnowToMigrate-1.0.0-x64.exe
-            releases/windows/KnowToMigrate-1.0.0-x64.exe.sha256
-            releases/windows/KnowToMigrate-1.0.0-x64.msi
-            releases/windows/KnowToMigrate-1.0.0-x64.msi.sha256
+            releases/windows/KnowToMigrate-*-x64.exe
+            releases/windows/KnowToMigrate-*-x64.exe.sha256
+            releases/windows/KnowToMigrate-*-x64.msi
+            releases/windows/KnowToMigrate-*-x64.msi.sha256
+            releases/windows/KnowToMigrate-Setup.exe
 
       - name: Create GitHub Release (on tag)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            releases/windows/KnowToMigrate-1.0.0-x64.exe
-            releases/windows/KnowToMigrate-1.0.0-x64.exe.sha256
-            releases/windows/KnowToMigrate-1.0.0-x64.msi
-            releases/windows/KnowToMigrate-1.0.0-x64.msi.sha256
+            releases/windows/KnowToMigrate-*-x64.exe
+            releases/windows/KnowToMigrate-*-x64.exe.sha256
+            releases/windows/KnowToMigrate-*-x64.msi
+            releases/windows/KnowToMigrate-*-x64.msi.sha256
+            releases/windows/KnowToMigrate-Setup.exe
           generate_release_notes: true

@@ -409,7 +409,7 @@ export const MigrationView: React.FC<MigrationViewProps> = ({ onStartMigrationTr
             </div>
             <div className="p-4 rounded-xl bg-black/60 border border-white/5 flex items-center justify-between text-xs">
               <span className="text-gray-400">Session Security Token:</span>
-              <span className="font-mono text-[#22C55E] font-bold">KTM-SESSION-TLS1.3-VERIFIED</span>
+              <span className="font-mono text-[#22C55E] font-bold">KTM-SESSION-ECDH-VERIFIED</span>
             </div>
           </div>
 
