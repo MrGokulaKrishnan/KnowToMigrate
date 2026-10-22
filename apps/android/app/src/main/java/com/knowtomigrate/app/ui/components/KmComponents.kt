@@ -120,6 +120,7 @@ fun KmPrimaryButton(
         Text(
             text = text,
             style = MaterialTheme.typography.labelLarge,
+            color = if (enabled) KmTextOnGradient else KmTextDisabled,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 24.dp)
         )
@@ -1327,6 +1328,195 @@ fun KmFloatingBottomBar(
                     }
                 }
             }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 11. KmStorageGauge — storage headroom check ("Needs X · Free Y")
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+fun KmStorageGauge(
+    neededText: String,
+    freeText: String,
+    percentUsed: Float = 0.5f,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(KmRadii.ListRow))
+            .background(KmGlassBackground)
+            .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.ListRow))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Storage check",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = KmTextPrimary
+            )
+            Text(
+                text = "Needs $neededText · Free $freeText",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = KmTextMuted
+            )
+        }
+
+        // Progress track
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(Color(0x1FFFFFFF))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(percentUsed.coerceIn(0.05f, 1f))
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(KmBrandGradient)
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 12. KmStepIndicator — Move device wizard indicator (up to 10 steps)
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum class KmStepState { DONE, CURRENT, TODO }
+
+data class KmWizardStep(
+    val index: Int,
+    val title: String,
+    val state: KmStepState
+)
+
+@Composable
+fun KmStepIndicator(
+    steps: List<KmWizardStep>,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        steps.forEach { step ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Step badge
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(
+                            when (step.state) {
+                                KmStepState.DONE -> Color(0x3334D399)
+                                KmStepState.CURRENT -> KmOrange
+                                KmStepState.TODO -> Color(0x14FFFFFF)
+                            }
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = when (step.state) {
+                                KmStepState.DONE -> KmSuccess
+                                KmStepState.CURRENT -> KmOrangeLight
+                                KmStepState.TODO -> KmGlassBorder
+                            },
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    when (step.state) {
+                        KmStepState.DONE -> Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Completed",
+                            tint = KmSuccess,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        KmStepState.CURRENT -> Text(
+                            text = "${step.index}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = KmTextOnGradient
+                        )
+                        KmStepState.TODO -> Text(
+                            text = "${step.index}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = KmTextMuted
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Text(
+                    text = step.title,
+                    fontSize = 13.sp,
+                    fontWeight = if (step.state == KmStepState.CURRENT) FontWeight.Bold else FontWeight.Normal,
+                    color = when (step.state) {
+                        KmStepState.DONE -> KmTextPrimary
+                        KmStepState.CURRENT -> KmOrangeLight
+                        KmStepState.TODO -> KmTextMuted
+                    }
+                )
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 13. KmSecurityNoticeRow — honest encryption disclaimer
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+fun KmSecurityNoticeRow(
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(KmRadii.ListRow))
+            .background(Color(0x0FFFC24D))
+            .border(1.dp, Color(0x33FFC24D), RoundedCornerShape(KmRadii.ListRow))
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.Warning,
+            contentDescription = "Warning",
+            tint = KmWarning,
+            modifier = Modifier.size(22.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = KtmUiConstants.SECURITY_LABEL,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = KmWarning
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = KtmUiConstants.SECURITY_CAPTION,
+                fontSize = 12.sp,
+                color = Color(0xFFCCCCCC)
+            )
         }
     }
 }
