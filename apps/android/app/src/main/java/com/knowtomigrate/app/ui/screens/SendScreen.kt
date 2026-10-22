@@ -1,5 +1,18 @@
 package com.knowtomigrate.app.ui.screens
 
+/*
+ * KnowToMigrate - Send Screen
+ * Updated: 22 October 2026
+ * Pure AMOLED #000000 base with KM Electric Orange accents and Dark Liquid Glass
+ * Information Architecture:
+ * - Two-step header: "Step 1 of 2: Add files" / "Step 2 of 2: Choose a device"
+ * - Step 1: Removable file chips next to "Add files" button
+ * - Step 2: Selectable device rows with spinner when searching
+ * - Advanced: Collapsible disclosure with "Connect by IP address"
+ * - Sticky Bottom Button: Exactly one primary action with dynamic state-aware label
+ * - Bottom Bar: 3 items (Home, Send, Receive)
+ */
+
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,14 +35,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.knowtomigrate.app.R
 import com.knowtomigrate.app.network.DiscoveredDevice
 import com.knowtomigrate.app.ui.components.*
 import com.knowtomigrate.app.ui.navigation.Screen
@@ -72,6 +86,7 @@ fun SendScreen(
     var selectedDevice by remember { mutableStateOf<DiscoveredDevice?>(null) }
     var showIpDialog by remember { mutableStateOf(false) }
     var customIpInput by remember { mutableStateOf("") }
+    var isAdvancedExpanded by remember { mutableStateOf(false) }
 
     // Auto-select first discovered device if none is selected
     LaunchedEffect(discoveredDevices) {
@@ -108,13 +123,18 @@ fun SendScreen(
     val hasDevice = selectedDevice != null
     val isReady = hasFiles && hasDevice
 
-    val stepNumber = if (isReady) 2 else if (!hasFiles) 1 else 2
-    val stepTitle = if (!hasFiles) "Add files" else if (!hasDevice) "Waiting for a device" else "Ready to send"
-
+    // Dynamic state-aware button label
     val buttonLabel = when {
-        !hasFiles -> "Add files to send"
-        !hasDevice -> "Waiting for a device"
-        else -> "Send ${files.size} file${if (files.size > 1) "s" else ""} to ${selectedDevice?.deviceName ?: "device"}"
+        !hasFiles -> stringResource(R.string.send_btn_missing_files)
+        !hasDevice -> stringResource(R.string.send_btn_missing_device)
+        files.size == 1 -> stringResource(R.string.send_btn_ready_single, selectedDevice?.deviceName ?: "device")
+        else -> stringResource(R.string.send_btn_ready, files.size, selectedDevice?.deviceName ?: "device")
+    }
+
+    val stepHeader = if (!hasFiles) {
+        stringResource(R.string.send_step_1)
+    } else {
+        stringResource(R.string.send_step_2)
     }
 
     Scaffold(
@@ -125,7 +145,7 @@ fun SendScreen(
                 onSelect = { idx ->
                     when (idx) {
                         0 -> navController.navigate(Screen.Home.route)
-                        1 -> { /* already send */ }
+                        1 -> { /* already on Send */ }
                         2 -> navController.navigate(Screen.Receive.route)
                     }
                 }
@@ -145,25 +165,26 @@ fun SendScreen(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // Header
+                // ── 1. Header: Send & Two-step indicator ──────────────────────────────
                 item {
                     Column(modifier = Modifier.padding(top = 4.dp)) {
                         Text(
-                            text = "Send",
+                            text = stringResource(R.string.nav_send),
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = KmTextPrimary
                         )
                         Text(
-                            text = "Step $stepNumber of 2 · $stepTitle",
-                            fontSize = 12.sp,
-                            color = KmTextMuted,
+                            text = stepHeader,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = KmOrangeLight,
                             modifier = Modifier.padding(top = 2.dp)
                         )
                     }
                 }
 
-                // Step 1: Files
+                // ── 2. Step 1: Files Section with Removable Chips ───────────────────
                 item {
                     Text(
                         text = "1. FILES",
@@ -179,9 +200,9 @@ fun SendScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(18.dp))
+                            .clip(RoundedCornerShape(KmRadii.Card))
                             .background(KmGlassBackground)
-                            .border(1.dp, KmGlassBorder, RoundedCornerShape(18.dp))
+                            .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.Card))
                             .drawBehind {
                                 drawLine(
                                     color = KmGlassTopHighlight,
@@ -190,18 +211,18 @@ fun SendScreen(
                                     strokeWidth = 1.dp.toPx()
                                 )
                             }
-                            .padding(14.dp)
+                            .padding(16.dp)
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             if (files.isEmpty()) {
                                 Text(
-                                    text = "No files yet. Add at least one file to continue.",
-                                    fontSize = 12.sp,
+                                    text = stringResource(R.string.empty_send_files),
+                                    fontSize = 13.sp,
                                     color = KmTextMuted,
-                                    modifier = Modifier.padding(vertical = 8.dp)
+                                    modifier = Modifier.padding(vertical = 4.dp)
                                 )
                             } else {
-                                // Chips
+                                // Removable file chips
                                 FlowRow(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -211,31 +232,32 @@ fun SendScreen(
                                         Row(
                                             modifier = Modifier
                                                 .clip(RoundedCornerShape(999.dp))
-                                                .background(Color(0x0FFFFFFF))
+                                                .background(Color(0x14FFFFFF))
                                                 .border(1.dp, KmGlassBorder, RoundedCornerShape(999.dp))
-                                                .padding(start = 12.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
+                                                .padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Text(
                                                 text = file.name,
                                                 fontSize = 12.sp,
-                                                color = KmTextPrimary
+                                                color = KmTextPrimary,
+                                                maxLines = 1
                                             )
                                             Spacer(modifier = Modifier.width(6.dp))
                                             Box(
                                                 modifier = Modifier
-                                                    .size(18.dp)
+                                                    .size(24.dp)
                                                     .clip(CircleShape)
                                                     .clickable {
                                                         files = files.filter { it.id != file.id }
                                                     },
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                Text(
-                                                    text = "×",
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = KmTextMuted
+                                                Icon(
+                                                    imageVector = Icons.Default.Close,
+                                                    contentDescription = "Remove file",
+                                                    tint = KmTextMuted,
+                                                    modifier = Modifier.size(14.dp)
                                                 )
                                             }
                                         }
@@ -243,30 +265,29 @@ fun SendScreen(
                                 }
                             }
 
-                            // Add files button
+                            // Add files button (48dp touch target)
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(44.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0x0FFFFFFF))
-                                    .border(1.dp, KmGlassBorder, RoundedCornerShape(12.dp))
+                                    .height(48.dp)
+                                    .clip(RoundedCornerShape(KmRadii.Button))
+                                    .background(Color(0x14FFFFFF))
+                                    .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.Button))
                                     .clickable { filePicker.launch(arrayOf("*/*")) },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Add,
                                         contentDescription = null,
-                                        tint = KmTextPrimary,
+                                        tint = KmOrange,
                                         modifier = Modifier.size(18.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "Add files",
+                                        text = stringResource(R.string.action_add_files),
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.SemiBold,
                                         color = KmTextPrimary
@@ -277,45 +298,46 @@ fun SendScreen(
                     }
                 }
 
-                // Step 2: Device
+                // ── 3. Step 2: Choose a Device Section ──────────────────────────────
                 item {
                     Text(
-                        text = "2. DEVICE",
+                        text = "2. CHOOSE A DEVICE",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 0.08.sp,
                         color = KmTextMuted,
-                        modifier = Modifier.padding(start = 2.dp)
+                        modifier = Modifier.padding(start = 2.dp, top = 4.dp)
                     )
                 }
 
                 if (discoveredDevices.isEmpty()) {
+                    // Spinner row while looking for devices
                     item {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(16.dp))
+                                .clip(RoundedCornerShape(KmRadii.ListRow))
                                 .background(KmGlassBackground)
-                                .border(1.dp, KmGlassBorder, RoundedCornerShape(16.dp))
-                                .padding(14.dp),
+                                .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.ListRow))
+                                .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(22.dp),
+                                strokeWidth = 2.5.dp,
                                 color = KmOrange,
                                 trackColor = Color(0x1AFFFFFF)
                             )
                             Spacer(modifier = Modifier.width(14.dp))
                             Column {
                                 Text(
-                                    text = "Looking for devices…",
+                                    text = stringResource(R.string.status_looking_for_devices),
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = KmTextPrimary
                                 )
                                 Text(
-                                    text = "Open KnowToMigrate on your PC.",
+                                    text = "Make sure the receiving device is on the same Wi-Fi.",
                                     fontSize = 12.sp,
                                     color = KmTextMuted,
                                     modifier = Modifier.padding(top = 1.dp)
@@ -329,12 +351,12 @@ fun SendScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(16.dp))
+                                .clip(RoundedCornerShape(KmRadii.ListRow))
                                 .background(KmGlassBackground)
                                 .border(
                                     width = if (isSelected) 1.5.dp else 1.dp,
                                     color = if (isSelected) KmOrange else KmGlassBorder,
-                                    shape = RoundedCornerShape(16.dp)
+                                    shape = RoundedCornerShape(KmRadii.ListRow)
                                 )
                                 .clickable { selectedDevice = dev }
                                 .padding(14.dp),
@@ -342,8 +364,8 @@ fun SendScreen(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(38.dp)
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(KmRadii.Button))
                                     .background(Color(0x0FFFFFFF)),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -365,21 +387,21 @@ fun SendScreen(
                                     color = KmTextPrimary
                                 )
                                 Text(
-                                    text = "Found on Wi-Fi · ${dev.ipAddress.ifBlank { "Local" }}",
+                                    text = "On Wi-Fi · Ready",
                                     fontSize = 12.sp,
                                     color = KmTextMuted,
                                     modifier = Modifier.padding(top = 1.dp)
                                 )
                             }
 
-                            // Radio selection circle
+                            // Radio selection indicator
                             Box(
                                 modifier = Modifier
                                     .size(22.dp)
                                     .clip(CircleShape)
                                     .border(
-                                        width = 1.5.dp,
-                                        color = if (isSelected) KmOrange else KmGlassBorder,
+                                        width = if (isSelected) 2.dp else 1.dp,
+                                        color = if (isSelected) KmOrange else KmTextMuted,
                                         shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -389,11 +411,7 @@ fun SendScreen(
                                         modifier = Modifier
                                             .size(10.dp)
                                             .clip(CircleShape)
-                                            .background(
-                                                Brush.linearGradient(
-                                                    listOf(KmOrangeDark, KmOrangeLight)
-                                                )
-                                            )
+                                            .background(KmOrange)
                                     )
                                 }
                             }
@@ -401,72 +419,93 @@ fun SendScreen(
                     }
                 }
 
-                // Advanced row: Connect by IP address
+                // ── 4. Advanced Disclosure: Connect by IP address ───────────────────
                 item {
-                    Text(
-                        text = "ADVANCED",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 0.08.sp,
-                        color = KmTextMuted,
-                        modifier = Modifier.padding(start = 2.dp, top = 2.dp)
-                    )
-                }
-
-                item {
-                    Row(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(KmRadii.ListRow))
                             .background(KmGlassBackground)
-                            .border(1.dp, KmGlassBorder, RoundedCornerShape(16.dp))
-                            .clickable { showIpDialog = true }
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.ListRow))
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { isAdvancedExpanded = !isAdvancedExpanded }
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
-                                text = "Connect by IP address",
-                                fontSize = 14.sp,
+                                text = "Advanced",
+                                fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = KmTextPrimary
                             )
-                            Text(
-                                text = "Use only if the device is not found",
-                                fontSize = 12.sp,
-                                color = KmTextMuted,
-                                modifier = Modifier.padding(top = 1.dp)
+                            Icon(
+                                imageVector = if (isAdvancedExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = if (isAdvancedExpanded) "Collapse" else "Expand",
+                                tint = KmTextMuted,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
-                        Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = null,
-                            tint = KmTextMuted,
-                            modifier = Modifier.size(18.dp)
-                        )
+
+                        AnimatedVisibility(visible = isAdvancedExpanded) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                            ) {
+                                HorizontalDivider(color = KmGlassBorder, thickness = 0.5.dp)
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(KmRadii.Button))
+                                        .background(Color(0x14FFFFFF))
+                                        .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.Button))
+                                        .clickable { showIpDialog = true }
+                                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Language,
+                                        contentDescription = null,
+                                        tint = KmOrange,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text(
+                                        text = stringResource(R.string.action_connect_ip),
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = KmTextPrimary
+                                    )
+                                }
+                            }
+                        }
                     }
+                }
+
+                // Security notice row
+                item {
+                    KmSecurityNoticeRow()
                 }
             }
 
-            // Bottom Primary Send Button
+            // ── 5. Sticky Bottom Action Button (The ONLY Primary Action) ─────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(KmRadii.Button))
                         .background(
-                            if (isReady) {
-                                Brush.linearGradient(
-                                    listOf(KmOrangeDark, KmOrange, KmOrangeLight)
-                                )
-                            } else {
-                                SolidColor(Color(0x1FFFFFFF))
-                            }
+                            if (isReady) KmBrandGradient else SolidColor(KmBlackElevated)
                         )
                         .drawBehind {
                             if (isReady) {
@@ -479,15 +518,13 @@ fun SendScreen(
                             }
                         }
                         .clickable(enabled = isReady) {
-                            val realUris = files.mapNotNull { it.uri }
-                            val target = selectedDevice
-                            if (target != null) {
-                                if (realUris.isNotEmpty()) {
-                                    scope.launch {
-                                        manager.sendUris(target, realUris)
-                                    }
+                            val dev = selectedDevice
+                            if (dev != null && files.isNotEmpty()) {
+                                scope.launch {
+                                    val urisToSend = files.mapNotNull { it.uri }
+                                    manager.sendUris(target = dev, uris = urisToSend)
+                                    navController.navigate(Screen.Transfer.withSession("outgoing"))
                                 }
-                                navController.navigate(Screen.Transfer.withSession("send_session"))
                             }
                         },
                     contentAlignment = Alignment.Center
@@ -503,33 +540,40 @@ fun SendScreen(
         }
     }
 
+    // Connect by IP Address Dialog
     if (showIpDialog) {
         AlertDialog(
             onDismissRequest = { showIpDialog = false },
             containerColor = KmBlackCard,
             title = {
-                Text("Connect by IP", color = KmTextPrimary, fontWeight = FontWeight.Bold)
+                Text(
+                    text = stringResource(R.string.action_connect_ip),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = KmTextPrimary
+                )
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        "Enter the IP address of the target device as shown on its KnowToMigrate screen.",
-                        fontSize = 12.sp,
+                        text = "Enter the local Wi-Fi IP address of the target PC:",
+                        fontSize = 13.sp,
                         color = KmTextMuted
                     )
                     OutlinedTextField(
                         value = customIpInput,
                         onValueChange = { customIpInput = it },
-                        placeholder = { Text("e.g. 192.168.1.50", color = KmTextDisabled) },
+                        placeholder = { Text("192.168.1.100", color = KmTextDisabled) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(KmRadii.Input),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Color(0x0AFFFFFF),
-                            unfocusedContainerColor = Color(0x0AFFFFFF),
+                            focusedContainerColor = KmGlassBackground,
+                            unfocusedContainerColor = KmGlassBackground,
                             focusedBorderColor = KmOrange,
                             unfocusedBorderColor = KmGlassBorder,
                             focusedTextColor = KmTextPrimary,
                             unfocusedTextColor = KmTextPrimary
-                        ),
-                        shape = RoundedCornerShape(12.dp)
+                        )
                     )
                 }
             },
@@ -550,12 +594,12 @@ fun SendScreen(
                         }
                     }
                 ) {
-                    Text("Select", color = KmOrange, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.action_done), color = KmOrange, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showIpDialog = false }) {
-                    Text("Cancel", color = KmTextMuted)
+                    Text(stringResource(R.string.action_cancel), color = KmTextMuted)
                 }
             }
         )
