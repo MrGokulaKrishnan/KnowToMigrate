@@ -110,6 +110,10 @@ namespace KnowToMigrate
                     _ledgerEntries.Add(hItem);
                 }
                 ListHistory.ItemsSource = _ledgerEntries;
+                if (ListHomeRecent != null)
+                {
+                    ListHomeRecent.ItemsSource = _ledgerEntries;
+                }
                 UpdateLedgerUI();
                 TxtDownloadDir.Text = KtmManager.Instance.DownloadDirectory;
                 TxtLocalInfo.Text = $"Device: {KtmManager.Instance.LocalDeviceName} ({KtmManager.Instance.LocalDeviceId})";
@@ -270,21 +274,31 @@ namespace KnowToMigrate
                 int count = KtmManager.Instance.NearbyDevices.Count;
                 if (count == 0)
                 {
-                    DotDiscoveryStatus.Fill = new SolidColorBrush(Color.FromRgb(0xFF, 0x5A, 0x00));
-                    TxtDiscoveryStatus.Text = "Scanning";
-                    TxtDiscoveryStatus.Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0x8A, 0x00));
-                }
-                else if (count == 1)
-                {
-                    DotDiscoveryStatus.Fill = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
-                    TxtDiscoveryStatus.Text = "1 Target";
-                    TxtDiscoveryStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
+                    if (DotDiscoveryStatus != null)
+                        DotDiscoveryStatus.Fill = new SolidColorBrush(Color.FromRgb(0x8C, 0x8C, 0x8C));
+                    if (TxtDiscoveryStatus != null)
+                    {
+                        TxtDiscoveryStatus.Text = "Looking for devices…";
+                        TxtDiscoveryStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x8C, 0x8C, 0x8C));
+                    }
+                    if (PanelDevicesEmpty != null)
+                        PanelDevicesEmpty.Visibility = Visibility.Visible;
+                    if (ListDevices != null)
+                        ListDevices.Visibility = Visibility.Collapsed;
                 }
                 else
                 {
-                    DotDiscoveryStatus.Fill = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
-                    TxtDiscoveryStatus.Text = $"{count} Targets";
-                    TxtDiscoveryStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
+                    if (DotDiscoveryStatus != null)
+                        DotDiscoveryStatus.Fill = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
+                    if (TxtDiscoveryStatus != null)
+                    {
+                        TxtDiscoveryStatus.Text = count == 1 ? "1 device found" : $"{count} devices found";
+                        TxtDiscoveryStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E));
+                    }
+                    if (PanelDevicesEmpty != null)
+                        PanelDevicesEmpty.Visibility = Visibility.Collapsed;
+                    if (ListDevices != null)
+                        ListDevices.Visibility = Visibility.Visible;
                 }
             });
         }
@@ -736,6 +750,24 @@ namespace KnowToMigrate
         {
             ChooseFiles_Click(sender, e);
             if (_selectedFiles.Count > 0)
+            {
+                Nav_Click(BtnNavSend, new RoutedEventArgs());
+            }
+        }
+
+        private void CardMoveDevice_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            Nav_Click(BtnNavMigration, new RoutedEventArgs());
+        }
+
+        private void BtnViewAllHistory_Click(object sender, RoutedEventArgs e)
+        {
+            Nav_Click(BtnNavHistory, new RoutedEventArgs());
+        }
+
+        private void ListDevices_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (ListDevices.SelectedItem is DiscoveredDevice)
             {
                 Nav_Click(BtnNavSend, new RoutedEventArgs());
             }
@@ -1574,6 +1606,11 @@ namespace KnowToMigrate
                     PanelLedgerEmpty.Visibility = _ledgerEntries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
                 if (ListHistory != null)
                     ListHistory.Visibility = _ledgerEntries.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+                if (PanelHomeRecentEmpty != null)
+                    PanelHomeRecentEmpty.Visibility = _ledgerEntries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+                if (ListHomeRecent != null)
+                    ListHomeRecent.Visibility = _ledgerEntries.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             });
         }
 

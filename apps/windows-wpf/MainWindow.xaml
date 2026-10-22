@@ -237,8 +237,7 @@
                     <Button x:Name="BtnTransportWifi" />
                     <Button x:Name="BtnTransportDirect" />
                     <Button x:Name="BtnTransportBt" />
-                    <Ellipse x:Name="DotDiscoveryStatus" />
-                    <Border x:Name="PanelMigrationScan" />
+                                        <Border x:Name="PanelMigrationScan" />
                     <Border x:Name="PanelCopyFeedback" />
                     <Border x:Name="PanelUpdateAvailable" />
                     <Border x:Name="PanelUpdateProgress" />
@@ -271,90 +270,112 @@
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
 
-                                <!-- Left: Dashed Dropzone -->
-                                <Border Grid.Column="0" Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="12">
-                                    <Border x:Name="HomeDropZone" Cursor="Hand" Height="190" CornerRadius="14" BorderBrush="#72FF8A00" BorderThickness="1.5"
-                                            AllowDrop="True" DragOver="DropZone_DragOver" Drop="DropZone_Drop" MouseLeftButtonUp="HomeDropZone_Click">
-                                        <Border.Background>
-                                            <RadialGradientBrush Center="0.5,0" GradientOrigin="0.5,0" RadiusX="0.6" RadiusY="0.6">
-                                                <GradientStop Color="#24FF5A00" Offset="0"/>
-                                                <GradientStop Color="Transparent" Offset="1"/>
-                                            </RadialGradientBrush>
-                                        </Border.Background>
-                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <Path Data="{StaticResource KmIconFile}" Stroke="#FF8A00" StrokeThickness="2" Width="30" Height="30" HorizontalAlignment="Center" Margin="0,0,0,10" />
-                                            <TextBlock Text="Drop files or folders here" FontSize="15" FontWeight="SemiBold" Foreground="#F5F5F5" HorizontalAlignment="Center" />
-                                            <TextBlock Text="or click to choose what to send" FontSize="12" Foreground="#8C8C8C" HorizontalAlignment="Center" Margin="0,4,0,0" />
-                                        </StackPanel>
+                                <!-- Left Column: Dashed Dropzone & Move Device Quick Action -->
+                                <StackPanel Grid.Column="0">
+                                    <Border Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="12">
+                                        <Border x:Name="HomeDropZone" Cursor="Hand" Height="170" CornerRadius="14" BorderBrush="#72FF8A00" BorderThickness="1.5"
+                                                AllowDrop="True" DragOver="DropZone_DragOver" Drop="DropZone_Drop" MouseLeftButtonUp="HomeDropZone_Click">
+                                            <Border.Background>
+                                                <RadialGradientBrush Center="0.5,0" GradientOrigin="0.5,0" RadiusX="0.6" RadiusY="0.6">
+                                                    <GradientStop Color="#24FF5A00" Offset="0"/>
+                                                    <GradientStop Color="Transparent" Offset="1"/>
+                                                </RadialGradientBrush>
+                                            </Border.Background>
+                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <Path Data="{StaticResource KmIconFile}" Stroke="#FF8A00" StrokeThickness="2" Width="30" Height="30" HorizontalAlignment="Center" Margin="0,0,0,10" />
+                                                <TextBlock Text="Drop files or folders here" FontSize="15" FontWeight="SemiBold" Foreground="#F5F5F5" HorizontalAlignment="Center" />
+                                                <TextBlock Text="or click to choose what to send" FontSize="12" Foreground="#8C8C8C" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                                            </StackPanel>
+                                        </Border>
                                     </Border>
-                                </Border>
 
-                                <!-- Right: Nearby Devices -->
-                                <Border Grid.Column="2" Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="18">
+                                    <!-- Move Device Quick Action Card -->
+                                    <Border x:Name="CardMoveDevice" Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="14,12" Margin="0,10,0,0" Cursor="Hand" MouseLeftButtonUp="CardMoveDevice_Click">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Background="#14FF5A00" BorderBrush="#33FF5A00" BorderThickness="1" CornerRadius="10" Width="38" Height="38" Margin="0,0,12,0" VerticalAlignment="Center">
+                                                <Path Data="{StaticResource KmIconDevice}" Stroke="#FF8A00" StrokeThickness="1.8" Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="Move device" FontSize="14" FontWeight="SemiBold" Foreground="#F5F5F5" />
+                                                <TextBlock Text="Move files, apps, and data to another device" FontSize="11" Foreground="#8C8C8C" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                            <Border Grid.Column="2" Background="#10FFFFFF" CornerRadius="8" Padding="10,6" VerticalAlignment="Center">
+                                                <TextBlock Text="Start &#x2192;" FontSize="11" FontWeight="SemiBold" Foreground="#FF8A00" />
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Right Column: Nearby Devices -->
+                                <Border Grid.Column="2" Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="16">
                                     <StackPanel>
                                         <Grid Margin="0,0,0,12">
-                                            <TextBlock Text="Nearby" FontSize="14" FontWeight="SemiBold" Foreground="#F5F5F5" VerticalAlignment="Center" />
-                                            <TextBlock x:Name="TxtDiscoveryStatus" Text="Scanning LAN..." FontSize="11" Foreground="#8C8C8C" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                            <TextBlock Text="Nearby devices" FontSize="14" FontWeight="SemiBold" Foreground="#F5F5F5" VerticalAlignment="Center" />
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                <Ellipse x:Name="DotDiscoveryStatus" Width="8" Height="8" Fill="#8C8C8C" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                <TextBlock x:Name="TxtDiscoveryStatus" Text="Looking for devices…" FontSize="11" Foreground="#8C8C8C" VerticalAlignment="Center" />
+                                            </StackPanel>
                                         </Grid>
 
-                                        <!-- Static mockup rows matching prototype -->
-                                        <Border Background="#05FFFFFF" BorderBrush="#10FFFFFF" BorderThickness="1" CornerRadius="12" Padding="10,10" Margin="0,0,0,8">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <Path Grid.Column="0" Data="{StaticResource KmIconDevice}" Stroke="#F5F5F5" StrokeThickness="1.8" Width="18" Height="18" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                    <TextBlock Text="Android phone" FontSize="13" Foreground="#F5F5F5" FontWeight="Medium" />
-                                                    <TextBlock Text="Wi-Fi LAN · Trusted" FontSize="11" Foreground="#8C8C8C" />
-                                                </StackPanel>
-                                                <Border Grid.Column="2" Background="#264ADE80" CornerRadius="999" Padding="8,2" VerticalAlignment="Center">
-                                                    <TextBlock Text="Online" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
-                                                </Border>
-                                            </Grid>
-                                        </Border>
-
-                                        <Border Background="#05FFFFFF" BorderBrush="#10FFFFFF" BorderThickness="1" CornerRadius="12" Padding="10,10" Margin="0,0,0,8">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <Path Grid.Column="0" Data="{StaticResource KmIconDevice}" Stroke="#8C8C8C" StrokeThickness="1.8" Width="18" Height="18" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                    <TextBlock Text="Work laptop" FontSize="13" Foreground="#F5F5F5" FontWeight="Medium" />
-                                                    <TextBlock Text="Wi-Fi LAN" FontSize="11" Foreground="#8C8C8C" />
-                                                </StackPanel>
-                                                <Border Grid.Column="2" Background="#0FFFFFFF" CornerRadius="999" Padding="8,2" VerticalAlignment="Center">
-                                                    <TextBlock Text="Idle" Foreground="#8C8C8C" FontSize="11" />
-                                                </Border>
-                                            </Grid>
-                                        </Border>
-
                                         <!-- Dynamic discovered devices list -->
-                                        <ListBox x:Name="ListDevices" Background="Transparent" BorderThickness="0" MaxHeight="100" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox x:Name="ListDevices" Background="Transparent" BorderThickness="0" MaxHeight="210" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="ListDevices_SelectionChanged" MouseDoubleClick="ListDevices_MouseDoubleClick">
+                                            <ListBox.ItemContainerStyle>
+                                                <Style TargetType="ListBoxItem">
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="ListBoxItem">
+                                                                <Border x:Name="ItemBorder" Background="#06FFFFFF" BorderBrush="#14FFFFFF" BorderThickness="1" CornerRadius="12" Padding="12,10" Margin="0,0,0,8" Cursor="Hand">
+                                                                    <ContentPresenter />
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="ItemBorder" Property="Background" Value="#0EFFFFFF" />
+                                                                        <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#28FFFFFF" />
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsSelected" Value="True">
+                                                                        <Setter TargetName="ItemBorder" Property="Background" Value="#18FF5A00" />
+                                                                        <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#66FF5A00" />
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </ListBox.ItemContainerStyle>
                                             <ListBox.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Background="#05FFFFFF" BorderBrush="#10FFFFFF" BorderThickness="1" CornerRadius="12" Padding="8,6" Margin="0,2">
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="Auto" />
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="Auto" />
-                                                            </Grid.ColumnDefinitions>
-                                                            <Path Grid.Column="0" Data="{StaticResource KmIconDevice}" Stroke="#FF5A00" StrokeThickness="1.8" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                            <TextBlock Grid.Column="1" Text="{Binding DeviceName}" FontSize="12" Foreground="#F5F5F5" VerticalAlignment="Center" />
-                                                            <Border Grid.Column="2" Background="#264ADE80" CornerRadius="999" Padding="6,2" VerticalAlignment="Center">
-                                                                <TextBlock Text="Ready" Foreground="#4ADE80" FontSize="10" />
-                                                            </Border>
-                                                        </Grid>
-                                                    </Border>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Path Grid.Column="0" Data="{StaticResource KmIconDevice}" Stroke="#FF8A00" StrokeThickness="1.8" Width="18" Height="18" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding DeviceName}" FontSize="13" Foreground="#F5F5F5" FontWeight="Medium" />
+                                                            <TextBlock Text="Wi-Fi &#x00B7; Ready" FontSize="11" Foreground="#8C8C8C" Margin="0,2,0,0" />
+                                                        </StackPanel>
+                                                        <Border Grid.Column="2" Background="#264ADE80" CornerRadius="999" Padding="8,2" VerticalAlignment="Center">
+                                                            <TextBlock Text="Online" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
+                                                        </Border>
+                                                    </Grid>
                                                 </DataTemplate>
                                             </ListBox.ItemTemplate>
                                         </ListBox>
+
+                                        <!-- Empty State -->
+                                        <Border x:Name="PanelDevicesEmpty" Background="#04FFFFFF" BorderBrush="#0DFFFFFF" BorderThickness="1" CornerRadius="12" Padding="14,24" Margin="0,2,0,0">
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Path Data="{StaticResource KmIconDevice}" Stroke="#555555" StrokeThickness="1.5" Width="22" Height="22" HorizontalAlignment="Center" Margin="0,0,0,8" />
+                                                <TextBlock Text="Looking for devices…" FontSize="13" FontWeight="Medium" Foreground="#8C8C8C" HorizontalAlignment="Center" />
+                                                <TextBlock Text="Ensure KnowToMigrate is open on the other device." FontSize="11" Foreground="#555555" HorizontalAlignment="Center" Margin="0,4,0,0" TextWrapping="Wrap" TextAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
                                     </StackPanel>
                                 </Border>
                             </Grid>
@@ -362,51 +383,73 @@
                             <!-- Bottom: Recent Transfers Table -->
                             <Border Grid.Row="2" Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="18" Margin="0,14,0,0">
                                 <StackPanel>
-                                    <TextBlock Text="Recent transfers" FontSize="14" FontWeight="SemiBold" Foreground="#F5F5F5" Margin="0,0,0,12" />
-                                    <Grid Margin="0,0,0,8">
+                                    <Grid Margin="0,0,0,12">
+                                        <TextBlock Text="Recent" FontSize="14" FontWeight="SemiBold" Foreground="#F5F5F5" VerticalAlignment="Center" />
+                                        <Button Content="View all" Click="BtnViewAllHistory_Click" Style="{StaticResource KmGlassButton}" MinHeight="26" Padding="10,2" FontSize="11" HorizontalAlignment="Right" />
+                                    </Grid>
+
+                                    <!-- Table Columns Header -->
+                                    <Grid Margin="4,0,4,8" Opacity="0.6">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="2.5*" />
                                             <ColumnDefinition Width="2*" />
                                             <ColumnDefinition Width="1*" />
                                             <ColumnDefinition Width="1.5*" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Photos_March.zip" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1" Text="To Android phone" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="2" Text="1.2 GB" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="SHA-256 verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
-                                        </Border>
+                                        <TextBlock Grid.Column="0" Text="File" FontSize="11" Foreground="#8C8C8C" />
+                                        <TextBlock Grid.Column="1" Text="Direction" FontSize="11" Foreground="#8C8C8C" />
+                                        <TextBlock Grid.Column="2" Text="Size" FontSize="11" Foreground="#8C8C8C" />
+                                        <TextBlock Grid.Column="3" Text="Integrity" FontSize="11" Foreground="#8C8C8C" />
                                     </Grid>
-                                    <Border Height="1" Background="#0FFFFFFF" Margin="0,4,0,8" />
-                                    <Grid Margin="0,0,0,8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="2.5*" />
-                                            <ColumnDefinition Width="2*" />
-                                            <ColumnDefinition Width="1*" />
-                                            <ColumnDefinition Width="1.5*" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Resume_2026.pdf" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1" Text="From Android phone" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="2" Text="0.4 MB" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="SHA-256 verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
-                                        </Border>
-                                    </Grid>
-                                    <Border Height="1" Background="#0FFFFFFF" Margin="0,4,0,8" />
-                                    <Grid Margin="0,0,0,4">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="2.5*" />
-                                            <ColumnDefinition Width="2*" />
-                                            <ColumnDefinition Width="1*" />
-                                            <ColumnDefinition Width="1.5*" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Lecture_notes/" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1" Text="To Work laptop" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="2" Text="320 MB" FontSize="13" Foreground="#8C8C8C" VerticalAlignment="Center" />
-                                        <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="SHA-256 verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
-                                        </Border>
-                                    </Grid>
+
+                                    <!-- Dynamic Recent Transfers List -->
+                                    <ListBox x:Name="ListHomeRecent" Background="Transparent" BorderThickness="0" MaxHeight="220" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="ListBoxItem">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ListBoxItem">
+                                                            <Border x:Name="RowBorder" Background="Transparent" BorderBrush="#0DFFFFFF" BorderThickness="0,0,0,1" Padding="4,8">
+                                                                <ContentPresenter />
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="RowBorder" Property="Background" Value="#08FFFFFF" />
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="2.5*" />
+                                                        <ColumnDefinition Width="2*" />
+                                                        <ColumnDefinition Width="1*" />
+                                                        <ColumnDefinition Width="1.5*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding FileName}" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding DirectionDisplay}" FontSize="12" Foreground="{Binding DirectionBrush}" FontWeight="Medium" Margin="0,0,6,0" />
+                                                        <TextBlock Text="{Binding DeviceName}" FontSize="12" Foreground="#8C8C8C" TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="2" Text="{Binding FormattedSize}" FontSize="12" Foreground="#8C8C8C" VerticalAlignment="Center" />
+                                                    <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                        <TextBlock Text="SHA-256 verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
+                                                    </Border>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                    <!-- Empty State -->
+                                    <StackPanel x:Name="PanelHomeRecentEmpty" Visibility="Collapsed" HorizontalAlignment="Center" Margin="0,20,0,16">
+                                        <TextBlock Text="No recent transfers" FontSize="13" Foreground="#8C8C8C" HorizontalAlignment="Center" />
+                                        <TextBlock Text="Files you send or receive will appear here." FontSize="11" Foreground="#555555" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                                    </StackPanel>
                                 </StackPanel>
                             </Border>
                         </Grid>
