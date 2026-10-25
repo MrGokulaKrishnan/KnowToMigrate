@@ -3,28 +3,27 @@
     "channel": "stable",
     "version": "1.0.5",
     "minimumSupportedVersion": "1.0.0",
-    "mandatory": false,
-    "publishedAt": "2026-10-22T08:13:37Z",
+    "publishedAt": "2026-10-23T16:55:00Z",
     "windows": {
         "architecture": "x64",
         "installerType": "exe",
         "version": "1.0.5",
         "filename": "KnowToMigrate-Setup.exe",
         "url": "https://knowtomigrate.web.app/download/KnowToMigrate-Setup.exe",
-        "size": 66515968,
-        "sha256": "28bfeae352e78e3b2acbaaa62376dfb9261df3e7b76ddd1a814f846305bca0bd",
+        "size": 66753536,
+        "sha256": "17dd0d0b2a734e42b0ce553d0ddcad109cfab0a9a4e4f3a47582b765de172318",
         "signature": "",
         "msi": {
             "filename": "KnowToMigrate-1.0.5-x64.msi",
             "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5-x64.msi",
-            "size": 66469888,
-            "sha256": "c19d7a1ec56f07d87d399e88f2717e0d6c4bcc633d705cfb760fe1dc6397f1c3"
+            "size": 66707456,
+            "sha256": "bbe5e28e0807d43e23e901e89e28f8d07bac447087b92a002a94ab3f86d87a04"
         },
         "standalone": {
-            "filename": "KnowToMigrate.exe",
-            "url": "https://knowtomigrate.web.app/download/KnowToMigrate.exe",
-            "size": 72435819,
-            "sha256": "2f5c193a01d61e08da9abfd79108d56ed7a4ac9eadacede9be94c96d19b21c69"
+            "filename": "KnowToMigrate-1.0.5-x64.exe",
+            "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5-x64.exe",
+            "size": 72708534,
+            "sha256": "ee172202246ccc0698afabd3958a893324883e5c6125dcea391c0306b03d3367"
         }
     },
     "android": {
@@ -32,16 +31,17 @@
         "versionName": "1.0.5",
         "filename": "KnowToMigrate-1.0.5.apk",
         "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5.apk",
-        "size": 11540988,
-        "sha256": "2d5ed75499aa55689513a70d4dafd3526a9f7547078045b49d1c551842ddd784"
+        "size": 17968420,
+        "sha256": "6eef8bfd5c84b24e58af1fbf3ae551c6455e7426886daca0561640b040c2542f"
     },
     "releaseNotes": [
-        "Fixed file verification and byte alignment in Pluto transfer engine",
+        "Complete Dark Liquid Glass UI redesign for Windows and Android with verified SHA-256 badges",
         "Independent Android APK Self-Updater with UTF-8 BOM sanitation and SHA-256 verification",
-        "Liquid Glass navigation bar and responsive non-clipping action button",
-        "Persistent Migration Ledger with cryptographic audit log, export, and quick folder reveal",
-        "Universal Web Share with live QR code pairing and seamless multi-device browser transfers",
-        "Windows Security Center real-time socket telemetry and Pluto Auto diagnostics",
-        "Liquid Glass AMOLED custom CheckBox unique UI upgrade"
-    ]
+        "10-Step Move Device migration wizard with live storage preflight checks",
+        "Persistent Transfer History with day grouping, cryptographic verification, and export",
+        "Universal Local Web Share with live QR code pairing and seamless multi-device browser transfers",
+        "Windows real-time socket telemetry and Local Network diagnostics",
+        "Liquid Glass AMOLED custom controls and 6.7:1 WCAG AA compliant contrast"
+    ],
+    "versionCode": 10005
 }

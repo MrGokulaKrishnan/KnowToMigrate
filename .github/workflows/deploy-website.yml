@@ -23,6 +23,9 @@ jobs:
         run: npm ci
         working-directory: apps/website
 
+      - name: Verify release data is generated and current
+        run: node scripts/release/site-release.mjs --check
+
       - name: Build website
         run: npm run build
         working-directory: apps/website

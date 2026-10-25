@@ -6,18 +6,18 @@
     "versionName": "1.0.5",
     "minimumSupportedVersionCode": 10000,
     "apkUrl": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5.apk",
-    "sizeBytes": 11554975,
-    "sha256": "17b849cc2feca3118d46a33f1f83308f7590be29ba8d6ead41da0058333108ef",
-    "releaseDate": "2026-10-22",
+    "sizeBytes": 17968420,
+    "sha256": "6eef8bfd5c84b24e58af1fbf3ae551c6455e7426886daca0561640b040c2542f",
+    "releaseDate": "2026-10-23",
     "mandatory": false,
     "title": "KnowToMigrate 1.0.5",
     "releaseNotes": [
-        "Fixed file verification and byte alignment in Pluto transfer engine",
+        "Complete Dark Liquid Glass UI redesign for Windows and Android with verified SHA-256 badges",
         "Independent Android APK Self-Updater with UTF-8 BOM sanitation and SHA-256 verification",
-        "Liquid Glass navigation bar and responsive non-clipping action button",
-        "Persistent Migration Ledger with cryptographic audit log, export, and quick folder reveal",
-        "Universal Web Share with live QR code pairing and seamless multi-device browser transfers",
-        "Windows Security Center real-time socket telemetry and Pluto Auto diagnostics",
-        "Liquid Glass AMOLED custom CheckBox unique UI upgrade"
+        "10-Step Move Device migration wizard with live storage preflight checks",
+        "Persistent Transfer History with day grouping, cryptographic verification, and export",
+        "Universal Local Web Share with live QR code pairing and seamless multi-device browser transfers",
+        "Windows real-time socket telemetry and Local Network diagnostics",
+        "Liquid Glass AMOLED custom controls and 6.7:1 WCAG AA compliant contrast"
     ]
 }

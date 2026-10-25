@@ -5,15 +5,15 @@
     "versionCode": 10005,
     "channel": "stable",
     "minimumSupportedVersion": "1.0.0",
-    "publishedAt": "2026-10-22T06:22:22Z",
+    "publishedAt": "2026-10-23T16:55:00Z",
     "releaseNotes": [
-        "Pluto Engine v2 Multi-Transport (Wi-Fi LAN, Direct, Bluetooth)",
-        "Hardware-accelerated AES-256-GCM encryption with X25519 key exchange",
-        "SHA-256 Merkle tree verification with resume checkpoints",
-        "Custom Liquid Glass AMOLED dark theme with responsive layout",
-        "Android Gallery Sharesheet integration",
-        "Windows native incoming transfer dialog with taskbar alerts",
-        "Integrated Update Center with secure package verification"
+        "Complete Dark Liquid Glass UI redesign for Windows and Android with verified SHA-256 badges",
+        "Independent Android APK Self-Updater with UTF-8 BOM sanitation and SHA-256 verification",
+        "10-Step Move Device migration wizard with live storage preflight checks",
+        "Persistent Transfer History with day grouping, cryptographic verification, and export",
+        "Universal Local Web Share with live QR code pairing and seamless multi-device browser transfers",
+        "Windows real-time socket telemetry and Local Network diagnostics",
+        "Liquid Glass AMOLED custom controls and 6.7:1 WCAG AA compliant contrast"
     ],
-    "updatedAt": "2026-10-22T06:22:22Z"
+    "updatedAt": "2026-10-23T16:55:00Z"
 }

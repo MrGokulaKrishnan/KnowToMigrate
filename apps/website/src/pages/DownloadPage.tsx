@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Download,
   Shield,
@@ -17,7 +17,7 @@ import {
   Clock
 } from 'lucide-react'
 import { usePlatformDetection, PlatformType } from '../utils/platform'
-import { formatRelativeTime, useLiveTimeAgo } from '../utils/timeAgo'
+import { RELEASE } from '../generated/release'
 
 export interface DownloadEntry {
   id: string
@@ -31,36 +31,39 @@ export interface DownloadEntry {
   platform: 'windows' | 'android'
 }
 
+const [winSetup, winMsi, winPortable] = RELEASE.windows
+const [androidApk] = RELEASE.android
+
 const DEFAULT_WINDOWS_DOWNLOADS: DownloadEntry[] = [
   {
     id: 'win-setup',
-    filename: 'KnowToMigrate-Setup.exe',
-    version: '1.0.5',
-    size: '63.4 MB',
-    sha256: '28bfeae352e78e3b2acbaaa62376dfb9261df3e7b76ddd1a814f846305bca0bd',
+    filename: winSetup.filename,
+    version: winSetup.version,
+    size: winSetup.size,
+    sha256: winSetup.sha256,
     requirements: 'Windows 10 / 11, 64-bit (Official Setup Installer with Start Menu & Desktop Shortcut)',
-    downloadUrl: '/download/KnowToMigrate-Setup.exe',
+    downloadUrl: winSetup.path,
     recommended: true,
     platform: 'windows',
   },
   {
     id: 'win-msi',
-    filename: 'KnowToMigrate-1.0.5-x64.msi',
-    version: '1.0.5',
-    size: '63.4 MB',
-    sha256: 'c19d7a1ec56f07d87d399e88f2717e0d6c4bcc633d705cfb760fe1dc6397f1c3',
+    filename: winMsi.filename,
+    version: winMsi.version,
+    size: winMsi.size,
+    sha256: winMsi.sha256,
     requirements: 'Windows 10 / 11, 64-bit (Standard Enterprise Windows Installer Package)',
-    downloadUrl: '/download/KnowToMigrate-1.0.5-x64.msi',
+    downloadUrl: winMsi.path,
     platform: 'windows',
   },
   {
     id: 'win-portable',
-    filename: 'KnowToMigrate.exe',
-    version: '1.0.5',
-    size: '69.1 MB',
-    sha256: '2f5c193a01d61e08da9abfd79108d56ed7a4ac9eadacede9be94c96d19b21c69',
+    filename: winPortable.filename,
+    version: winPortable.version,
+    size: winPortable.size,
+    sha256: winPortable.sha256,
     requirements: 'Windows 10 / 11, 64-bit (Portable Compressed Standalone Executable)',
-    downloadUrl: '/download/KnowToMigrate.exe',
+    downloadUrl: winPortable.path,
     platform: 'windows',
   },
 ]
@@ -68,16 +71,20 @@ const DEFAULT_WINDOWS_DOWNLOADS: DownloadEntry[] = [
 const DEFAULT_ANDROID_DOWNLOADS: DownloadEntry[] = [
   {
     id: 'android-apk',
-    filename: 'KnowToMigrate-1.0.5.apk',
-    version: '1.0.5',
-    size: '11.0 MB',
-    sha256: '17b849cc2feca3118d46a33f1f83308f7590be29ba8d6ead41da0058333108ef',
+    filename: androidApk.filename,
+    version: androidApk.version,
+    size: androidApk.size,
+    sha256: androidApk.sha256,
     requirements: 'Android 8.0+ (API 26+) — Independent APK with built-in self-updater',
-    downloadUrl: '/download/KnowToMigrate-1.0.5.apk',
+    downloadUrl: androidApk.path,
     recommended: true,
     platform: 'android',
   },
 ]
+
+// Derived from generated release data — no runtime fetch needed.
+const _rd = new Date(RELEASE.publishedAt)
+const RELEASE_DATE = `Updated on ${_rd.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
 
 function formatBytes(bytes: number): string {
   if (bytes <= 0) return '0 B'
@@ -367,77 +374,10 @@ function DownloadCard({
 export function DownloadPage() {
   const platform = usePlatformDetection()
   const [activeTab, setActiveTab] = useState<'all' | 'windows' | 'android'>('all')
-  const [windowsDownloads, setWindowsDownloads] = useState<DownloadEntry[]>(DEFAULT_WINDOWS_DOWNLOADS)
-  const [androidDownloads, setAndroidDownloads] = useState<DownloadEntry[]>(DEFAULT_ANDROID_DOWNLOADS)
-  const [publishedAt, setPublishedAt] = useState<string>('2026-10-22T08:13:37Z')
-  const liveUpdatedTime = useLiveTimeAgo(publishedAt)
-
-  // Dynamically sync latest sizes, versions, and hashes from /update-manifest.json
-  useEffect(() => {
-    fetch('/update-manifest.json?_cb=' + Date.now())
-      .then(res => res.json())
-      .then(manifest => {
-        if (manifest?.publishedAt) {
-          setPublishedAt(manifest.publishedAt)
-        }
-        if (manifest?.windows) {
-          const win = manifest.windows
-          setWindowsDownloads([
-            {
-              id: 'win-setup',
-              filename: win.filename || 'KnowToMigrate-Setup.exe',
-              version: win.version || '1.0.5',
-              size: win.size ? formatBytes(win.size) : '63.4 MB',
-              sha256: win.sha256 || DEFAULT_WINDOWS_DOWNLOADS[0].sha256,
-              requirements: 'Windows 10 / 11, 64-bit (Official Setup Installer with Start Menu & Desktop Shortcut)',
-              downloadUrl: '/download/KnowToMigrate-Setup.exe',
-              recommended: true,
-              platform: 'windows',
-            },
-            {
-              id: 'win-msi',
-              filename: win.msi?.filename || 'KnowToMigrate-1.0.5-x64.msi',
-              version: win.version || '1.0.5',
-              size: win.msi?.size ? formatBytes(win.msi.size) : '63.4 MB',
-              sha256: win.msi?.sha256 || DEFAULT_WINDOWS_DOWNLOADS[1].sha256,
-              requirements: 'Windows 10 / 11, 64-bit (Standard Enterprise Windows Installer Package)',
-              downloadUrl: '/download/KnowToMigrate-1.0.5-x64.msi',
-              platform: 'windows',
-            },
-            {
-              id: 'win-portable',
-              filename: win.standalone?.filename || 'KnowToMigrate.exe',
-              version: win.version || '1.0.5',
-              size: win.standalone?.size ? formatBytes(win.standalone.size) : '69.1 MB',
-              sha256: win.standalone?.sha256 || DEFAULT_WINDOWS_DOWNLOADS[2].sha256,
-              requirements: 'Windows 10 / 11, 64-bit (Portable Compressed Standalone Executable)',
-              downloadUrl: '/download/KnowToMigrate.exe',
-              platform: 'windows',
-            },
-          ])
-        }
-
-        if (manifest?.android) {
-          const and = manifest.android
-          setAndroidDownloads([
-            {
-              id: 'android-apk',
-              filename: and.filename || 'KnowToMigrate-1.0.5.apk',
-              version: and.versionName || '1.0.5',
-              size: and.size ? formatBytes(and.size) : '11.0 MB',
-              sha256: and.sha256 || DEFAULT_ANDROID_DOWNLOADS[0].sha256,
-              requirements: 'Android 8.0+ (API 26+) — Independent APK with built-in self-updater',
-              downloadUrl: '/download/KnowToMigrate-1.0.5.apk',
-              recommended: true,
-              platform: 'android',
-            },
-          ])
-        }
-      })
-      .catch(() => {
-        // Safe fallback to defaults
-      })
-  }, [])
+  // Downloads come from the generated RELEASE constant — no runtime fetch.
+  const windowsDownloads = DEFAULT_WINDOWS_DOWNLOADS
+  const androidDownloads = DEFAULT_ANDROID_DOWNLOADS
+  const liveUpdatedTime = RELEASE_DATE
 
   // Auto-select recommended entry based on platform
   const suggestedEntry: DownloadEntry | null =

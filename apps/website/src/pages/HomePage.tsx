@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Shield, Wifi, Smartphone, Monitor, ArrowRight, CheckCircle, Zap, RefreshCw, Lock, LayoutGrid, Radio, Link2, Globe, Download } from 'lucide-react'
 import { usePlatformDetection } from '../utils/platform'
-import { useLiveTimeAgo } from '../utils/timeAgo'
+import { RELEASE } from '../generated/release'
 
 /* ─── Particle background ──────────────────────────────────── */
 function ParticleField() {
@@ -74,20 +74,14 @@ interface HomePageProps {
 
 export function HomePage({ onOpenAppPreview }: HomePageProps) {
   const platform = usePlatformDetection()
-  const [publishedAt, setPublishedAt] = useState<string>('2026-10-22T08:13:37Z')
-  const liveUpdatedTime = useLiveTimeAgo(publishedAt)
 
-  // Update document title and sync publishedAt from manifest
+  // Derive update time from generated release data — no runtime fetch needed.
+  const _rd = new Date(RELEASE.publishedAt)
+  const liveUpdatedTime = `Updated on ${_rd.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
+
+  // Set document title
   useEffect(() => {
     document.title = 'KnowToMigrate  -  Move Anything. Anywhere. Seamlessly.'
-    fetch('/update-manifest.json?_cb=' + Date.now())
-      .then(res => res.json())
-      .then(manifest => {
-        if (manifest?.publishedAt) {
-          setPublishedAt(manifest.publishedAt)
-        }
-      })
-      .catch(() => {})
   }, [])
 
   const getHeroCta = () => {
@@ -127,7 +121,7 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
         fontSize: '0.8125rem',
         color: '#FF8A00',
       }}>
-        <strong>KnowToMigrate 1.0.5</strong> &mdash; Standalone high-speed encrypted local transfers for Windows and Android.
+        <strong>KnowToMigrate {RELEASE.version}</strong> &mdash; Standalone high-speed local transfers for Windows and Android.
         &nbsp;&middot;&nbsp;
         <span style={{ color: '#34D399', fontWeight: 600 }}>{liveUpdatedTime}</span>
         &nbsp;&middot;&nbsp;

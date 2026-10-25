@@ -158,86 +158,11 @@ if (Test-Path $apkSrc) {
     Write-Host "  Android APK: $apkSize bytes | SHA256: $apkHash" -ForegroundColor Gray
 }
 
-# 7. Update update-manifest.json and Website DownloadPage
-Write-Host "`n[6/7] Updating update-manifest.json and DownloadPage.tsx..." -ForegroundColor Green
-$manifestPath = Join-Path $RepoRoot "apps\website\public\update-manifest.json"
-$manifest = Get-Content $manifestPath | ConvertFrom-Json
+# 7. Regenerate every site/manifest reference from version.json and the .bin artifacts
+Write-Host "`n[6/7] Generating release data (manifests, website data, Firebase routes)..." -ForegroundColor Green
+node (Join-Path $RepoRoot "scripts\release\site-release.mjs")
+if ($LASTEXITCODE -ne 0) { throw "site-release generation failed; nothing will be deployed" }
 
-$manifest.version = $TargetVersion
-$manifest.publishedAt = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
-$manifest.windows.version = $TargetVersion
-$manifest.windows.size = $setupSize
-$manifest.windows.sha256 = $setupHash
-$manifest.windows.msi.filename = "KnowToMigrate-$TargetVersion-x64.msi"
-$manifest.windows.msi.url = "https://knowtomigrate.web.app/download/KnowToMigrate-$TargetVersion-x64.msi.bin"
-$manifest.windows.msi.size = $msiSize
-$manifest.windows.msi.sha256 = $msiHash
-$manifest.windows.standalone.size = $standaloneSize
-$manifest.windows.standalone.sha256 = $standaloneHash
-
-if ($apkSize -gt 0) {
-    if (!$manifest.android) {
-        $manifest | Add-Member -MemberType NoteProperty -Name "android" -Value (@{})
-    }
-    $vParts = $TargetVersion.Split('.')
-    $manifest.android.versionCode = [int]$vParts[0] * 10000 + [int]$vParts[1] * 100 + [int]$vParts[2]
-    $manifest.android.versionName = $TargetVersion
-    $manifest.android.size = $apkSize
-    $manifest.android.sha256 = $apkHash
-    $manifest.android.url = "https://knowtomigrate.web.app/download/KnowToMigrate-$TargetVersion.apk"
-    $manifest.android.filename = "KnowToMigrate-$TargetVersion.apk"
-}
-
-if ($ReleaseNotes.Length -gt 0) {
-    $manifest.releaseNotes = $ReleaseNotes
-} else {
-    $manifest.releaseNotes = @(
-        "Fixed file verification and byte alignment in Pluto transfer engine",
-        "Independent Android APK Self-Updater with UTF-8 BOM sanitation and SHA-256 verification",
-        "Liquid Glass navigation bar and responsive non-clipping action button",
-        "Persistent Migration Ledger with cryptographic audit log, export, and quick folder reveal",
-        "Universal Web Share with live QR code pairing and seamless multi-device browser transfers",
-        "Windows Security Center real-time socket telemetry and Pluto Auto diagnostics",
-        "Liquid Glass AMOLED custom CheckBox unique UI upgrade"
-    )
-}
-
-Write-Utf8NoBom -Path $manifestPath -Content ($manifest | ConvertTo-Json -Depth 6)
-
-# Sync Android stable update manifest
-$androidStablePath = Join-Path $RepoRoot "apps\website\public\updates\android\stable.json"
-if (Test-Path $androidStablePath) {
-    $as = Get-Content $androidStablePath | ConvertFrom-Json
-    $as.versionName = $TargetVersion
-    $parts = $TargetVersion.Split('.')
-    if ($parts.Length -ge 3) {
-        $as.versionCode = [int]$parts[0] * 10000 + [int]$parts[1] * 100 + [int]$parts[2]
-    }
-    $as.releaseDate = (Get-Date).ToString("yyyy-MM-dd")
-    $as.title = "KnowToMigrate $TargetVersion"
-    $as.releaseNotes = $manifest.releaseNotes
-    if ($apkSize -gt 0) {
-        $as.sizeBytes = $apkSize
-        $as.sha256 = $apkHash
-        $as.apkUrl = "https://knowtomigrate.web.app/download/KnowToMigrate-$TargetVersion.apk"
-    }
-    Write-Utf8NoBom -Path $androidStablePath -Content ($as | ConvertTo-Json -Depth 6)
-    Write-Host "  Updated $androidStablePath (UTF-8 without BOM)" -ForegroundColor Gray
-}
-
-# Update DownloadPage.tsx with latest version, hashes, sizes, and release date
-$downloadPagePath = Join-Path $RepoRoot "apps\website\src\pages\DownloadPage.tsx"
-if (Test-Path $downloadPagePath) {
-    $todayFormatted = (Get-Date).ToString("dd MMMM yyyy", [System.Globalization.CultureInfo]::InvariantCulture)
-    $dpContent = Get-Content $downloadPagePath -Raw
-    $dpContent = [regex]::Replace($dpContent, "export const RELEASE_DATE = '[^']*'", "export const RELEASE_DATE = '$todayFormatted'")
-    $dpContent = [regex]::Replace($dpContent, "const RELEASE_DATE = '[^']*'", "const RELEASE_DATE = '$todayFormatted'")
-    $dpContent = [regex]::Replace($dpContent, "v\d+\.\d+\.\d+", "v$TargetVersion")
-    $dpContent = [regex]::Replace($dpContent, "version:\s*'\d+\.\d+\.\d+'", "version: '$TargetVersion'")
-    $dpContent = [regex]::Replace($dpContent, "KnowToMigrate-\d+\.\d+\.\d+-x64\.msi", "KnowToMigrate-$TargetVersion-x64.msi")
-    Set-Content -Path $downloadPagePath -Value $dpContent -NoNewline
-    Write-Host "  Updated $downloadPagePath with release date ($todayFormatted) and v$TargetVersion" -ForegroundColor Gray
-}
 
 # 8. Build Website & Deploy to Firebase
 Write-Host "`n[7/7] Building Website and Deploying to Firebase Hosting..." -ForegroundColor Green

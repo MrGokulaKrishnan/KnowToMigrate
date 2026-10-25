@@ -1,3 +1,4 @@
+import { RELEASE } from '../generated/release'
 import { useState, useEffect } from 'react'
 
 export type PlatformType = 'windows' | 'android' | 'macos' | 'linux' | 'ios' | 'unknown'
@@ -43,7 +44,7 @@ export function detectPlatform(): PlatformDetails {
       name: 'Android',
       fullLabel: 'Android (8.0+)',
       isSupported: true,
-      recommendedFilename: 'KnowToMigrate-1.0.0.apk',
+      recommendedFilename: RELEASE.android[0].filename,
       recommendedLabel: 'Download for Android (.apk)',
     }
   }
