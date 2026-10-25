@@ -8,8 +8,8 @@ using System.Windows.Forms;
 [assembly: AssemblyProduct("KnowToMigrate")]
 [assembly: AssemblyCompany("KNOWTHETECH")]
 [assembly: AssemblyDescription("KnowToMigrate Windows Installer")]
-[assembly: AssemblyVersion("1.0.1.0")]
-[assembly: AssemblyFileVersion("1.0.1.0")]
+[assembly: AssemblyVersion("1.0.5.0")]
+[assembly: AssemblyFileVersion("1.0.5.0")]
 
 namespace KnowToMigrate.Setup
 {

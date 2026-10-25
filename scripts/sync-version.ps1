@@ -119,10 +119,30 @@ if (Test-Path $updateManifestPath) {
         $umConfig.android.versionCode = $verCode
         $umConfig.android.versionName = $ver
         $umConfig.android.filename = "KnowToMigrate-$ver.apk"
-        $umConfig.android.url = "https://knowtomigrate.web.app/download/KnowToMigrate-$ver.apk.bin"
+        $umConfig.android.url = "https://knowtomigrate.web.app/download/KnowToMigrate-$ver.apk"
         Write-Utf8NoBom -Path $updateManifestPath -Content ($umConfig | ConvertTo-Json -Depth 6)
         Write-Host "  Updated $updateManifestPath (android block)" -ForegroundColor Gray
     }
+}
+
+# 8. Update apps/windows-setup/SetupBootstrapper.cs
+$setupBootstrapper = Join-Path $RepoRoot "apps\windows-setup\SetupBootstrapper.cs"
+if (Test-Path $setupBootstrapper) {
+    $content = Get-Content $setupBootstrapper -Raw
+    $content = [regex]::Replace($content, '\[assembly: AssemblyVersion\("[^"]+"\)', "[assembly: AssemblyVersion(""$fourPartVer"")")
+    $content = [regex]::Replace($content, '\[assembly: AssemblyFileVersion\("[^"]+"\)', "[assembly: AssemblyFileVersion(""$fourPartVer"")")
+    Set-Content -Path $setupBootstrapper -Value $content -NoNewline
+    Write-Host "  Updated $setupBootstrapper" -ForegroundColor Gray
+}
+
+# 9. Update apps/windows-updater/UpdaterMain.cs
+$updaterMain = Join-Path $RepoRoot "apps\windows-updater\UpdaterMain.cs"
+if (Test-Path $updaterMain) {
+    $content = Get-Content $updaterMain -Raw
+    $content = [regex]::Replace($content, '\[assembly: AssemblyVersion\("[^"]+"\)', "[assembly: AssemblyVersion(""$fourPartVer"")")
+    $content = [regex]::Replace($content, '\[assembly: AssemblyFileVersion\("[^"]+"\)', "[assembly: AssemblyFileVersion(""$fourPartVer"")")
+    Set-Content -Path $updaterMain -Value $content -NoNewline
+    Write-Host "  Updated $updaterMain" -ForegroundColor Gray
 }
 
 Write-Host "Version and date sync completed successfully." -ForegroundColor Green

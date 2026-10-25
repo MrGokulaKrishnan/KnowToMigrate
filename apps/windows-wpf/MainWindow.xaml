@@ -206,8 +206,16 @@
                     <TextBlock x:Name="TxtMigrationScanTitle" />
                     <Image x:Name="ImgTitleBarLogo" />
                     <Image x:Name="ImgWebShareQr" />
-                    <ImageBrush x:Name="LogoHeaderBrush" />
-                    <ImageBrush x:Name="LogoMigrationBrush" />
+                    <Border Visibility="Collapsed">
+                        <Border.Background>
+                            <ImageBrush x:Name="LogoHeaderBrush" />
+                        </Border.Background>
+                    </Border>
+                    <Border Visibility="Collapsed">
+                        <Border.Background>
+                            <ImageBrush x:Name="LogoMigrationBrush" />
+                        </Border.Background>
+                    </Border>
                     <ProgressBar x:Name="ProgressBarDownload" />
                     <CheckBox x:Name="ChkAutoCheckUpdates" />
                     <CheckBox x:Name="ChkMinimizeToTray" />

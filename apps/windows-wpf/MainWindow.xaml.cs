@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -88,8 +88,8 @@ namespace KnowToMigrate
                     bmp.StreamSource = logoStream.Stream;
                     bmp.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
                     bmp.EndInit();
-                    LogoHeaderBrush.ImageSource = bmp;
-                    LogoMigrationBrush.ImageSource = bmp;
+                    if (LogoHeaderBrush != null) LogoHeaderBrush.ImageSource = bmp;
+                    if (LogoMigrationBrush != null) LogoMigrationBrush.ImageSource = bmp;
                 }
             }
             catch
@@ -100,8 +100,8 @@ namespace KnowToMigrate
                     if (File.Exists(localPath))
                     {
                         var bmp = new System.Windows.Media.Imaging.BitmapImage(new Uri(localPath, UriKind.Absolute));
-                        LogoHeaderBrush.ImageSource = bmp;
-                        LogoMigrationBrush.ImageSource = bmp;
+                        if (LogoHeaderBrush != null) LogoHeaderBrush.ImageSource = bmp;
+                        if (LogoMigrationBrush != null) LogoMigrationBrush.ImageSource = bmp;
                     }
                 }
                 catch { }
