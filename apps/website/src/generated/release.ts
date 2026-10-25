@@ -22,7 +22,7 @@ export const RELEASE = {
       "version": "1.0.5",
       "size": "63.7 MB",
       "sizeBytes": 66753536,
-      "sha256": "17dd0d0b2a734e42b0ce553d0ddcad109cfab0a9a4e4f3a47582b765de172318"
+      "sha256": "56c0fbf503b20694b1f26bc7cfe8cac22dcfd083cd5a75a4243718f236a9ff04"
     },
     {
       "id": "win-msi",
@@ -32,7 +32,7 @@ export const RELEASE = {
       "version": "1.0.5",
       "size": "63.6 MB",
       "sizeBytes": 66707456,
-      "sha256": "bbe5e28e0807d43e23e901e89e28f8d07bac447087b92a002a94ab3f86d87a04"
+      "sha256": "57bcf8bc1da3daf631369bc441fb1072aece7c315bf1ebe0129e3b983ed39677"
     },
     {
       "id": "win-portable",
@@ -41,8 +41,8 @@ export const RELEASE = {
       "path": "/download/KnowToMigrate-1.0.5-x64.exe",
       "version": "1.0.5",
       "size": "69.3 MB",
-      "sizeBytes": 72708534,
-      "sha256": "ee172202246ccc0698afabd3958a893324883e5c6125dcea391c0306b03d3367"
+      "sizeBytes": 72708550,
+      "sha256": "bab209b8c51c3d6b0064c59548323adbf9843637baa5c087785afc40a3c5ce6a"
     }
   ],
   "android": [

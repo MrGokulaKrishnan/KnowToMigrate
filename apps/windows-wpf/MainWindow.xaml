@@ -68,8 +68,10 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0" Text="KnowToMigrate" Foreground="#8C8C8C" FontSize="12"
-                               VerticalAlignment="Center" Margin="16,0,0,0" WindowChrome.IsHitTestVisibleInChrome="True" />
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0" WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Image x:Name="ImgTitleBarLogo" Source="Assets/logo.png" Width="18" Height="18" RenderOptions.BitmapScalingMode="HighQuality" Margin="0,0,8,0" VerticalAlignment="Center" />
+                        <TextBlock Text="KnowToMigrate" Foreground="#8C8C8C" FontSize="12" VerticalAlignment="Center" />
+                    </StackPanel>
 
                     <!-- Center Drag Zone -->
                     <Grid Grid.Column="1" Background="Transparent" />
@@ -114,9 +116,7 @@
                         <!-- Top Monogram / Pin Toggle -->
                         <Border Grid.Row="0" Margin="0,14,0,10" HorizontalAlignment="Center">
                             <Button x:Name="BtnToggleRail" Click="BtnToggleRail_Click" Style="{StaticResource KmRailButton}" Width="48" Height="44" Margin="0" ToolTip="Toggle expanded rail">
-                                <Border Width="34" Height="32" CornerRadius="10" Background="#14FFFFFF" BorderBrush="#26FFFFFF" BorderThickness="1">
-                                    <TextBlock Text="KM" FontWeight="ExtraBold" FontSize="13" Foreground="#FF8A00" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
+                                <Image Source="Assets/logo.png" Width="32" Height="32" RenderOptions.BitmapScalingMode="HighQuality" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Button>
                         </Border>
 
@@ -204,7 +204,6 @@
                     <TextBlock x:Name="TxtReceivedSavedTo" />
                     <TextBlock x:Name="TxtMigrationScanCount" />
                     <TextBlock x:Name="TxtMigrationScanTitle" />
-                    <Image x:Name="ImgTitleBarLogo" />
                     <Image x:Name="ImgWebShareQr" />
                     <Border Visibility="Collapsed">
                         <Border.Background>
@@ -999,12 +998,15 @@
 
                                             <!-- App Version & Release Date -->
                                             <Grid Margin="0,0,0,14">
-                                                <StackPanel VerticalAlignment="Center">
-                                                    <TextBlock Text="KnowToMigrate" FontSize="14" FontWeight="Bold" Foreground="#F5F5F5" />
-                                                    <TextBlock x:Name="TxtAboutVersion" Text="v1.0.0 (Production Release)" FontSize="11" Foreground="#8C8C8C" Margin="0,2,0,0" />
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Image Source="Assets/logo.png" Width="36" Height="36" RenderOptions.BitmapScalingMode="HighQuality" Margin="0,0,12,0" VerticalAlignment="Center" />
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <TextBlock Text="KnowToMigrate" FontSize="14" FontWeight="Bold" Foreground="#F5F5F5" />
+                                                        <TextBlock x:Name="TxtAboutVersion" Text="v1.0.0 (Production Release)" FontSize="11" Foreground="#8C8C8C" Margin="0,2,0,0" />
+                                                    </StackPanel>
                                                 </StackPanel>
                                                 <Border Background="#14FF5A00" BorderBrush="#33FF5A00" BorderThickness="1" CornerRadius="8" Padding="10,4" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                                    <TextBlock Text="22 October 2026" FontSize="11" FontWeight="SemiBold" Foreground="#FF8A00" />
+                                                    <TextBlock Text="{StaticResource StringReleaseDate}" FontSize="11" FontWeight="SemiBold" Foreground="#FF8A00" />
                                                 </Border>
                                             </Grid>
                                             <Border Height="1" Background="#0FFFFFFF" Margin="0,0,0,14" />

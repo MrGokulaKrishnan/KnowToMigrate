@@ -7,9 +7,10 @@
         <!-- ── Standardized Strings & Honest Security Constants ──────────── -->
         <sys:String x:Key="StringAppName">KnowToMigrate</sys:String>
         <sys:String x:Key="StringAppTagline">Move Anything. Anywhere. Seamlessly.</sys:String>
-        <sys:String x:Key="StringReleaseDate">22 October 2026</sys:String>
+        <sys:String x:Key="StringReleaseDate">25 October 2026</sys:String>
         <sys:String x:Key="StringSecurityLabel">Not encrypted yet</sys:String>
         <sys:String x:Key="StringSecurityCaption">Use on trusted networks only.</sys:String>
+        <sys:String x:Key="StringSecuritySubtext">Use on trusted networks only.</sys:String>
         <sys:Boolean x:Key="BoolIsEncrypted">False</sys:Boolean>
 
         <!-- Navigation String Resources -->

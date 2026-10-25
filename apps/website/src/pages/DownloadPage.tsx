@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { usePlatformDetection, PlatformType } from '../utils/platform'
 import { RELEASE } from '../generated/release'
+import { useLiveTimeAgo } from '../utils/timeAgo'
 
 export interface DownloadEntry {
   id: string
@@ -109,13 +110,13 @@ function HiddenHash({ hash }: { hash: string }) {
     <div className="mt-3 p-2.5 rounded-xl bg-black/40 border border-white/[0.06]">
       <div className="flex items-center justify-between text-[11px] text-[#777] mb-1.5 font-medium">
         <span className="flex items-center gap-1.5">
-          <Shield className="w-3 h-3 text-[#FF5A00]" />
+          <Shield className="w-3 h-3 text-[#FF8A00]" />
           SHA-256 Checksum
         </span>
         <button
           type="button"
           onClick={() => setShowHash(!showHash)}
-          className="flex items-center gap-1 text-[#FF8A00] hover:text-[#FFA033] transition-colors cursor-pointer"
+          className="flex items-center gap-1 text-[#FF8A00] hover:text-[#FFA040] transition-colors cursor-pointer"
         >
           {showHash ? (
             <>
@@ -142,7 +143,7 @@ function HiddenHash({ hash }: { hash: string }) {
             title="Copy SHA-256 hash"
             className="p-1 rounded hover:bg-white/10 transition-colors text-[#888] hover:text-white cursor-pointer"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-[#4ADE80]" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-3.5 h-3.5 text-[#FF8A00]" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
         )}
       </div>
@@ -276,19 +277,19 @@ function DownloadCard({
     <div
       className={`rounded-2xl border transition-all duration-300 p-5 ${
         isRecommendedDevice
-          ? 'border-[#FF5A00]/50 bg-gradient-to-b from-[#FF5A00]/[0.07] to-white/[0.03] shadow-[0_0_30px_rgba(255,90,0,0.12)]'
-          : 'border-white/[0.08] bg-white/[0.03] hover:border-[#FF5A00]/30 hover:bg-[#FF5A00]/[0.03]'
+          ? 'border-[#FF8A00]/50 bg-gradient-to-b from-[#FF8A00]/[0.08] to-white/[0.03] shadow-[0_0_30px_rgba(255,138,0,0.12)]'
+          : 'border-white/[0.08] bg-white/[0.03] hover:border-[#FF8A00]/30 hover:bg-[#FF8A00]/[0.03]'
       }`}
     >
       <div className="flex items-start gap-3 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-[#FF5A00]/15 border border-[#FF5A00]/25 flex items-center justify-center flex-shrink-0">
-          <Icon className="w-5 h-5 text-[#FF5A00]" strokeWidth={1.75} />
+        <div className="w-10 h-10 rounded-xl bg-[#FF8A00]/15 border border-[#FF8A00]/25 flex items-center justify-center flex-shrink-0">
+          <Icon className="w-5 h-5 text-[#FF8A00]" strokeWidth={1.75} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-sm font-semibold text-[#F5F5F5] truncate">{entry.filename}</p>
             {isRecommendedDevice && (
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#FF5A00]/15 text-[#FF8A00] border border-[#FF5A00]/30 flex items-center gap-1">
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#FF8A00]/15 text-[#FF8A00] border border-[#FF8A00]/30 flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5" /> Recommended
               </span>
             )}
@@ -297,14 +298,14 @@ function DownloadCard({
             {entry.requirements} · <span className="text-[#D4D4D4] font-medium">{entry.size}</span>
           </p>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-[#FF8A00] bg-[#FF5A00]/10 border border-[#FF5A00]/25 shadow-[0_0_10px_rgba(255,90,0,0.12)]">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-[#FF8A00] bg-[#FF8A00]/10 border border-[#FF8A00]/25 shadow-[0_0_10px_rgba(255,138,0,0.12)]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#FF8A00] animate-pulse shadow-[0_0_6px_#FF8A00]" />
               <Clock className="w-3 h-3 text-[#FF8A00]" />
               <span>{liveUpdatedTime}</span>
             </span>
           </div>
         </div>
-        <span className="text-xs bg-[#FF5A00]/10 text-[#FF5A00] border border-[#FF5A00]/20 rounded-full px-2 py-0.5 flex-shrink-0 font-medium">
+        <span className="text-xs bg-[#FF8A00]/10 text-[#FF8A00] border border-[#FF8A00]/20 rounded-full px-2 py-0.5 flex-shrink-0 font-medium">
           v{entry.version}
         </span>
       </div>
@@ -318,16 +319,17 @@ function DownloadCard({
         onClick={handleDownload}
         disabled={status !== 'idle' && status !== 'complete'}
         className={`mt-4 flex items-center justify-center gap-2 w-full min-h-[46px] px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:brightness-110 active:scale-[0.98] disabled:opacity-90 leading-snug text-center ${
-          isRecommendedDevice ? 'ring-2 ring-[#FF5A00]/30' : ''
+          isRecommendedDevice ? 'ring-2 ring-[#FF8A00]/40' : ''
         }`}
         style={{
           background:
             status === 'complete'
-              ? 'linear-gradient(135deg, #10B981, #4ADE80)'
+              ? 'linear-gradient(135deg, #FF7A00, #FF8A00)'
               : isRecommendedDevice
-              ? 'linear-gradient(135deg, #FF4500, #FF5A00, #FF8A00)'
-              : 'linear-gradient(135deg, #E64500, #FF5A00, #FF7A00)',
-          color: '#fff',
+              ? 'linear-gradient(135deg, #E04F00, #FF5A00, #FF8A00)'
+              : 'linear-gradient(135deg, #C43F00, #E04F00, #FF5A00)',
+          color: '#000',
+          fontWeight: 700,
         }}
       >
         {status === 'connecting' ? (
@@ -362,7 +364,7 @@ function DownloadCard({
       {status === 'downloading' && progress !== null && (
         <div className="mt-2 w-full bg-white/[0.08] rounded-full h-1.5 overflow-hidden">
           <div
-            className="bg-gradient-to-r from-[#FF4D00] to-[#FF8A00] h-full transition-all duration-150"
+            className="bg-gradient-to-r from-[#FF5A00] to-[#FF8A00] h-full transition-all duration-150"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -377,7 +379,8 @@ export function DownloadPage() {
   // Downloads come from the generated RELEASE constant — no runtime fetch.
   const windowsDownloads = DEFAULT_WINDOWS_DOWNLOADS
   const androidDownloads = DEFAULT_ANDROID_DOWNLOADS
-  const liveUpdatedTime = RELEASE_DATE
+  // Live ticking relative time engine (e.g. "Recently Updated 1min ago")
+  const liveUpdatedTime = useLiveTimeAgo(RELEASE.publishedAt || Date.now(), 10000)
 
   // Auto-select recommended entry based on platform
   const suggestedEntry: DownloadEntry | null =
@@ -398,7 +401,7 @@ export function DownloadPage() {
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'radial-gradient(ellipse 65% 45% at 50% 0%, rgba(255,90,0,0.14) 0%, transparent 75%)',
+            background: 'radial-gradient(ellipse 65% 45% at 50% 0%, rgba(255,138,0,0.12) 0%, transparent 75%)',
           }}
         />
 
@@ -407,8 +410,8 @@ export function DownloadPage() {
           <div className="flex justify-center mb-6">
             <div className="relative">
               <div
-                className="w-28 h-28 rounded-3xl overflow-hidden border-2 border-[#FF5A00]/40"
-                style={{ boxShadow: '0 0 60px rgba(255,90,0,0.25), 0 0 120px rgba(255,90,0,0.08)' }}
+                className="w-28 h-28 rounded-3xl overflow-hidden border-2 border-[#FF8A00]/40"
+                style={{ boxShadow: '0 0 60px rgba(255,138,0,0.22), 0 0 120px rgba(255,138,0,0.06)' }}
               >
                 <img
                   src="/logo.jpg"
@@ -419,18 +422,18 @@ export function DownloadPage() {
               <div
                 className="absolute inset-0 rounded-3xl pointer-events-none"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255,90,0,0.15), transparent)',
-                  border: '1px solid rgba(255,90,0,0.2)',
+                  background: 'linear-gradient(135deg, rgba(255,138,0,0.15), transparent)',
+                  border: '1px solid rgba(255,138,0,0.25)',
                 }}
               />
             </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-2.5 mb-5">
-            <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest text-[#FF5A00] border border-[#FF5A00]/30 bg-[#FF5A00]/10">
+            <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest text-[#FF8A00] border border-[#FF8A00]/30 bg-[#FF8A00]/10">
               FREE &amp; OPEN SOURCE
             </span>
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#FF8A00] border border-[#FF5A00]/30 bg-[#FF5A00]/10 shadow-[0_0_15px_rgba(255,90,0,0.15)]">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#FF8A00] border border-[#FF8A00]/30 bg-[#FF8A00]/10 shadow-[0_0_15px_rgba(255,138,0,0.15)]">
               <span className="w-2 h-2 rounded-full bg-[#FF8A00] animate-pulse shadow-[0_0_8px_#FF8A00]" />
               <Clock className="w-3.5 h-3.5 text-[#FF8A00]" />
               <span className="text-[#FF8A00] font-semibold">{liveUpdatedTime}</span>
@@ -439,7 +442,7 @@ export function DownloadPage() {
 
           <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-4 leading-tight">
             Download{' '}
-            <span className="bg-gradient-to-r from-[#FF4D00] to-[#FF8A00] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#FF5A00] to-[#FF8A00] bg-clip-text text-transparent">
               KnowToMigrate
             </span>
           </h1>
@@ -450,13 +453,13 @@ export function DownloadPage() {
 
           {/* ── FEATURED SUGGESTED PLATFORM CARD ── */}
           <div className="max-w-xl mx-auto mb-10 text-left">
-            <div className="relative rounded-3xl p-6 sm:p-7 border border-[#FF5A00]/40 bg-gradient-to-b from-[#160A02] via-[#0E0601] to-[#0A0A0A] shadow-[0_0_50px_rgba(255,90,0,0.18)]">
+            <div className="relative rounded-3xl p-6 sm:p-7 border border-[#FF8A00]/40 bg-gradient-to-b from-[#1A0A02] via-[#140801] to-[#0A0A0A] shadow-[0_0_50px_rgba(255,138,0,0.14)]">
               {/* Beacon Tag */}
               <div className="flex items-center justify-between gap-2 mb-4">
                 <div className="flex items-center gap-2">
                   <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF5A00] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FF5A00]"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF8A00] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FF8A00]"></span>
                   </span>
                   <span className="text-xs font-bold uppercase tracking-wider text-[#FF8A00]">
                     Suggested for Your Device
@@ -470,17 +473,17 @@ export function DownloadPage() {
               {suggestedEntry ? (
                 <div>
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF5A00]/25 to-[#FF5A00]/10 border border-[#FF5A00]/30 flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(255,90,0,0.2)]">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF8A00]/25 to-[#FF8A00]/10 border border-[#FF8A00]/30 flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(255,138,0,0.2)]">
                       {platform.type === 'windows' ? (
-                        <Monitor className="w-6 h-6 text-[#FF5A00]" />
+                        <Monitor className="w-6 h-6 text-[#FF8A00]" />
                       ) : (
-                        <Smartphone className="w-6 h-6 text-[#FF5A00]" />
+                        <Smartphone className="w-6 h-6 text-[#FF8A00]" />
                       )}
                     </div>
                     <div>
                       <h2 className="text-xl font-bold text-[#F5F5F5] flex items-center gap-2">
                         KnowToMigrate for {platform.name}
-                        <span className="text-xs bg-[#FF5A00]/15 text-[#FF8A00] border border-[#FF5A00]/30 font-semibold px-2 py-0.5 rounded-md">
+                        <span className="text-xs bg-[#FF8A00]/15 text-[#FF8A00] border border-[#FF8A00]/30 font-semibold px-2 py-0.5 rounded-md">
                           v{suggestedEntry.version}
                         </span>
                       </h2>
@@ -492,7 +495,7 @@ export function DownloadPage() {
                           File: <span className="text-[#F5F5F5] font-medium">{suggestedEntry.filename}</span> · <span className="text-[#D4D4D4] font-medium">{suggestedEntry.size}</span>
                         </span>
                         <span className="text-white/20">·</span>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-[#FF8A00] bg-[#FF5A00]/10 border border-[#FF5A00]/25 shadow-[0_0_10px_rgba(255,90,0,0.12)]">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-[#FF8A00] bg-[#FF8A00]/10 border border-[#FF8A00]/25 shadow-[0_0_10px_rgba(255,138,0,0.12)]">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#FF8A00] animate-pulse shadow-[0_0_6px_#FF8A00]" />
                           <Clock className="w-3 h-3 text-[#FF8A00]" />
                           <span>{liveUpdatedTime}</span>
@@ -522,7 +525,7 @@ export function DownloadPage() {
                               const el = document.getElementById('win-msi')
                               el?.scrollIntoView({ behavior: 'smooth' })
                             }}
-                            className="text-[#FF8A00] hover:underline cursor-pointer"
+                            className="text-[#FF8A00] hover:underline cursor-pointer font-medium"
                           >
                             Enterprise .MSI Package
                           </button>
@@ -534,7 +537,7 @@ export function DownloadPage() {
                               const el = document.getElementById('win-portable')
                               el?.scrollIntoView({ behavior: 'smooth' })
                             }}
-                            className="text-[#FF8A00] hover:underline cursor-pointer"
+                            className="text-[#FF8A00] hover:underline cursor-pointer font-medium"
                           >
                             Portable .EXE
                           </button>
@@ -562,7 +565,7 @@ export function DownloadPage() {
                       href="https://knowtomigrate.web.app"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-[#FF4D00] to-[#FF8A00] text-white flex items-center gap-1.5 shadow-md hover:brightness-110"
+                      className="px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-[#FF5A00] to-[#FF8A00] text-black flex items-center gap-1.5 shadow-md hover:brightness-110"
                     >
                       <Globe className="w-3.5 h-3.5" /> Launch Web Receiver
                     </a>
@@ -595,7 +598,7 @@ export function DownloadPage() {
               { icon: CheckCircle, text: 'Works 100% Offline' },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-1.5">
-                <Icon className="w-3.5 h-3.5 text-[#FF5A00]" />
+                <Icon className="w-3.5 h-3.5 text-[#FF8A00]" />
                 <span>{text}</span>
               </div>
             ))}
@@ -611,7 +614,7 @@ export function DownloadPage() {
             onClick={() => setActiveTab('all')}
             className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'all'
-                ? 'bg-[#FF5A00] text-white shadow-[0_0_16px_rgba(255,90,0,0.35)]'
+                ? 'bg-[#FF8A00] text-black shadow-[0_0_16px_rgba(255,138,0,0.35)]'
                 : 'bg-white/[0.04] text-[#888] hover:text-white hover:bg-white/[0.08] border border-white/[0.06]'
             }`}
           >
@@ -623,14 +626,14 @@ export function DownloadPage() {
             onClick={() => setActiveTab('windows')}
             className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === 'windows'
-                ? 'bg-[#FF5A00] text-white shadow-[0_0_16px_rgba(255,90,0,0.35)]'
+                ? 'bg-[#FF8A00] text-black shadow-[0_0_16px_rgba(255,138,0,0.35)]'
                 : 'bg-white/[0.04] text-[#888] hover:text-white hover:bg-white/[0.08] border border-white/[0.06]'
             }`}
           >
             <Monitor className="w-3.5 h-3.5" />
             <span>Windows (x64)</span>
             {isWindowsDetected && (
-              <span className="text-[10px] bg-white/20 text-white px-1.5 py-0.2 rounded-full font-bold">
+              <span className="text-[10px] bg-black/30 text-black px-1.5 py-0.2 rounded-full font-bold">
                 Detected
               </span>
             )}
@@ -641,14 +644,14 @@ export function DownloadPage() {
             onClick={() => setActiveTab('android')}
             className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === 'android'
-                ? 'bg-[#FF5A00] text-white shadow-[0_0_16px_rgba(255,90,0,0.35)]'
+                ? 'bg-[#FF8A00] text-black shadow-[0_0_16px_rgba(255,138,0,0.35)]'
                 : 'bg-white/[0.04] text-[#888] hover:text-white hover:bg-white/[0.08] border border-white/[0.06]'
             }`}
           >
             <Smartphone className="w-3.5 h-3.5" />
             <span>Android (APK)</span>
             {isAndroidDetected && (
-              <span className="text-[10px] bg-white/20 text-white px-1.5 py-0.2 rounded-full font-bold">
+              <span className="text-[10px] bg-black/30 text-black px-1.5 py-0.2 rounded-full font-bold">
                 Detected
               </span>
             )}
@@ -665,26 +668,26 @@ export function DownloadPage() {
             <div
               className={`rounded-3xl p-6 transition-all duration-300 ${
                 isWindowsDetected
-                  ? 'border border-[#FF5A00]/30 bg-white/[0.015] shadow-[0_0_40px_rgba(255,90,0,0.06)]'
+                  ? 'border border-[#FF8A00]/30 bg-white/[0.015] shadow-[0_0_40px_rgba(255,138,0,0.06)]'
                   : 'border border-white/[0.06] bg-transparent'
               }`}
             >
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-[#FF5A00]/15 border border-[#FF5A00]/30 flex items-center justify-center">
-                  <Monitor className="w-5 h-5 text-[#FF5A00]" strokeWidth={1.75} />
+                <div className="w-10 h-10 rounded-xl bg-[#FF8A00]/15 border border-[#FF8A00]/30 flex items-center justify-center">
+                  <Monitor className="w-5 h-5 text-[#FF8A00]" strokeWidth={1.75} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-xl font-bold text-white">Windows</h2>
                     {isWindowsDetected && (
-                      <span className="text-[11px] font-bold text-[#FF8A00] bg-[#FF5A00]/15 border border-[#FF5A00]/30 rounded-full px-2 py-0.5">
+                      <span className="text-[11px] font-bold text-[#FF8A00] bg-[#FF8A00]/15 border border-[#FF8A00]/30 rounded-full px-2 py-0.5">
                         ✦ Your Device
                       </span>
                     )}
                   </div>
                   <p className="text-xs text-[#666]">Native C# / WinUI 3 App · Windows 10/11 x64</p>
                 </div>
-                <img src="/logo.jpg" alt="KM" className="w-8 h-8 rounded-lg ml-auto border border-[#FF5A00]/20" />
+                <img src="/logo.jpg" alt="KM" className="w-8 h-8 rounded-lg ml-auto border border-[#FF8A00]/20" />
               </div>
 
               <div className="space-y-4">
@@ -704,7 +707,7 @@ export function DownloadPage() {
                 <p className="text-xs text-[#555555] leading-relaxed">
                   <span className="text-[#8A8A8A] font-medium">Installation:</span> Run the official Setup installer
                   or double-click the portable EXE version. No administrator privileges needed for the portable EXE.
-                  The <strong className="text-[#FF5A00]">KM lightning-bolt icon</strong> will appear in your taskbar and Start menu.
+                  The <strong className="text-[#FF8A00]">KM lightning-bolt icon</strong> will appear in your taskbar and Start menu.
                 </p>
               </div>
             </div>
@@ -715,26 +718,26 @@ export function DownloadPage() {
             <div
               className={`rounded-3xl p-6 transition-all duration-300 ${
                 isAndroidDetected
-                  ? 'border border-[#FF5A00]/30 bg-white/[0.015] shadow-[0_0_40px_rgba(255,90,0,0.06)]'
+                  ? 'border border-[#FF8A00]/30 bg-white/[0.015] shadow-[0_0_40px_rgba(255,138,0,0.06)]'
                   : 'border border-white/[0.06] bg-transparent'
               }`}
             >
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-[#FF5A00]/15 border border-[#FF5A00]/30 flex items-center justify-center">
-                  <Smartphone className="w-5 h-5 text-[#FF5A00]" strokeWidth={1.75} />
+                <div className="w-10 h-10 rounded-xl bg-[#FF8A00]/15 border border-[#FF8A00]/30 flex items-center justify-center">
+                  <Smartphone className="w-5 h-5 text-[#FF8A00]" strokeWidth={1.75} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-xl font-bold text-white">Android</h2>
                     {isAndroidDetected && (
-                      <span className="text-[11px] font-bold text-[#FF8A00] bg-[#FF5A00]/15 border border-[#FF5A00]/30 rounded-full px-2 py-0.5">
+                      <span className="text-[11px] font-bold text-[#FF8A00] bg-[#FF8A00]/15 border border-[#FF8A00]/30 rounded-full px-2 py-0.5">
                         ✦ Your Device
                       </span>
                     )}
                   </div>
                   <p className="text-xs text-[#666]">Kotlin + Jetpack Compose · Android 8.0+ (API 26)</p>
                 </div>
-                <img src="/logo.jpg" alt="KM" className="w-8 h-8 rounded-lg ml-auto border border-[#FF5A00]/20" />
+                <img src="/logo.jpg" alt="KM" className="w-8 h-8 rounded-lg ml-auto border border-[#FF8A00]/20" />
               </div>
 
               <div className="space-y-4">
@@ -754,7 +757,7 @@ export function DownloadPage() {
                 <p className="text-xs text-[#555555] leading-relaxed">
                   <span className="text-[#8A8A8A] font-medium">Installation:</span> Enable "Install unknown apps"
                   in Settings &rarr; Security if prompted. Tap the APK file in Downloads to install.
-                  The <strong className="text-[#FF5A00]">KM orange-on-black icon</strong> will appear on your home screen.
+                  The <strong className="text-[#FF8A00]">KM lightning-bolt icon</strong> will appear on your home screen.
                 </p>
               </div>
             </div>
@@ -789,13 +792,13 @@ export function DownloadPage() {
           ].map(({ platform: pName, icon: Icon, items }) => (
             <div key={pName} className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Icon className="w-4 h-4 text-[#FF5A00]" />
+                <Icon className="w-4 h-4 text-[#FF8A00]" />
                 <h3 className="text-sm font-semibold text-white">{pName}</h3>
               </div>
               <ul className="space-y-2">
                 {items.map(item => (
                   <li key={item} className="flex items-center gap-2 text-xs text-[#8A8A8A]">
-                    <div className="w-1 h-1 rounded-full bg-[#FF5A00] flex-shrink-0" />
+                    <div className="w-1 h-1 rounded-full bg-[#FF8A00] flex-shrink-0" />
                     {item}
                   </li>
                 ))}

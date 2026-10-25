@@ -11,7 +11,7 @@ namespace KnowToMigrate
         public const bool IsEncrypted = false;
         public const string SecurityLabel = "Not encrypted yet";
         public const string SecurityCaption = "Use on trusted networks only.";
-        public const string ReleaseDate = "22 October 2026";
+        public const string ReleaseDate = "25 October 2026";
     }
 
     public partial class App : Application

@@ -23,10 +23,14 @@
     <AssemblyProduct>KnowToMigrate</AssemblyProduct>
     <AssemblyCompany>KnowToMigrate</AssemblyCompany>
     <AssemblyDescription>KnowToMigrate Windows Installer</AssemblyDescription>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <InformationalVersion>1.0.0</InformationalVersion>
+    <AssemblyVersion>1.0.5.0</AssemblyVersion>
+    <FileVersion>1.0.5.0</FileVersion>
+    <InformationalVersion>1.0.5</InformationalVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="SetupBootstrapper.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="..\windows-wpf\Assets\KnowToMigrate.ico" LogicalName="Assets.KnowToMigrate.ico" />

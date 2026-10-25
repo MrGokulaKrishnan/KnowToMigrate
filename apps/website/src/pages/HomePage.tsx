@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Shield, Wifi, Smartphone, Monitor, ArrowRight, CheckCircle, Zap, RefreshCw, Lock, LayoutGrid, Radio, Link2, Globe, Download } from 'lucide-react'
 import { usePlatformDetection } from '../utils/platform'
 import { RELEASE } from '../generated/release'
+import { useLiveTimeAgo } from '../utils/timeAgo'
 
 /* ─── Particle background ──────────────────────────────────── */
 function ParticleField() {
@@ -75,9 +76,8 @@ interface HomePageProps {
 export function HomePage({ onOpenAppPreview }: HomePageProps) {
   const platform = usePlatformDetection()
 
-  // Derive update time from generated release data — no runtime fetch needed.
-  const _rd = new Date(RELEASE.publishedAt)
-  const liveUpdatedTime = `Updated on ${_rd.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
+  // Live ticking relative time engine (e.g. "Recently Updated 1min ago")
+  const liveUpdatedTime = useLiveTimeAgo(RELEASE.publishedAt || Date.now(), 10000)
 
   // Set document title
   useEffect(() => {
