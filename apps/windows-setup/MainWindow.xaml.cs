@@ -418,7 +418,7 @@ namespace KnowToMigrate.Setup
                 {
                     uninstKey.SetValue("DisplayName", "KnowToMigrate");
                     uninstKey.SetValue("DisplayVersion", "1.0.5");
-                    uninstKey.SetValue("Publisher", "KNOWTHETECH");
+                    uninstKey.SetValue("Publisher", "KnowTheTech");
                     uninstKey.SetValue("DisplayIcon", AppIconPath + ",0");
                     uninstKey.SetValue("InstallLocation", InstallDir);
                     uninstKey.SetValue("HelpLink", "https://knowtomigrate.web.app/docs");

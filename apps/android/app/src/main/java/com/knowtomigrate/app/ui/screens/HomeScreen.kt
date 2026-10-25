@@ -2,7 +2,7 @@ package com.knowtomigrate.app.ui.screens
 
 /*
  * KnowToMigrate - Home Screen
- * Updated: 22 October 2026
+ * Updated: 25 October 2026
  * Pure AMOLED #000000 base with KM Electric Orange accents and Dark Liquid Glass
  * Information Architecture:
  * - Top Bar: App Mark, App Name, Status Line ("On Wi-Fi · Local network"), History & Settings icons
@@ -55,6 +55,8 @@ import com.knowtomigrate.app.ui.components.*
 import com.knowtomigrate.app.ui.navigation.Screen
 import com.knowtomigrate.app.ui.theme.*
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -472,51 +474,66 @@ fun HomeScreen(
                 }
             }
 
-            // ── 5. Section: Recent Transfers (Last 3 transfers) ───────────────────
+            // ── 5. Section: Recent Transfers (Genuine Dynamic History) ─────────
             item {
-                Text(
-                    text = stringResource(R.string.section_recent),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = KmTextPrimary,
-                    modifier = Modifier.padding(start = 2.dp, top = 4.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 2.dp, top = 4.dp, end = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.section_recent),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = KmTextPrimary
+                    )
+                    if (allHistory.isNotEmpty()) {
+                        Text(
+                            text = "See all",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = KmOrange,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .clickable { navController.navigate(Screen.History.route) }
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                        )
+                    }
+                }
             }
 
             if (allHistory.isEmpty()) {
                 item {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(KmRadii.ListRow))
+                            .background(KmGlassBackground)
+                            .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.ListRow))
+                            .padding(16.dp)
                     ) {
-                        // Standard prototype rows for clean display
-                        KmRecentTransferRow(
-                            filename = "Photos_March.zip",
-                            subtitle = "1.2 GB · Sent 10:42",
-                            isVerified = true
-                        )
-                        KmRecentTransferRow(
-                            filename = "Resume_2026.pdf",
-                            subtitle = "0.4 MB · Yesterday",
-                            isVerified = true
-                        )
-                        KmRecentTransferRow(
-                            filename = "Lecture_notes/",
-                            subtitle = "320 MB · Oct 19",
-                            isVerified = false,
-                            isFolder = true
+                        Text(
+                            text = stringResource(R.string.empty_recent_transfers),
+                            fontSize = 13.sp,
+                            color = KmTextMuted
                         )
                     }
                 }
             } else {
                 val recentItems = allHistory.take(3)
-                items(recentItems) { record ->
+                items(recentItems, key = { it.id }) { record ->
                     val isComp = record.status == com.knowtomigrate.app.data.TransferRecordStatus.COMPLETED
                     val isOut = record.direction == com.knowtomigrate.app.data.TransferDirection.SENT
+                    val formattedTime = formatRecentTimestamp(record.timestamp)
+                    val isFolder = record.fileCount > 1 || record.fileName.endsWith("/")
                     KmRecentTransferRow(
                         filename = record.fileName,
-                        subtitle = "${record.formattedSize} · ${if (isOut) "Sent" else "Received"}",
-                        isVerified = isComp && isOut
+                        subtitle = "${record.formattedSize} · ${if (isOut) "Sent" else "Received"} · $formattedTime",
+                        isVerified = isComp,
+                        isFolder = isFolder,
+                        onClick = { navController.navigate(Screen.History.route) }
                     )
                 }
             }
@@ -767,5 +784,22 @@ fun HomeScreen(
                 }
             }
         }
+    }
+}
+private fun formatRecentTimestamp(timestamp: Long): String {
+    val now = Calendar.getInstance()
+    val todayYear = now.get(Calendar.YEAR)
+    val todayDay = now.get(Calendar.DAY_OF_YEAR)
+
+    val itemCal = Calendar.getInstance()
+    itemCal.timeInMillis = timestamp
+
+    val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val timeStr = timeFormatter.format(Date(timestamp))
+
+    return when {
+        itemCal.get(Calendar.YEAR) == todayYear && itemCal.get(Calendar.DAY_OF_YEAR) == todayDay -> timeStr
+        itemCal.get(Calendar.YEAR) == todayYear && itemCal.get(Calendar.DAY_OF_YEAR) == todayDay - 1 -> "Yesterday"
+        else -> SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(timestamp))
     }
 }

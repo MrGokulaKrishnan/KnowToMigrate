@@ -2,7 +2,7 @@ package com.knowtomigrate.app.ui.screens
 
 /*
  * KnowToMigrate - MigrationScreen ("Move device")
- * Updated: 22 October 2026
+ * Updated: 25 October 2026
  * AMOLED black, KM Orange accents, Liquid Glass surfaces
  * Rebranded to "Move device" with KmStepIndicator and KmStorageGauge
  */
@@ -49,13 +49,13 @@ private data class MigrationCategory(
 )
 
 private val migrationCategories = listOf(
-    MigrationCategory("photos",    "Photos",       Icons.Default.PhotoLibrary,        "12.4 GB"),
-    MigrationCategory("videos",    "Videos",       Icons.Default.VideoLibrary,        "28.1 GB"),
-    MigrationCategory("documents", "Documents",    Icons.Default.Description,         "340 MB"),
-    MigrationCategory("music",     "Music",        Icons.Default.LibraryMusic,        "5.2 GB"),
-    MigrationCategory("downloads", "Downloads",    Icons.Default.Download,            "1.8 GB"),
-    MigrationCategory("whatsapp",  "WhatsApp",     Icons.AutoMirrored.Filled.Message, "3.6 GB"),
-    MigrationCategory("contacts",  "Contacts",     Icons.Default.Contacts,            "2 MB")
+    MigrationCategory("photos",    "Photos",       Icons.Default.PhotoLibrary,        "Scanning..."),
+    MigrationCategory("videos",    "Videos",       Icons.Default.VideoLibrary,        "Scanning..."),
+    MigrationCategory("documents", "Documents",    Icons.Default.Description,         "Ready to scan"),
+    MigrationCategory("music",     "Music",        Icons.Default.LibraryMusic,        "Scanning..."),
+    MigrationCategory("downloads", "Downloads",    Icons.Default.Download,            "Scanning..."),
+    MigrationCategory("whatsapp",  "WhatsApp",     Icons.AutoMirrored.Filled.Message, "Ready to scan"),
+    MigrationCategory("contacts",  "Contacts",     Icons.Default.Contacts,            "Ready to scan")
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,19 +92,13 @@ fun MigrationScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            queryCategorySize(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)?.let {
-                dynamicSizes["photos"] = it
-            }
-            queryCategorySize(context, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)?.let {
-                dynamicSizes["videos"] = it
-            }
-            queryCategorySize(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)?.let {
-                dynamicSizes["music"] = it
-            }
+            dynamicSizes["photos"] = queryCategorySize(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI) ?: "0 items (0 B)"
+            dynamicSizes["videos"] = queryCategorySize(context, MediaStore.Video.Media.EXTERNAL_CONTENT_URI) ?: "0 items (0 B)"
+            dynamicSizes["music"] = queryCategorySize(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI) ?: "0 items (0 B)"
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                queryCategorySize(context, MediaStore.Downloads.EXTERNAL_CONTENT_URI)?.let {
-                    dynamicSizes["downloads"] = it
-                }
+                dynamicSizes["downloads"] = queryCategorySize(context, MediaStore.Downloads.EXTERNAL_CONTENT_URI) ?: "0 items (0 B)"
+            } else {
+                dynamicSizes["downloads"] = "0 items (0 B)"
             }
         }
     }

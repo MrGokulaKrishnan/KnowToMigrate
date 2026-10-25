@@ -2,7 +2,7 @@ package com.knowtomigrate.app.ui.screens
 
 /*
  * KnowToMigrate - Send Screen
- * Updated: 22 October 2026
+ * Updated: 25 October 2026
  * Pure AMOLED #000000 base with KM Electric Orange accents and Dark Liquid Glass
  * Information Architecture:
  * - Two-step header: "Step 1 of 2: Add files" / "Step 2 of 2: Choose a device"
@@ -69,16 +69,13 @@ fun SendScreen(
     val discoveredDevices by manager.discoveredDevices.collectAsState()
 
     var files by remember {
-        mutableStateOf(
+        mutableStateOf<List<StagedFile>>(
             if (initialUris.isNotEmpty()) {
                 initialUris.map { uri ->
                     StagedFile(uri.toString(), "Shared file", "Ready", uri)
                 }
             } else {
-                listOf(
-                    StagedFile("1", "Photos_March.zip", "1.2 GB"),
-                    StagedFile("2", "Resume_2026.pdf", "0.4 MB")
-                )
+                emptyList<StagedFile>()
             }
         )
     }

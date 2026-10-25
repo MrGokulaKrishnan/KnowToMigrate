@@ -12,7 +12,7 @@ using Microsoft.Win32;
 
 [assembly: AssemblyTitle("KnowToMigrate Setup & Management")]
 [assembly: AssemblyProduct("KnowToMigrate")]
-[assembly: AssemblyCompany("KNOWTHETECH")]
+[assembly: AssemblyCompany("KnowTheTech")]
 [assembly: AssemblyDescription("KnowToMigrate Windows Setup & Uninstall Manager")]
 [assembly: AssemblyVersion("1.0.5.0")]
 [assembly: AssemblyFileVersion("1.0.5.0")]
@@ -308,7 +308,7 @@ namespace KnowToMigrate.Setup
                     {
                         uninstKey.SetValue("DisplayName", "KnowToMigrate");
                         uninstKey.SetValue("DisplayVersion", "1.0.5");
-                        uninstKey.SetValue("Publisher", "KNOWTHETECH");
+                        uninstKey.SetValue("Publisher", "KnowTheTech");
                         uninstKey.SetValue("DisplayIcon", AppIconPath + ",0");
                         uninstKey.SetValue("InstallLocation", InstallDir);
                         uninstKey.SetValue("HelpLink", "https://knowtomigrate.web.app/docs");

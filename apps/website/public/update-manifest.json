@@ -10,14 +10,14 @@
         "version": "1.0.5",
         "filename": "KnowToMigrate-Setup.exe",
         "url": "https://knowtomigrate.web.app/download/KnowToMigrate-Setup.exe",
-        "size": 67023360,
-        "sha256": "bd41057588e07409eaa61e9f2bc74c9b287c9300f499ec81230fec250b0d90a9",
+        "size": 66904576,
+        "sha256": "edf83b98fcc2c0bd3633119a74bc1536751064e324247fb7502f8ba7900ebd40",
         "signature": "",
         "msi": {
             "filename": "KnowToMigrate-1.0.5-x64.msi",
             "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5-x64.msi",
-            "size": 66707456,
-            "sha256": "57bcf8bc1da3daf631369bc441fb1072aece7c315bf1ebe0129e3b983ed39677"
+            "size": 66588672,
+            "sha256": "e5c6a92d5e501f6eafac740d8db732549361c1a5a38e06b8b323e0b5fcdfde9f"
         },
         "standalone": {
             "filename": "KnowToMigrate-1.0.5-x64.exe",
@@ -32,7 +32,7 @@
         "filename": "KnowToMigrate-1.0.5.apk",
         "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5.apk",
         "size": 17968420,
-        "sha256": "6eef8bfd5c84b24e58af1fbf3ae551c6455e7426886daca0561640b040c2542f"
+        "sha256": "f1720faa257f2d1321c3f74f81dd03785d0185d86364df04d1c82a4ab02e99ca"
     },
     "releaseNotes": [
         "Complete Dark Liquid Glass UI redesign for Windows and Android with verified SHA-256 badges",

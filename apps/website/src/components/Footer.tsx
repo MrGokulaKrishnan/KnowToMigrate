@@ -174,7 +174,7 @@ export function Footer() {
           }}
         >
           <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
-            © {new Date().getFullYear()} KNOWTHETECH. MIT License.
+            © {new Date().getFullYear()} KnowTheTech. MIT License.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>
             <Shield size={13} />
@@ -182,7 +182,7 @@ export function Footer() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>
             <span>Made with</span>
-            <Heart size={13} style={{ color: '#FF5A00' }} />
+            <Heart size={13} style={{ color: '#4ADE80' }} />
             <span>by MrGokulaKrishnan</span>
           </div>
         </div>

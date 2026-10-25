@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 [assembly: AssemblyTitle("KnowToMigrate Updater")]
 [assembly: AssemblyProduct("KnowToMigrate")]
-[assembly: AssemblyCompany("KNOWTHETECH")]
+[assembly: AssemblyCompany("KnowTheTech")]
 [assembly: AssemblyDescription("KnowToMigrate Standalone Native Updater")]
 [assembly: AssemblyVersion("1.0.5.0")]
 [assembly: AssemblyFileVersion("1.0.5.0")]

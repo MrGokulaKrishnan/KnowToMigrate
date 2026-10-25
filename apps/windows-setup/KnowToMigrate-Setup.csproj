@@ -17,11 +17,11 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>KnowToMigrate-Setup</AssemblyName>
     <Product>KnowToMigrate Setup</Product>
-    <Company>KnowToMigrate</Company>
+    <Company>KnowTheTech</Company>
     <Description>KnowToMigrate Setup Installer</Description>
     <AssemblyTitle>KnowToMigrate Setup</AssemblyTitle>
     <AssemblyProduct>KnowToMigrate</AssemblyProduct>
-    <AssemblyCompany>KnowToMigrate</AssemblyCompany>
+    <AssemblyCompany>KnowTheTech</AssemblyCompany>
     <AssemblyDescription>KnowToMigrate Windows Installer</AssemblyDescription>
     <AssemblyVersion>1.0.5.0</AssemblyVersion>
     <FileVersion>1.0.5.0</FileVersion>
