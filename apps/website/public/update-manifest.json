@@ -3,7 +3,7 @@
     "channel": "stable",
     "version": "1.0.5",
     "minimumSupportedVersion": "1.0.0",
-    "publishedAt": "2026-10-23T16:55:00Z",
+    "publishedAt": "2026-10-25T06:45:00Z",
     "windows": {
         "architecture": "x64",
         "installerType": "exe",

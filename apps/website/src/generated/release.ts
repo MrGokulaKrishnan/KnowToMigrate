@@ -2,8 +2,8 @@
 export const RELEASE = {
   "version": "1.0.5",
   "versionCode": 10005,
-  "publishedAt": "2026-10-23T16:55:00Z",
-  "releaseDate": "2026-10-23",
+  "publishedAt": "2026-10-25T06:45:00Z",
+  "releaseDate": "2026-10-25",
   "releaseNotes": [
     "Complete Dark Liquid Glass UI redesign for Windows and Android with verified SHA-256 badges",
     "Independent Android APK Self-Updater with UTF-8 BOM sanitation and SHA-256 verification",

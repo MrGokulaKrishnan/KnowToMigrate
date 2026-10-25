@@ -5,7 +5,7 @@
     "versionCode": 10005,
     "channel": "stable",
     "minimumSupportedVersion": "1.0.0",
-    "publishedAt": "2026-10-23T16:55:00Z",
+    "publishedAt": "2026-10-25T06:45:00Z",
     "releaseNotes": [
         "Complete Dark Liquid Glass UI redesign for Windows and Android with verified SHA-256 badges",
         "Independent Android APK Self-Updater with UTF-8 BOM sanitation and SHA-256 verification",
@@ -15,5 +15,5 @@
         "Windows real-time socket telemetry and Local Network diagnostics",
         "Liquid Glass AMOLED custom controls and 6.7:1 WCAG AA compliant contrast"
     ],
-    "updatedAt": "2026-10-23T16:55:00Z"
+    "updatedAt": "2026-10-25T06:45:00Z"
 }

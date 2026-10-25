@@ -123,7 +123,7 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
       }}>
         <strong>KnowToMigrate {RELEASE.version}</strong> &mdash; Standalone high-speed local transfers for Windows and Android.
         &nbsp;&middot;&nbsp;
-        <span style={{ color: '#34D399', fontWeight: 600 }}>{liveUpdatedTime}</span>
+        <span style={{ color: '#FF8A00', fontWeight: 600 }}>{liveUpdatedTime}</span>
         &nbsp;&middot;&nbsp;
         <a
           href="https://github.com/MrGokulaKrishnan/KnowToMigrate"

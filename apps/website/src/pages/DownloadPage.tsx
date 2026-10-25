@@ -297,9 +297,9 @@ function DownloadCard({
             {entry.requirements} · <span className="text-[#D4D4D4] font-medium">{entry.size}</span>
           </p>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-[#34D399] bg-[#34D399]/10 border border-[#34D399]/25 shadow-[0_0_10px_rgba(52,211,153,0.1)]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse shadow-[0_0_6px_#34D399]" />
-              <Clock className="w-3 h-3 text-[#34D399]" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-[#FF8A00] bg-[#FF5A00]/10 border border-[#FF5A00]/25 shadow-[0_0_10px_rgba(255,90,0,0.12)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FF8A00] animate-pulse shadow-[0_0_6px_#FF8A00]" />
+              <Clock className="w-3 h-3 text-[#FF8A00]" />
               <span>{liveUpdatedTime}</span>
             </span>
           </div>
@@ -430,10 +430,10 @@ export function DownloadPage() {
             <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest text-[#FF5A00] border border-[#FF5A00]/30 bg-[#FF5A00]/10">
               FREE &amp; OPEN SOURCE
             </span>
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#D4D4D4] border border-[#34D399]/30 bg-[#34D399]/10 shadow-[0_0_15px_rgba(52,211,153,0.15)]">
-              <span className="w-2 h-2 rounded-full bg-[#34D399] animate-pulse shadow-[0_0_8px_#34D399]" />
-              <Clock className="w-3.5 h-3.5 text-[#34D399]" />
-              <span className="text-[#34D399] font-semibold">{liveUpdatedTime}</span>
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#FF8A00] border border-[#FF5A00]/30 bg-[#FF5A00]/10 shadow-[0_0_15px_rgba(255,90,0,0.15)]">
+              <span className="w-2 h-2 rounded-full bg-[#FF8A00] animate-pulse shadow-[0_0_8px_#FF8A00]" />
+              <Clock className="w-3.5 h-3.5 text-[#FF8A00]" />
+              <span className="text-[#FF8A00] font-semibold">{liveUpdatedTime}</span>
             </span>
           </div>
 
@@ -492,9 +492,9 @@ export function DownloadPage() {
                           File: <span className="text-[#F5F5F5] font-medium">{suggestedEntry.filename}</span> · <span className="text-[#D4D4D4] font-medium">{suggestedEntry.size}</span>
                         </span>
                         <span className="text-white/20">·</span>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-[#34D399] bg-[#34D399]/10 border border-[#34D399]/25 shadow-[0_0_10px_rgba(52,211,153,0.1)]">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse shadow-[0_0_6px_#34D399]" />
-                          <Clock className="w-3 h-3 text-[#34D399]" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-[#FF8A00] bg-[#FF5A00]/10 border border-[#FF5A00]/25 shadow-[0_0_10px_rgba(255,90,0,0.12)]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#FF8A00] animate-pulse shadow-[0_0_6px_#FF8A00]" />
+                          <Clock className="w-3 h-3 text-[#FF8A00]" />
                           <span>{liveUpdatedTime}</span>
                         </span>
                       </div>
