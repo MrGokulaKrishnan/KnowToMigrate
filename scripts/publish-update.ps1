@@ -75,7 +75,7 @@ if ($LASTEXITCODE -ne 0) { Write-Error "WiX MSI build failed with exit code $LAS
 $setupSrc = Join-Path $RepoRoot "apps\windows-setup\SetupBootstrapper.cs"
 $setupManifest = Join-Path $RepoRoot "apps\windows-setup\app.manifest"
 $setupOut = Join-Path $RepoRoot "releases\windows\KnowToMigrate-Setup.exe"
-& $CscExe /target:winexe /platform:x64 /optimize+ /win32manifest:$setupManifest /win32icon:$appIcon /resource:"$msiOut,Payload.msi" /out:$setupOut $setupSrc
+& $CscExe /target:winexe /platform:x64 /optimize+ /win32manifest:$setupManifest /win32icon:$appIcon /resource:"$msiOut,Payload.msi" /resource:"$logoPng,logo.png" /out:$setupOut $setupSrc
 if ($LASTEXITCODE -ne 0) { Write-Error "Setup bootstrapper build failed with exit code $LASTEXITCODE" }
 
 # Also keep standalone EXE in releases/windows/

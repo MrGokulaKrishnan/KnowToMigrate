@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,20 @@ namespace KnowToMigrate.Services
         private CancellationTokenSource? _cts;
         private readonly List<string> _stagedFiles = new();
         private readonly object _lock = new();
+        private string _sessionToken = "";
+        public string SessionToken => _sessionToken;
+
+        private KtmWebShareServer()
+        {
+            RegenerateSessionToken();
+        }
+
+        public void RegenerateSessionToken()
+        {
+            byte[] tokenBytes = new byte[32];
+            RandomNumberGenerator.Fill(tokenBytes);
+            _sessionToken = Convert.ToHexString(tokenBytes).ToLowerInvariant();
+        }
 
         public bool IsRunning => _listener != null && _listener.IsListening;
         public int Port => KtmConstants.WebSharePort;
@@ -108,6 +123,7 @@ namespace KnowToMigrate.Services
         public void Start()
         {
             if (IsRunning) return;
+            RegenerateSessionToken();
 
             try
             {
@@ -388,6 +404,7 @@ namespace KnowToMigrate.Services
     </div>
 
     <script>
+        const sessionToken = '{_sessionToken}';
         function handleFiles(files) {{
             if (!files || files.length === 0) return;
             const pBox = document.getElementById('progressBox');
@@ -435,6 +452,7 @@ namespace KnowToMigrate.Services
                 }};
 
                 xhr.open('POST', '/upload', true);
+                xhr.setRequestHeader('Authorization', 'Bearer ' + sessionToken);
                 xhr.send(formData);
             }}
 
@@ -455,7 +473,10 @@ namespace KnowToMigrate.Services
             status.innerText = 'Sending to PC...';
             fetch('/clipboard', {{
                 method: 'POST',
-                headers: {{ 'Content-Type': 'application/json' }},
+                headers: {{ 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + sessionToken
+                }},
                 body: JSON.stringify({{ text: text }})
             }}).then(r => r.json()).then(d => {{
                 status.style.color = '#22C55E';
@@ -472,7 +493,11 @@ namespace KnowToMigrate.Services
             status.style.display = 'block';
             status.style.color = '#FF8A00';
             status.innerText = 'Fetching PC clipboard...';
-            fetch('/clipboard')
+            fetch('/clipboard', {{
+                headers: {{
+                    'Authorization': 'Bearer ' + sessionToken
+                }}
+            }})
             .then(r => r.json())
             .then(d => {{
                 if (d && d.text) {{
@@ -582,6 +607,24 @@ namespace KnowToMigrate.Services
         {
             try
             {
+                string? authHeader = req.Headers["Authorization"];
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    res.StatusCode = 401;
+                    res.Close();
+                    return;
+                }
+
+                string providedToken = authHeader.Substring("Bearer ".Length).Trim();
+                byte[] providedBytes = Encoding.UTF8.GetBytes(providedToken);
+                byte[] expectedBytes = Encoding.UTF8.GetBytes(_sessionToken);
+                if (!CryptographicOperations.FixedTimeEquals(providedBytes, expectedBytes))
+                {
+                    res.StatusCode = 403;
+                    res.Close();
+                    return;
+                }
+
                 string? contentType = req.ContentType;
                 if (string.IsNullOrEmpty(contentType) || !contentType.StartsWith("multipart/form-data"))
                 {
@@ -723,6 +766,33 @@ namespace KnowToMigrate.Services
 
         private async Task HandleClipboardAsync(HttpListenerRequest req, HttpListenerResponse res)
         {
+            string? authHeader = req.Headers["Authorization"];
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                res.StatusCode = 401;
+                res.ContentType = "application/json; charset=utf-8";
+                byte[] unauth = Encoding.UTF8.GetBytes("{\"error\":\"Unauthorized: Ephemeral session token required for clipboard sync.\"}");
+                res.ContentLength64 = unauth.Length;
+                await res.OutputStream.WriteAsync(unauth, 0, unauth.Length);
+                res.Close();
+                return;
+            }
+
+            string providedToken = authHeader.Substring("Bearer ".Length).Trim();
+            byte[] providedBytes = Encoding.UTF8.GetBytes(providedToken);
+            byte[] expectedBytes = Encoding.UTF8.GetBytes(_sessionToken);
+
+            if (!CryptographicOperations.FixedTimeEquals(providedBytes, expectedBytes))
+            {
+                res.StatusCode = 403;
+                res.ContentType = "application/json; charset=utf-8";
+                byte[] forbidden = Encoding.UTF8.GetBytes("{\"error\":\"Forbidden: Invalid or expired session token.\"}");
+                res.ContentLength64 = forbidden.Length;
+                await res.OutputStream.WriteAsync(forbidden, 0, forbidden.Length);
+                res.Close();
+                return;
+            }
+
             if (req.HttpMethod == "POST")
             {
                 using var reader = new StreamReader(req.InputStream, Encoding.UTF8);

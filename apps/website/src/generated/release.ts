@@ -2,7 +2,7 @@
 export const RELEASE = {
   "version": "1.0.5",
   "versionCode": 10005,
-  "publishedAt": "2026-10-25T06:45:00Z",
+  "publishedAt": "2026-10-25T13:28:00Z",
   "releaseDate": "2026-10-25",
   "releaseNotes": [
     "Complete Dark Liquid Glass UI redesign for Windows and Android with verified SHA-256 badges",
@@ -20,9 +20,9 @@ export const RELEASE = {
       "filename": "KnowToMigrate-Setup.exe",
       "path": "/download/KnowToMigrate-Setup.exe",
       "version": "1.0.5",
-      "size": "63.7 MB",
-      "sizeBytes": 66753536,
-      "sha256": "56c0fbf503b20694b1f26bc7cfe8cac22dcfd083cd5a75a4243718f236a9ff04"
+      "size": "63.9 MB",
+      "sizeBytes": 67023360,
+      "sha256": "bd41057588e07409eaa61e9f2bc74c9b287c9300f499ec81230fec250b0d90a9"
     },
     {
       "id": "win-msi",
