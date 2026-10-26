@@ -1798,56 +1798,34 @@
 
 
                             <Grid Grid.Row="0" Margin="4,4,0,14">
-
                                 <StackPanel>
-
                                     <TextBlock Text="History" FontSize="22" FontWeight="Bold" Foreground="#F5F5F5" />
-
                                     <TextBlock Text="Grouped by day. Verified with SHA-256 integrity checks." FontSize="12" Foreground="#8C8C8C" Margin="0,2,0,0" />
-
                                 </StackPanel>
-
-                                <Button Content="Clear history" Click="BtnClearLedger_Click" Style="{StaticResource KmGlassButton}" MinHeight="32" Padding="14,4" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" />
-
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <Button Content="Export history" Command="{Binding ExportHistoryCommand}" Style="{StaticResource KmGlassButton}" MinHeight="32" Padding="14,4" FontSize="12" Margin="0,0,10,0" />
+                                    <Button Content="Clear history" Command="{Binding ClearHistoryCommand}" Style="{StaticResource KmGlassButton}" MinHeight="32" Padding="14,4" FontSize="12" />
+                                </StackPanel>
                             </Grid>
 
-
-
                             <Border Grid.Row="1" Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="18">
-
                                 <StackPanel>
-
                                     <!-- Table Columns Header -->
-
                                     <Grid Margin="4,0,4,10" Opacity="0.6">
-
                                         <Grid.ColumnDefinitions>
-
                                             <ColumnDefinition Width="2.5*" />
-
                                             <ColumnDefinition Width="2*" />
-
                                             <ColumnDefinition Width="1*" />
-
                                             <ColumnDefinition Width="1.5*" />
-
                                         </Grid.ColumnDefinitions>
-
                                         <TextBlock Grid.Column="0" Text="File" FontSize="11" Foreground="#8C8C8C" />
-
                                         <TextBlock Grid.Column="1" Text="Direction" FontSize="11" Foreground="#8C8C8C" />
-
                                         <TextBlock Grid.Column="2" Text="Size" FontSize="11" Foreground="#8C8C8C" />
-
                                         <TextBlock Grid.Column="3" Text="Integrity" FontSize="11" Foreground="#8C8C8C" />
-
                                     </Grid>
 
-
-
                                     <!-- Dynamic History Items with Day Grouping -->
-
-                                    <ListBox x:Name="ListHistory" Background="Transparent" BorderThickness="0" MaxHeight="450" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox x:Name="ListHistory" ItemsSource="{Binding HistoryView}" Background="Transparent" BorderThickness="0" MaxHeight="450" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
                                         <ListBox.GroupStyle>
 

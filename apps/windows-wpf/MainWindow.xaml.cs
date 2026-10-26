@@ -1,4 +1,5 @@
 using System;
+using KnowToMigrate.ViewModels;
 
 
 
@@ -122,7 +123,8 @@ namespace KnowToMigrate
 
 
 
-        private readonly System.Collections.ObjectModel.ObservableCollection<HistoricalTransferItem> _ledgerEntries = new();
+        public HistoryViewModel HistoryVM { get; } = new();
+        private System.Collections.ObjectModel.ObservableCollection<HistoricalTransferItem> _ledgerEntries => HistoryVM.Entries;
 
 
 
@@ -450,66 +452,12 @@ namespace KnowToMigrate
 
 
 
-                var history = UserSettingsManager.LoadHistory();
-
-
-
-                _ledgerEntries.Clear();
-
-
-
-                foreach (var hItem in history)
-
-
-
-                {
-
-
-
-                    _ledgerEntries.Add(hItem);
-
-
-
-                }
-
-
-
-                var historyView = System.Windows.Data.CollectionViewSource.GetDefaultView(_ledgerEntries);
-
-
-
-                if (historyView != null && historyView.GroupDescriptions.Count == 0)
-
-
-
-                {
-
-
-
-                    historyView.GroupDescriptions.Add(new System.Windows.Data.PropertyGroupDescription("DayGroup"));
-
-
-
-                }
-
-
-
-                ListHistory.ItemsSource = historyView;
-
-
-
+                // Initialize persistent Migration Ledger via HistoryViewModel
+                ViewHistory.DataContext = HistoryVM;
+                HistoryVM.NotificationRequested += (title, msg, isSuccess) => ShowNotificationBanner(title, msg, isSuccess);
                 if (ListHomeRecent != null)
-
-
-
                 {
-
-
-
-                    ListHomeRecent.ItemsSource = _ledgerEntries;
-
-
-
+                    ListHomeRecent.ItemsSource = HistoryVM.Entries;
                 }
 
 
@@ -6177,164 +6125,31 @@ private void CancelTransfer_Click(object sender, RoutedEventArgs e)
 
 
         private void UpdateLedgerUI()
-
-
-
         {
-
-
-
             Dispatcher.Invoke(() =>
-
-
-
             {
-
-
-
+                HistoryVM.UpdateEmptyState();
                 if (PanelLedgerEmpty != null)
-
-
-
-                    PanelLedgerEmpty.Visibility = _ledgerEntries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-
-
-
+                    PanelLedgerEmpty.Visibility = HistoryVM.IsEmpty ? Visibility.Visible : Visibility.Collapsed;
                 if (ListHistory != null)
-
-
-
-                    ListHistory.Visibility = _ledgerEntries.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-
-
-
+                    ListHistory.Visibility = HistoryVM.HasEntries ? Visibility.Visible : Visibility.Collapsed;
                 if (PanelHomeRecentEmpty != null)
-
-
-
-                    PanelHomeRecentEmpty.Visibility = _ledgerEntries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-
-
-
+                    PanelHomeRecentEmpty.Visibility = HistoryVM.IsEmpty ? Visibility.Visible : Visibility.Collapsed;
                 if (ListHomeRecent != null)
-
-
-
-                    ListHomeRecent.Visibility = _ledgerEntries.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-
-
-
+                    ListHomeRecent.Visibility = HistoryVM.HasEntries ? Visibility.Visible : Visibility.Collapsed;
             });
-
-
-
         }
-
-
 
         private void BtnClearLedger_Click(object sender, RoutedEventArgs e)
-
-
-
         {
-
-
-
-            if (MessageBox.Show("Are you sure you want to clear your transfer history?", "Clear History", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-
-
-
-            {
-
-
-
-                UserSettingsManager.ClearHistory();
-
-
-
-                _ledgerEntries.Clear();
-
-
-
-                UpdateLedgerUI();
-
-
-
-                ShowNotificationBanner("History Cleared", "Transfer history records have been cleared.", true);
-
-
-
-            }
-
-
-
+            HistoryVM.ClearHistory();
+            UpdateLedgerUI();
         }
-
-
 
         private void BtnExportLedger_Click(object sender, RoutedEventArgs e)
-
-
-
         {
-
-
-
-            try
-
-
-
-            {
-
-
-
-                string report = UserSettingsManager.ExportHistoryText();
-
-
-
-                string folder = KtmManager.Instance.DownloadDirectory;
-
-
-
-                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-
-
-
-                string logPath = Path.Combine(folder, "Transfer_History_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".txt");
-
-
-
-                File.WriteAllText(logPath, report, Encoding.UTF8);
-
-
-
-                MessageBox.Show("Transfer history exported successfully!\r\n\r\nLocation: " + logPath, "History Exported", MessageBoxButton.OK, MessageBoxImage.Information);
-
-
-
-            }
-
-
-
-            catch (Exception ex)
-
-
-
-            {
-
-
-
-                MessageBox.Show("Failed to export audit log: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-
-
-
-            }
-
-
-
+            HistoryVM.ExportHistory();
         }
-
-
 
         private void BtnOpenDownloadsFolder_Click(object sender, RoutedEventArgs e)
 
