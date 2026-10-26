@@ -1,47 +1,47 @@
 {
     "product": "KnowToMigrate",
     "channel": "stable",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "minimumSupportedVersion": "1.0.0",
-    "publishedAt": "2026-10-25T13:28:00Z",
+    "publishedAt": "2026-10-26T07:19:05Z",
     "windows": {
         "architecture": "x64",
         "installerType": "exe",
-        "version": "1.0.5",
+        "version": "1.0.6",
         "filename": "KnowToMigrate-Setup.exe",
         "url": "https://knowtomigrate.web.app/download/KnowToMigrate-Setup.exe",
         "size": 807424,
-        "sha256": "3d4023004b23e40ed3d0bafcf9bd969d080d07b3569fd0781189f7c561919e42",
+        "sha256": "9c1964130b89866c63928f8914fcbe5b4d1e3c57b6a664ebc6576e5c05a758af",
         "signature": "",
         "msi": {
-            "filename": "KnowToMigrate-1.0.5-x64.msi",
-            "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5-x64.msi",
+            "filename": "KnowToMigrate-1.0.6-x64.msi",
+            "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.6-x64.msi",
             "size": 491520,
-            "sha256": "b8d964fbd7b010bd66afec1b554742d00ce894124a9308b7000da68d89a8597f"
+            "sha256": "a5146a83cdd32b74f1b70be073a61192fe9b269e3d4e0c000b0e0f2080ba7d12"
         },
         "standalone": {
-            "filename": "KnowToMigrate-1.0.5-x64.exe",
-            "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5-x64.exe",
-            "size": 72863223,
-            "sha256": "788fbd87a113d1e8b3862eb8685ac02a195a4e6f5740a7e2ecd4e3d0d2248d5f"
+            "filename": "KnowToMigrate-1.0.6-x64.exe",
+            "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.6-x64.exe",
+            "size": 198656,
+            "sha256": "d48d11250069735099fc925cffbe90e75b98e3b3ce6d9d7557410b58bea25e30"
         }
     },
     "android": {
-        "versionCode": 10005,
-        "versionName": "1.0.5",
-        "filename": "KnowToMigrate-1.0.5.apk",
-        "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.5.apk",
-        "size": 17968420,
-        "sha256": "660fce53ad8770ad66339da084d8276ade7f5993cd45f31e48f782c228a20cff"
+        "versionCode": 10006,
+        "versionName": "1.0.6",
+        "filename": "KnowToMigrate-1.0.6.apk",
+        "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.6.apk",
+        "size": 17529444,
+        "sha256": "4a4045fab65202d26e3a78d8f3579cc108d881a8c16357650923ae277eee5e1a"
     },
     "releaseNotes": [
-        "Complete Dark Liquid Glass UI redesign for Windows and Android with verified SHA-256 badges",
-        "Independent Android APK Self-Updater with UTF-8 BOM sanitation and SHA-256 verification",
-        "10-Step Move Device migration wizard with live storage preflight checks",
-        "Persistent Transfer History with day grouping, cryptographic verification, and export",
-        "Universal Local Web Share with live QR code pairing and seamless multi-device browser transfers",
-        "Windows real-time socket telemetry and Local Network diagnostics",
-        "Liquid Glass AMOLED custom controls and 6.7:1 WCAG AA compliant contrast"
+        "Pluto Auto Smart Transfer Engine with dynamic latency profiling and automated transport selection",
+        "Adaptive Transfer streaming with dynamic buffer scaling (64 KB to 1 MB) and resilient retry",
+        "Native Pause, Resume, and Interruption Recovery without re-transmitting verified chunks",
+        "Real-Time Transfer Intelligence with hardware-accelerated data particle stream and BLAKE3 badging",
+        "Dynamic Transfer Queue supporting individual item status badges, progress, and byte counts",
+        "Unified memory-safe Rust native core (ktm-ffi) with hardened constant-time bearer authentication",
+        "Strict 0 Errors and 0 Warnings across Windows WPF, Android Jetpack Compose, and Rust core"
     ],
-    "versionCode": 10005
+    "versionCode": 10006
 }

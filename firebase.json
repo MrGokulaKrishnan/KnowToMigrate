@@ -13,16 +13,16 @@
         "destination": "/download/KnowToMigrate-Setup.exe.bin"
       },
       {
-        "source": "/download/KnowToMigrate-1.0.5-x64.msi",
-        "destination": "/download/KnowToMigrate-1.0.5-x64.msi.bin"
+        "source": "/download/KnowToMigrate-1.0.6-x64.msi",
+        "destination": "/download/KnowToMigrate-1.0.6-x64.msi.bin"
       },
       {
-        "source": "/download/KnowToMigrate-1.0.5-x64.exe",
-        "destination": "/download/KnowToMigrate-1.0.5-x64.exe.bin"
+        "source": "/download/KnowToMigrate-1.0.6-x64.exe",
+        "destination": "/download/KnowToMigrate-1.0.6-x64.exe.bin"
       },
       {
-        "source": "/download/KnowToMigrate-1.0.5.apk",
-        "destination": "/download/KnowToMigrate-1.0.5.apk.bin"
+        "source": "/download/KnowToMigrate-1.0.6.apk",
+        "destination": "/download/KnowToMigrate-1.0.6.apk.bin"
       },
       {
         "source": "**",
@@ -83,11 +83,11 @@
         ]
       },
       {
-        "source": "/download/KnowToMigrate-1.0.5-x64.msi*",
+        "source": "/download/KnowToMigrate-1.0.6-x64.msi*",
         "headers": [
           {
             "key": "Content-Disposition",
-            "value": "attachment; filename=\"KnowToMigrate-1.0.5-x64.msi\""
+            "value": "attachment; filename=\"KnowToMigrate-1.0.6-x64.msi\""
           },
           {
             "key": "Cache-Control",
@@ -96,11 +96,11 @@
         ]
       },
       {
-        "source": "/download/KnowToMigrate-1.0.5-x64.exe*",
+        "source": "/download/KnowToMigrate-1.0.6-x64.exe*",
         "headers": [
           {
             "key": "Content-Disposition",
-            "value": "attachment; filename=\"KnowToMigrate-1.0.5-x64.exe\""
+            "value": "attachment; filename=\"KnowToMigrate-1.0.6-x64.exe\""
           },
           {
             "key": "Cache-Control",
@@ -109,7 +109,7 @@
         ]
       },
       {
-        "source": "/download/KnowToMigrate-1.0.5.apk*",
+        "source": "/download/KnowToMigrate-1.0.6.apk*",
         "headers": [
           {
             "key": "Content-Type",
@@ -117,7 +117,7 @@
           },
           {
             "key": "Content-Disposition",
-            "value": "attachment; filename=\"KnowToMigrate-1.0.5.apk\""
+            "value": "attachment; filename=\"KnowToMigrate-1.0.6.apk\""
           },
           {
             "key": "Cache-Control",

@@ -14,8 +14,8 @@ using System.Windows.Forms;
 [assembly: AssemblyProduct("KnowToMigrate")]
 [assembly: AssemblyCompany("KnowTheTech")]
 [assembly: AssemblyDescription("KnowToMigrate Standalone Native Updater")]
-[assembly: AssemblyVersion("1.0.5.0")]
-[assembly: AssemblyFileVersion("1.0.5.0")]
+[assembly: AssemblyVersion("1.0.6.0")]
+[assembly: AssemblyFileVersion("1.0.6.0")]
 
 namespace KnowToMigrate.Updater
 {
