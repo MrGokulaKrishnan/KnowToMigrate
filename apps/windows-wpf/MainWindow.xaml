@@ -1174,7 +1174,7 @@
 
                                                         <TextBlock Text="✓ " FontSize="10" Foreground="#22C55E" FontWeight="Bold" VerticalAlignment="Center"/>
 
-                                                        <TextBlock x:Name="TxtIntegrityBadge" Text="BLAKE3 Verified" FontSize="10" FontWeight="SemiBold" Foreground="#22C55E" VerticalAlignment="Center" />
+                                                        <TextBlock x:Name="TxtIntegrityBadge" Text="SHA-256 Verified" FontSize="10" FontWeight="SemiBold" Foreground="#22C55E" VerticalAlignment="Center" />
 
                                                     </StackPanel>
 

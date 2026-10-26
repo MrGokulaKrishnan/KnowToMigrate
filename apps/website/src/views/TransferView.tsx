@@ -86,7 +86,7 @@ export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, 
                     : 'bg-[#4ADE80] animate-ping'
                 }`}
               ></span>
-              {isCompleted ? 'Transfer Verified' : isPaused ? 'Transfer Paused' : 'Live Transfer Active'}
+              {isCompleted ? 'Transfer Complete' : isPaused ? 'Transfer Paused' : 'Live Transfer Active'}
             </span>
             <span className="text-xs text-gray-400">
               Session ID: <code className="text-gray-300 font-mono">{sessionId}</code>
@@ -94,7 +94,7 @@ export const TransferView: React.FC<TransferViewProps> = ({ onTransferComplete, 
           </div>
           <h2 className="text-2xl font-black text-white mt-1.5">Direct P2P Streaming in Progress</h2>
           <p className="text-sm text-gray-400">
-            Target: <strong className="text-white">{targetDevice}</strong> · Direct Wi-Fi 6 · Transit Engine
+            Target: <strong className="text-white">{targetDevice}</strong> · Direct transfer · Transit Engine
           </p>
         </div>
 

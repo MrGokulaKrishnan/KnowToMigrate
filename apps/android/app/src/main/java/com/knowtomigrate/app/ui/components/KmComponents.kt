@@ -1084,7 +1084,7 @@ fun KmRecentTransferRow(
         if (isVerified) {
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Verified",
+                text = "Complete",
                 color = Color(0xFF22C55E),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold

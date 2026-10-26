@@ -106,9 +106,9 @@ export const SendView: React.FC<SendViewProps> = ({ onStartTransfer }) => {
   };
 
   const targets = [
-    { name: "Krish's Phone", platform: 'Android', type: 'phone', icon: Smartphone, signal: 'Direct Wi-Fi 6' },
+    { name: "Krish's Phone", platform: 'Android', type: 'phone', icon: Smartphone, signal: 'Direct transfer' },
     { name: "Gokul's Laptop", platform: 'macOS', type: 'laptop', icon: Laptop, signal: 'Local LAN' },
-    { name: 'Studio Tablet', platform: 'Android', type: 'tablet', icon: Tablet, signal: 'Direct Wi-Fi 6' },
+    { name: 'Studio Tablet', platform: 'Android', type: 'tablet', icon: Tablet, signal: 'Direct transfer' },
   ];
 
   return (

@@ -165,7 +165,7 @@ export const ReceiveView: React.FC<ReceiveViewProps> = ({ onSimulateIncoming }) 
                 <h3 id="incoming-modal-title" className="text-xl font-bold text-white mt-1">
                   From: Krish's Phone
                 </h3>
-                <p className="text-xs text-gray-400">Google Pixel 8 Pro · Direct Wi-Fi 6</p>
+                <p className="text-xs text-gray-400">Google Pixel 8 Pro · Direct transfer</p>
               </div>
               <button
                 type="button"

@@ -200,7 +200,7 @@ export class TransitWebEngine {
         timestamp: Date.now(),
         dateFormatted: 'Just now',
         speed: '94.2 MB/s',
-        transport: 'Direct Wi-Fi 6',
+        transport: 'Direct transfer',
         merkleRootHash: merkleRoot,
         verified: true,
         status: 'completed',

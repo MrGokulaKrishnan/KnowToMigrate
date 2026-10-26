@@ -191,7 +191,7 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
           </h1>
 
           <p style={{ fontSize: '1.0625rem', color: 'rgba(255,255,255,0.50)', lineHeight: 1.7, marginBottom: '2rem', maxWidth: 500, margin: '0 auto 2rem' }}>
-            A standalone application for encrypted local-network file transfer and device migration.
+            A standalone application for local-network file transfer and device migration with cryptographic integrity verification.
             No cloud. No account. No browser required.
           </p>
 

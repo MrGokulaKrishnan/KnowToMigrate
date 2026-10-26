@@ -178,7 +178,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <div className="flex justify-between items-center py-2 border-b border-white/5">
                 <span className="text-gray-400">Network Transport</span>
                 <span className="font-medium text-white flex items-center gap-1.5">
-                  <Wifi className="w-4 h-4 text-[#4ADE80]" /> Direct Wi-Fi 6 (1.2 Gbps)
+                  <Wifi className="w-4 h-4 text-[#4ADE80]" /> Direct Wi-Fi (LAN)
                 </span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-white/5">

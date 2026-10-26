@@ -74,7 +74,7 @@ namespace KnowToMigrate.Views
             }
 
             string transportName = KtmTransportCodes.GetDisplayName(handshake.SelectedTransport);
-            TxtTransport.Text = $"● {transportName} · Verified Connection";
+            TxtTransport.Text = $"● {transportName} · Connected";
 
             // Group PIN digits into 354 446 / 437 254 readable format
             string rawPin = handshake.Pin ?? "";

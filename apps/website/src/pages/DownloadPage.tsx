@@ -447,7 +447,7 @@ export function DownloadPage() {
             </span>
           </h1>
           <p className="text-[#8A8A8A] text-base sm:text-lg max-w-xl mx-auto mb-8">
-            High-speed, encrypted peer-to-peer file transfer. No cloud account required.
+            High-speed peer-to-peer file transfer with SHA-256 integrity verification. No cloud account required.
             Direct hardware-accelerated local transfers.
           </p>
 
@@ -588,7 +588,7 @@ export function DownloadPage() {
             {[
               { icon: Shield, text: 'Direct P2P Local Transfer' },
               { icon: CheckCircle, text: 'SHA-256 Integrity Verified' },
-              { icon: CheckCircle, text: 'Zero Cloud Storage' },
+              { icon: CheckCircle, text: 'No Cloud Storage Required' },
               { icon: CheckCircle, text: 'Works 100% Offline' },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-1.5">

@@ -120,7 +120,7 @@ export class StorageService {
         timestamp: Date.now() - 3600000 * 24,
         dateFormatted: 'Yesterday, 14:10',
         speed: '91.2 MB/s',
-        transport: 'Direct Wi-Fi 6',
+        transport: 'Direct transfer',
         merkleRootHash: 'a787d3eb434e744374a9fa43566d070583cdf53b10758fd43f457d540fe6752e',
         verified: true,
         status: 'completed',

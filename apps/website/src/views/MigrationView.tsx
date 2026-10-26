@@ -404,12 +404,12 @@ export const MigrationView: React.FC<MigrationViewProps> = ({ onStartMigrationTr
               </div>
               <div>
                 <h4 className="font-bold text-white text-sm">Direct Device Pairing</h4>
-                <p className="text-xs text-gray-400">Zero cloud exchange. Direct local link.</p>
+                <p className="text-xs text-gray-400">Direct local device link.</p>
               </div>
             </div>
             <div className="p-4 rounded-xl bg-black/60 border border-white/5 flex items-center justify-between text-xs">
               <span className="text-gray-400">Session Security Token:</span>
-              <span className="font-mono text-[#4ADE80] font-bold">KTM-LOCAL-SESSION-VERIFIED</span>
+              <span className="font-mono text-[#4ADE80] font-bold">KTM-LOCAL-SESSION-READY</span>
             </div>
           </div>
 

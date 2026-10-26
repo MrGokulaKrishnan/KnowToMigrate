@@ -310,7 +310,7 @@ private fun HistoryRecordItem(record: TransferRecord) {
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = stringResource(R.string.label_verified),
+                            text = stringResource(R.string.label_completed),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = KmOnline
