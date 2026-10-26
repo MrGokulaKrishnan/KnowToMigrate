@@ -296,7 +296,7 @@ fun SplashScreen(navController: NavController) {
         ) {
             // Approved KnowToMigrate Artwork (preserves original artwork, colors, and proportions)
             Image(
-                painter = painterResource(id = R.drawable.splash_logo),
+                painter = painterResource(id = R.drawable.logo),
                 contentDescription = "KnowToMigrate Logo",
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize()
