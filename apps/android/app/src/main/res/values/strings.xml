@@ -80,6 +80,7 @@
     <string name="history_title">History</string>
     <string name="history_subtitle">Grouped by day. Verified with SHA-256 integrity checks.</string>
     <string name="label_verified">Verified</string>
+    <string name="label_completed">Completed</string>
 
     <!-- Settings Sections -->
     <string name="settings_section_device">Device</string>

@@ -11,6 +11,9 @@ concurrency:
   group: windows-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build app and updater
@@ -24,3 +27,14 @@ jobs:
         run: |
           dotnet build apps/windows-wpf/KnowToMigrate.csproj -c Release
           dotnet build apps/windows-updater/KnowToMigrate.Updater.csproj -c Release
+
+  test:
+    name: Run integration and stress tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Run KtmIntegrationTests
+        run: dotnet run --project tests/KtmIntegrationTests/KtmIntegrationTests.csproj -c Release
