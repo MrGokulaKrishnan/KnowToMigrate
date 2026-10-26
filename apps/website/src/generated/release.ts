@@ -2,7 +2,7 @@
 export const RELEASE = {
   "version": "1.0.6",
   "versionCode": 10006,
-  "publishedAt": "2026-10-26T07:19:05Z",
+  "publishedAt": "2026-10-26T08:05:00Z",
   "releaseDate": "2026-10-26",
   "releaseNotes": [
     "Transit Auto Smart Transfer Engine with dynamic latency profiling and automated transport selection",
@@ -20,9 +20,9 @@ export const RELEASE = {
       "filename": "KnowToMigrate-Setup.exe",
       "path": "/download/KnowToMigrate-Setup.exe",
       "version": "1.0.6",
-      "size": "0.8 MB",
-      "sizeBytes": 807424,
-      "sha256": "9c1964130b89866c63928f8914fcbe5b4d1e3c57b6a664ebc6576e5c05a758af"
+      "size": "64.4 MB",
+      "sizeBytes": 67577856,
+      "sha256": "62561cae27289a1f3ea03b67fc18cd21b9dd785128a6c3c64efbb250de2ffbfe"
     },
     {
       "id": "win-msi",
@@ -30,9 +30,9 @@ export const RELEASE = {
       "filename": "KnowToMigrate-1.0.6-x64.msi",
       "path": "/download/KnowToMigrate-1.0.6-x64.msi",
       "version": "1.0.6",
-      "size": "0.5 MB",
-      "sizeBytes": 491520,
-      "sha256": "a5146a83cdd32b74f1b70be073a61192fe9b269e3d4e0c000b0e0f2080ba7d12"
+      "size": "64.1 MB",
+      "sizeBytes": 67256320,
+      "sha256": "20c09053b6e822226d900487f998ed4305fbdda8c2ba339f0319c42daae7777a"
     },
     {
       "id": "win-portable",
@@ -40,9 +40,9 @@ export const RELEASE = {
       "filename": "KnowToMigrate-1.0.6-x64.exe",
       "path": "/download/KnowToMigrate-1.0.6-x64.exe",
       "version": "1.0.6",
-      "size": "0.2 MB",
-      "sizeBytes": 198656,
-      "sha256": "d48d11250069735099fc925cffbe90e75b98e3b3ce6d9d7557410b58bea25e30"
+      "size": "69.5 MB",
+      "sizeBytes": 72864768,
+      "sha256": "388f62c0e588c19694d4bea9a8cfc95596699aba30fc2827d67b82ead4d10216"
     }
   ],
   "android": [

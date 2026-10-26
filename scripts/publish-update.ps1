@@ -97,81 +97,72 @@ Write-Host "`n[1/7] Synchronizing version numbers to v$TargetVersion..." -Foregr
 
 
 # 3. Publish Windows WPF Application (Self-contained single-file x64)
-
-Write-Host "`n[2/7] Publishing Windows WPF Application (x64)..." -ForegroundColor Green
+Write-Host "`n[2/7] Publishing Windows WPF Application (Self-contained single-file x64)..." -ForegroundColor Green
 
 $publishDir = Join-Path $RepoRoot "releases\windows\publish"
-
-if (!(Test-Path $publishDir)) { New-Item -ItemType Directory -Path $publishDir -Force | Out-Null }
-
-
+if (Test-Path $publishDir) {
+    Remove-Item -Path $publishDir -Recurse -Force
+}
+New-Item -ItemType Directory -Path $publishDir -Force | Out-Null
 
 $wpfProj = Join-Path $RepoRoot "apps\windows-wpf\KnowToMigrate.csproj"
-
-& $DotnetExe publish $wpfProj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o $publishDir
-
+& $DotnetExe publish $wpfProj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeAllContentForSelfExtract=true -p:EnableCompressionInSingleFile=true -o $publishDir
 if ($LASTEXITCODE -ne 0) { Write-Error "WPF application publish failed with exit code $LASTEXITCODE" }
 
-
+$mainExePath = Join-Path $publishDir "KnowToMigrate.exe"
+if (!(Test-Path $mainExePath)) {
+    Write-Error "KnowToMigrate.exe was not produced in $publishDir"
+}
+$mainExeSize = (Get-Item $mainExePath).Length
+if ($mainExeSize -lt 20MB) {
+    Write-Error "KnowToMigrate.exe is only $mainExeSize bytes. Single-file self-contained build expected tens of MBs!"
+}
+Write-Host "  KnowToMigrate.exe successfully built: $([math]::Round($mainExeSize / 1MB, 2)) MB" -ForegroundColor Green
 
 $ktmFfiDll = Join-Path $RepoRoot "core\target\release\ktm_ffi.dll"
-
 if (Test-Path $ktmFfiDll) {
-
     Copy-Item $ktmFfiDll (Join-Path $publishDir "ktm_ffi.dll") -Force
-
 }
 
-
-
 # 4. Compile Standalone Native C# Updater (55 KB zero-dependency WinForms)
-
 Write-Host "`n[3/7] Compiling Native C# Updater..." -ForegroundColor Green
-
 $appIcon = Join-Path $RepoRoot "apps\windows-wpf\Assets\KnowToMigrate.ico"
-
 $updaterSrc = Join-Path $RepoRoot "apps\windows-updater\UpdaterMain.cs"
-
 $updaterManifest = Join-Path $RepoRoot "apps\windows-updater\app.manifest"
-
 $updaterOut = Join-Path $publishDir "KnowToMigrate.Updater.exe"
-
 $logoPng = Join-Path $RepoRoot "apps\windows-wpf\Assets\logo.png"
 
 & $CscExe /target:winexe /platform:x64 /optimize+ /win32manifest:$updaterManifest /win32icon:$appIcon /resource:"$logoPng,logo.png" /out:$updaterOut $updaterSrc
-
 if ($LASTEXITCODE -ne 0) { Write-Error "Updater compilation failed with exit code $LASTEXITCODE" }
 
-
-
 # 5. Build WiX MSI Package & Setup Bootstrapper
-
-Write-Host "`n[4/7] Building WiX MSI Package & Setup Bootstrapper..." -ForegroundColor Green
-
+Write-Host "`n[4/7] Building WiX MSI Package & Setup Bootstrapper (x64)..." -ForegroundColor Green
 $msiOut = Join-Path $RepoRoot "releases\windows\KnowToMigrate-$TargetVersion-x64.msi"
 
-& $WixExe build (Join-Path $RepoRoot "Package.wxs") -o $msiOut
-
+& $WixExe build (Join-Path $RepoRoot "Package.wxs") -arch x64 -o $msiOut
 if ($LASTEXITCODE -ne 0) { Write-Error "WiX MSI build failed with exit code $LASTEXITCODE" }
 
-
+$msiSize = (Get-Item $msiOut).Length
+if ($msiSize -lt 20MB) {
+    Write-Error "MSI package is only $msiSize bytes. Expected self-contained 64-bit payload!"
+}
+Write-Host "  KnowToMigrate-$TargetVersion-x64.msi built: $([math]::Round($msiSize / 1MB, 2)) MB" -ForegroundColor Green
 
 $setupSrc = Join-Path $RepoRoot "apps\windows-setup\SetupBootstrapper.cs"
-
 $setupManifest = Join-Path $RepoRoot "apps\windows-setup\app.manifest"
-
 $setupOut = Join-Path $RepoRoot "releases\windows\KnowToMigrate-Setup.exe"
 
 & $CscExe /target:winexe /platform:x64 /optimize+ /win32manifest:$setupManifest /win32icon:$appIcon /resource:"$msiOut,Payload.msi" /resource:"$logoPng,logo.png" /out:$setupOut $setupSrc
-
 if ($LASTEXITCODE -ne 0) { Write-Error "Setup bootstrapper build failed with exit code $LASTEXITCODE" }
 
-
+$setupSize = (Get-Item $setupOut).Length
+if ($setupSize -lt 20MB) {
+    Write-Error "Setup installer is only $setupSize bytes. Expected self-contained MSI payload!"
+}
+Write-Host "  KnowToMigrate-Setup.exe built: $([math]::Round($setupSize / 1MB, 2)) MB" -ForegroundColor Green
 
 # Also keep standalone EXE in releases/windows/
-
 $standaloneOut = Join-Path $RepoRoot "releases\windows\KnowToMigrate.exe"
-
 Copy-Item -Path (Join-Path $publishDir "KnowToMigrate.exe") -Destination $standaloneOut -Force
 
 
@@ -243,20 +234,20 @@ if (Test-Path $androidRelDir) {
 
 
 Copy-Item -Path $setupOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-Setup.exe") -Force
-
 Copy-Item -Path $setupOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-Setup.exe.bin") -Force
-
 Copy-Item -Path $msiOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-$TargetVersion-x64.msi") -Force
-
 Copy-Item -Path $msiOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-$TargetVersion-x64.msi.bin") -Force
-
 Copy-Item -Path $standaloneOut -Destination (Join-Path $webDownloadDir "KnowToMigrate.exe") -Force
-
 Copy-Item -Path $standaloneOut -Destination (Join-Path $webDownloadDir "KnowToMigrate.exe.bin") -Force
-
 Copy-Item -Path $standaloneOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-$TargetVersion-x64.exe") -Force
-
 Copy-Item -Path $standaloneOut -Destination (Join-Path $webDownloadDir "KnowToMigrate-$TargetVersion-x64.exe.bin") -Force
+
+$releaseBinDir = Join-Path $RepoRoot "release-binaries"
+if (!(Test-Path $releaseBinDir)) { New-Item -ItemType Directory -Path $releaseBinDir -Force | Out-Null }
+Copy-Item -Path $setupOut -Destination (Join-Path $releaseBinDir "KnowToMigrate-Setup.exe") -Force
+Copy-Item -Path $msiOut -Destination (Join-Path $releaseBinDir "KnowToMigrate-$TargetVersion-x64.msi") -Force
+Copy-Item -Path $standaloneOut -Destination (Join-Path $releaseBinDir "KnowToMigrate-Portable.exe") -Force
+Copy-Item -Path $standaloneOut -Destination (Join-Path $releaseBinDir "KnowToMigrate-$TargetVersion-x64.exe") -Force
 
 
 
@@ -321,6 +312,12 @@ if (Test-Path $apkSrc) {
     Copy-Item -Path $apkSrc -Destination (Join-Path $webDownloadDir "KnowToMigrate-$TargetVersion.apk.bin") -Force
 
     Copy-Item -Path $apkSrc -Destination (Join-Path $webDownloadDir "KnowToMigrate.apk.bin") -Force
+
+    Copy-Item -Path $apkSrc -Destination (Join-Path $releaseBinDir "KnowToMigrate-$TargetVersion.apk") -Force
+
+    Copy-Item -Path $apkSrc -Destination (Join-Path $releaseBinDir "KnowToMigrate.apk") -Force
+
+    Copy-Item -Path $apkSrc -Destination (Join-Path $releaseBinDir "KnowToMigrate-Debug.apk") -Force
 
     Write-Host "  Android APK: $apkSize bytes | SHA256: $apkHash" -ForegroundColor Gray
 

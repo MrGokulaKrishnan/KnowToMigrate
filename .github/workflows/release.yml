@@ -100,7 +100,7 @@ jobs:
           $out = "artifacts/windows"
           Copy-Item "$out/publish/KnowToMigrate.exe" "$out/KnowToMigrate-$ver-x64.exe" -Force
           Copy-Item "$out/publish/KnowToMigrate.exe" "$out/KnowToMigrate-Setup.exe" -Force
-          wix build Package.wxs -o "$out/KnowToMigrate-$ver-x64.msi"
+          wix build Package.wxs -arch x64 -o "$out/KnowToMigrate-$ver-x64.msi"
           Get-ChildItem "$out/*.exe","$out/*.msi" | ForEach-Object {
             (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() | Out-File "$($_.FullName).sha256" -NoNewline
           }

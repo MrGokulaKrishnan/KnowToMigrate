@@ -33,11 +33,42 @@ namespace KnowToMigrate.Setup
             "KnowToMigrate", "logs", "setup.log"
         );
 
+        [DllImport("user32.dll")]
+        private static extern bool SetProcessDPIAware();
+
+        [DllImport("shcore.dll")]
+        private static extern int SetProcessDpiAwareness(int awareness);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetProcessDpiAwarenessContext(IntPtr dpiContext);
+
+        private static void SetDpiAwareness()
+        {
+            try
+            {
+                SetProcessDpiAwarenessContext(new IntPtr(-4)); // DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
+                return;
+            }
+            catch { }
+            try
+            {
+                SetProcessDpiAwareness(2); // Process_Per_Monitor_DPI_Aware
+                return;
+            }
+            catch { }
+            try
+            {
+                SetProcessDPIAware();
+            }
+            catch { }
+        }
+
         [STAThread]
         static int Main(string[] args)
         {
             try
             {
+                SetDpiAwareness();
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
 
@@ -306,8 +337,10 @@ namespace KnowToMigrate.Setup
                 {
                     if (uninstKey != null)
                     {
+                        Version v = typeof(Program).Assembly.GetName().Version;
+                        string verStr = (v != null) ? string.Format("{0}.{1}.{2}", v.Major, v.Minor, v.Build) : "1.0.6";
                         uninstKey.SetValue("DisplayName", "KnowToMigrate");
-                        uninstKey.SetValue("DisplayVersion", "1.0.5");
+                        uninstKey.SetValue("DisplayVersion", verStr);
                         uninstKey.SetValue("Publisher", "KnowTheTech");
                         uninstKey.SetValue("DisplayIcon", AppIconPath + ",0");
                         uninstKey.SetValue("InstallLocation", InstallDir);
@@ -409,6 +442,7 @@ namespace KnowToMigrate.Setup
                         if (p != null) p.WaitForExit();
                     }
                     try { if (Directory.Exists(InstallDir)) Directory.Delete(InstallDir, true); } catch { }
+                    try { if (Directory.Exists(@"C:\Program Files (x86)\KnowToMigrate")) Directory.Delete(@"C:\Program Files (x86)\KnowToMigrate", true); } catch { }
                     return 0;
                 }
                 else
@@ -449,12 +483,258 @@ namespace KnowToMigrate.Setup
         Error
     }
 
+    public class ModernButton : Button
+    {
+        private bool _isHovered;
+        private bool _isPressed;
+        private bool _isPrimary;
+        private bool _isDanger;
+
+        public bool IsPrimary
+        {
+            get { return _isPrimary; }
+            set { _isPrimary = value; Invalidate(); }
+        }
+
+        public bool IsDanger
+        {
+            get { return _isDanger; }
+            set { _isDanger = value; Invalidate(); }
+        }
+
+        public ModernButton()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
+            Cursor = Cursors.Hand;
+            Font = new Font("Segoe UI", 10.0f, FontStyle.Bold);
+        }
+
+        protected override void OnMouseEnter(EventArgs e) { _isHovered = true; Invalidate(); base.OnMouseEnter(e); }
+        protected override void OnMouseLeave(EventArgs e) { _isHovered = false; Invalidate(); base.OnMouseLeave(e); }
+        protected override void OnMouseDown(MouseEventArgs e) { _isPressed = true; Invalidate(); base.OnMouseDown(e); }
+        protected override void OnMouseUp(MouseEventArgs e) { _isPressed = false; Invalidate(); base.OnMouseUp(e); }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+
+            Rectangle r = new Rectangle(0, 0, Width - 1, Height - 1);
+            int radius = 8;
+
+            if (!Enabled)
+            {
+                using (var path = SetupForm.CreateRoundedPath(r, radius))
+                {
+                    using (var b = new SolidBrush(Color.FromArgb(24, 24, 28)))
+                    {
+                        g.FillPath(b, path);
+                    }
+                    using (var p = new Pen(Color.FromArgb(40, 40, 46), 1f))
+                    {
+                        g.DrawPath(p, path);
+                    }
+                }
+                TextRenderer.DrawText(g, Text, Font, r, Color.FromArgb(90, 90, 96), TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                return;
+            }
+
+            if (_isPrimary)
+            {
+                Color cTop = _isPressed ? Color.FromArgb(204, 55, 0) : (_isHovered ? Color.FromArgb(255, 96, 20) : Color.FromArgb(255, 77, 0));
+                Color cBottom = _isPressed ? Color.FromArgb(255, 106, 0) : (_isHovered ? Color.FromArgb(255, 160, 64) : Color.FromArgb(255, 138, 0));
+
+                using (var path = SetupForm.CreateRoundedPath(r, radius))
+                {
+                    using (var brush = new LinearGradientBrush(r, cTop, cBottom, 45f))
+                    {
+                        g.FillPath(brush, path);
+                    }
+                    using (var pen = new Pen(_isHovered ? Color.FromArgb(255, 190, 110) : Color.FromArgb(255, 120, 40), 1f))
+                    {
+                        g.DrawPath(pen, path);
+                    }
+                }
+
+                TextRenderer.DrawText(g, Text, Font, r, Color.FromArgb(10, 10, 10), TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            }
+            else if (_isDanger)
+            {
+                Color bg = _isPressed ? Color.FromArgb(153, 27, 27) : (_isHovered ? Color.FromArgb(220, 38, 38) : Color.FromArgb(185, 28, 28));
+                using (var path = SetupForm.CreateRoundedPath(r, radius))
+                {
+                    using (var brush = new SolidBrush(bg))
+                    {
+                        g.FillPath(brush, path);
+                    }
+                    using (var pen = new Pen(Color.FromArgb(248, 113, 113), 1f))
+                    {
+                        g.DrawPath(pen, path);
+                    }
+                }
+                TextRenderer.DrawText(g, Text, Font, r, Color.White, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            }
+            else
+            {
+                Color bg = _isPressed ? Color.FromArgb(32, 32, 36) : (_isHovered ? Color.FromArgb(42, 42, 48) : Color.FromArgb(22, 22, 26));
+                Color border = _isHovered ? Color.FromArgb(82, 82, 91) : Color.FromArgb(45, 45, 52);
+                Color text = _isHovered ? Color.White : Color.FromArgb(228, 228, 231);
+
+                using (var path = SetupForm.CreateRoundedPath(r, radius))
+                {
+                    using (var brush = new SolidBrush(bg))
+                    {
+                        g.FillPath(brush, path);
+                    }
+                    using (var pen = new Pen(border, 1f))
+                    {
+                        g.DrawPath(pen, path);
+                    }
+                }
+                TextRenderer.DrawText(g, Text, Font, r, text, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            }
+        }
+    }
+
+    public class ModernCheckBox : CheckBox
+    {
+        private bool _isHovered;
+
+        public ModernCheckBox()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
+            Cursor = Cursors.Hand;
+            Font = new Font("Segoe UI", 9.5f, FontStyle.Regular);
+            ForeColor = Color.FromArgb(228, 228, 231);
+            BackColor = Color.Transparent;
+        }
+
+        protected override void OnMouseEnter(EventArgs e) { _isHovered = true; Invalidate(); base.OnMouseEnter(e); }
+        protected override void OnMouseLeave(EventArgs e) { _isHovered = false; Invalidate(); base.OnMouseLeave(e); }
+        protected override void OnCheckedChanged(EventArgs e) { Invalidate(); base.OnCheckedChanged(e); }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+
+            int boxSize = 18;
+            int boxY = (Height - boxSize) / 2;
+            Rectangle boxRect = new Rectangle(0, boxY, boxSize, boxSize);
+
+            using (var path = SetupForm.CreateRoundedPath(boxRect, 4))
+            {
+                if (Checked)
+                {
+                    using (var brush = new LinearGradientBrush(boxRect, Color.FromArgb(255, 77, 0), Color.FromArgb(255, 138, 0), 45f))
+                    {
+                        g.FillPath(brush, path);
+                    }
+                    using (var pen = new Pen(Color.FromArgb(255, 160, 64), 1f))
+                    {
+                        g.DrawPath(pen, path);
+                    }
+                    using (var penCheck = new Pen(Color.FromArgb(10, 10, 10), 2.2f))
+                    {
+                        penCheck.StartCap = LineCap.Round;
+                        penCheck.EndCap = LineCap.Round;
+                        g.DrawLine(penCheck, 4, boxY + 9, 7, boxY + 13);
+                        g.DrawLine(penCheck, 7, boxY + 13, 13, boxY + 5);
+                    }
+                }
+                else
+                {
+                    Color bg = _isHovered ? Color.FromArgb(28, 28, 34) : Color.FromArgb(18, 18, 22);
+                    Color border = _isHovered ? Color.FromArgb(115, 115, 125) : Color.FromArgb(55, 55, 62);
+                    using (var brush = new SolidBrush(bg))
+                    {
+                        g.FillPath(brush, path);
+                    }
+                    using (var pen = new Pen(border, 1f))
+                    {
+                        g.DrawPath(pen, path);
+                    }
+                }
+            }
+
+            Rectangle textRect = new Rectangle(boxSize + 10, 0, Width - (boxSize + 10), Height);
+            Color textColor = _isHovered ? Color.White : ForeColor;
+            TextRenderer.DrawText(g, Text, Font, textRect, textColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+        }
+    }
+
+    public class ModernProgressBar : Control
+    {
+        private int _value;
+        public int Value
+        {
+            get { return _value; }
+            set
+            {
+                _value = Math.Max(0, Math.Min(100, value));
+                Invalidate();
+            }
+        }
+
+        public ModernProgressBar()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
+            BackColor = Color.FromArgb(18, 18, 22);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            Rectangle r = new Rectangle(0, 0, Width - 1, Height - 1);
+            int radius = Height / 2;
+
+            using (var path = SetupForm.CreateRoundedPath(r, radius))
+            {
+                using (var b = new SolidBrush(Color.FromArgb(18, 18, 22)))
+                {
+                    g.FillPath(b, path);
+                }
+                using (var pen = new Pen(Color.FromArgb(42, 42, 48), 1f))
+                {
+                    g.DrawPath(pen, path);
+                }
+
+                if (_value > 0)
+                {
+                    int fillWidth = Math.Max(Height, (int)((Width - 2) * (_value / 100.0f)));
+                    Rectangle fillRect = new Rectangle(1, 1, fillWidth, Height - 2);
+                    using (var fillPath = SetupForm.CreateRoundedPath(fillRect, Math.Max(1, radius - 1)))
+                    {
+                        using (var brush = new LinearGradientBrush(fillRect, Color.FromArgb(255, 77, 0), Color.FromArgb(255, 138, 0), 0f))
+                        {
+                            g.FillPath(brush, fillPath);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public class SetupForm : Form
     {
         [DllImport("user32.dll")]
         private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
         [DllImport("user32.dll")]
         private static extern bool ReleaseCapture();
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.ClassStyle |= 0x00020000; // CS_DROPSHADOW
+                return cp;
+            }
+        }
 
         private SetupStep _currentStep;
         private readonly string[] _args;
@@ -467,16 +747,16 @@ namespace KnowToMigrate.Setup
         private Label _lblHeaderSubtitle;
         private Label _lblStatus;
         private Label _lblDetail;
-        private ProgressBar _progressBar;
-        private CheckBox _chkDesktop;
-        private CheckBox _chkStartMenu;
-        private CheckBox _chkLaunch;
-        private CheckBox _chkRunNow;
-        private CheckBox _chkFinishDesktop;
-        private CheckBox _chkRemoveCache;
-        private Button _btnPrimary;
-        private Button _btnSecondary;
-        private Button _btnUninstallLink;
+        private ModernProgressBar _progressBar;
+        private ModernCheckBox _chkDesktop;
+        private ModernCheckBox _chkStartMenu;
+        private ModernCheckBox _chkLaunch;
+        private ModernCheckBox _chkRunNow;
+        private ModernCheckBox _chkFinishDesktop;
+        private ModernCheckBox _chkRemoveCache;
+        private ModernButton _btnPrimary;
+        private ModernButton _btnSecondary;
+        private ModernButton _btnUninstallLink;
 
         private Image _logoImage;
         private bool _isCloseHovered;
@@ -523,10 +803,17 @@ namespace KnowToMigrate.Setup
 
             try
             {
-                string localLogo = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "logo.jpg");
+                string localLogo = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "logo.png");
                 if (File.Exists(localLogo))
                 {
                     _logoImage = Image.FromFile(localLogo);
+                    return;
+                }
+                string localLogoJpg = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "logo.jpg");
+                if (File.Exists(localLogoJpg))
+                {
+                    _logoImage = Image.FromFile(localLogoJpg);
+                    return;
                 }
             }
             catch { }
@@ -534,11 +821,11 @@ namespace KnowToMigrate.Setup
 
         private void InitializeComponent()
         {
-            this.Text = "KnowToMigrate Setup & Management";
+            this.Text = "KnowToMigrate Setup";
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.ClientSize = new Size(540, 500);
-            this.BackColor = Color.FromArgb(10, 10, 10);
+            this.ClientSize = new Size(560, 520);
+            this.BackColor = Color.FromArgb(9, 9, 11);
             this.ForeColor = Color.White;
             this.DoubleBuffered = true;
             this.ShowInTaskbar = true;
@@ -546,11 +833,11 @@ namespace KnowToMigrate.Setup
             // Header Title
             _lblHeaderTitle = new Label
             {
-                Font = new Font("Segoe UI", 16.0f, FontStyle.Bold),
-                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 16.5f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(250, 250, 250),
                 BackColor = Color.Transparent,
-                Location = new Point(106, 68),
-                Size = new Size(400, 32),
+                Location = new Point(106, 66),
+                Size = new Size(420, 32),
                 Text = "KnowToMigrate"
             };
             this.Controls.Add(_lblHeaderTitle);
@@ -558,11 +845,11 @@ namespace KnowToMigrate.Setup
             // Header Subtitle
             _lblHeaderSubtitle = new Label
             {
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
-                ForeColor = Color.FromArgb(74, 222, 128), // Light Green #4ADE80
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
+                ForeColor = Color.FromArgb(161, 161, 170),
                 BackColor = Color.Transparent,
                 Location = new Point(106, 100),
-                Size = new Size(400, 22),
+                Size = new Size(420, 22),
                 Text = "Move Anything. Anywhere. Seamlessly."
             };
             this.Controls.Add(_lblHeaderSubtitle);
@@ -571,10 +858,10 @@ namespace KnowToMigrate.Setup
             _lblStatus = new Label
             {
                 Font = new Font("Segoe UI", 11.0f, FontStyle.Bold),
-                ForeColor = Color.FromArgb(240, 240, 240),
+                ForeColor = Color.FromArgb(245, 245, 245),
                 BackColor = Color.Transparent,
-                Location = new Point(36, 190),
-                Size = new Size(468, 26),
+                Location = new Point(40, 190),
+                Size = new Size(480, 26),
                 Visible = false
             };
             this.Controls.Add(_lblStatus);
@@ -583,149 +870,115 @@ namespace KnowToMigrate.Setup
             _lblDetail = new Label
             {
                 Font = new Font("Segoe UI", 9.0f, FontStyle.Regular),
-                ForeColor = Color.FromArgb(160, 160, 160),
+                ForeColor = Color.FromArgb(161, 161, 170),
                 BackColor = Color.Transparent,
-                Location = new Point(36, 220),
-                Size = new Size(468, 44),
+                Location = new Point(40, 220),
+                Size = new Size(480, 44),
                 Visible = false
             };
             this.Controls.Add(_lblDetail);
 
             // Progress Bar
-            _progressBar = new ProgressBar
+            _progressBar = new ModernProgressBar
             {
-                Location = new Point(36, 275),
-                Size = new Size(468, 10),
-                Minimum = 0,
-                Maximum = 100,
+                Location = new Point(40, 275),
+                Size = new Size(480, 10),
                 Value = 0,
                 Visible = false
             };
             this.Controls.Add(_progressBar);
 
             // Options Checkboxes for Welcome
-            _chkDesktop = new CheckBox
+            _chkDesktop = new ModernCheckBox
             {
                 Text = "Create Desktop shortcut",
                 Checked = true,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
-                ForeColor = Color.FromArgb(230, 230, 230),
-                BackColor = Color.Transparent,
-                Location = new Point(48, 255),
-                Size = new Size(440, 26)
+                Location = new Point(52, 255),
+                Size = new Size(450, 26)
             };
             this.Controls.Add(_chkDesktop);
 
-            _chkStartMenu = new CheckBox
+            _chkStartMenu = new ModernCheckBox
             {
                 Text = "Add shortcut to Windows Start Menu",
                 Checked = true,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
-                ForeColor = Color.FromArgb(230, 230, 230),
-                BackColor = Color.Transparent,
-                Location = new Point(48, 285),
-                Size = new Size(440, 26)
+                Location = new Point(52, 285),
+                Size = new Size(450, 26)
             };
             this.Controls.Add(_chkStartMenu);
 
-            _chkLaunch = new CheckBox
+            _chkLaunch = new ModernCheckBox
             {
                 Text = "Launch KnowToMigrate immediately after setup finishes",
                 Checked = true,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
-                ForeColor = Color.FromArgb(230, 230, 230),
-                BackColor = Color.Transparent,
-                Location = new Point(48, 315),
-                Size = new Size(440, 26)
+                Location = new Point(52, 315),
+                Size = new Size(450, 26)
             };
             this.Controls.Add(_chkLaunch);
 
             // Finish Checkboxes (for InstallFinished)
-            _chkRunNow = new CheckBox
+            _chkRunNow = new ModernCheckBox
             {
                 Text = "Run KnowToMigrate now",
                 Checked = true,
                 Font = new Font("Segoe UI", 10.0f, FontStyle.Bold),
-                ForeColor = Color.FromArgb(74, 222, 128),
-                BackColor = Color.Transparent,
-                Location = new Point(48, 290),
-                Size = new Size(440, 28),
+                ForeColor = Color.FromArgb(255, 138, 0),
+                Location = new Point(52, 290),
+                Size = new Size(450, 28),
                 Visible = false
             };
             this.Controls.Add(_chkRunNow);
 
-            _chkFinishDesktop = new CheckBox
+            _chkFinishDesktop = new ModernCheckBox
             {
                 Text = "Create Desktop shortcut",
                 Checked = true,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
-                ForeColor = Color.FromArgb(220, 220, 220),
-                BackColor = Color.Transparent,
-                Location = new Point(48, 322),
-                Size = new Size(440, 26),
+                Location = new Point(52, 324),
+                Size = new Size(450, 26),
                 Visible = false
             };
             this.Controls.Add(_chkFinishDesktop);
 
             // Uninstall Checkbox
-            _chkRemoveCache = new CheckBox
+            _chkRemoveCache = new ModernCheckBox
             {
                 Text = "Remove local configuration, transfer history, and temporary cache",
                 Checked = true,
-                Font = new Font("Segoe UI", 9.0f, FontStyle.Regular),
-                ForeColor = Color.FromArgb(200, 200, 200),
-                BackColor = Color.Transparent,
-                Location = new Point(48, 280),
-                Size = new Size(440, 36),
+                Location = new Point(52, 280),
+                Size = new Size(450, 36),
                 Visible = false
             };
             this.Controls.Add(_chkRemoveCache);
 
             // Primary Action Button ("Install Now" / "Finish" / "Uninstall Now")
-            _btnPrimary = new Button
+            _btnPrimary = new ModernButton
             {
-                Size = new Size(130, 40),
-                Location = new Point(374, 436),
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 10.0f, FontStyle.Bold),
-                Cursor = Cursors.Hand
+                Size = new Size(130, 42),
+                Location = new Point(394, 452),
+                IsPrimary = true
             };
-            _btnPrimary.FlatAppearance.BorderSize = 0;
             _btnPrimary.Click += BtnPrimary_Click;
             this.Controls.Add(_btnPrimary);
 
             // Secondary Action Button ("Cancel" / "Close")
-            _btnSecondary = new Button
+            _btnSecondary = new ModernButton
             {
-                Size = new Size(100, 40),
-                Location = new Point(262, 436),
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
-                Text = "Cancel",
-                ForeColor = Color.FromArgb(180, 180, 180),
-                BackColor = Color.FromArgb(24, 24, 27),
-                Cursor = Cursors.Hand
+                Size = new Size(104, 42),
+                Location = new Point(278, 452),
+                Text = "Cancel"
             };
-            _btnSecondary.FlatAppearance.BorderColor = Color.FromArgb(45, 45, 50);
-            _btnSecondary.FlatAppearance.BorderSize = 1;
             _btnSecondary.Click += (s, e) => this.Close();
             this.Controls.Add(_btnSecondary);
 
             // Uninstall Link Button (Visible on Welcome if already installed)
-            _btnUninstallLink = new Button
+            _btnUninstallLink = new ModernButton
             {
-                Size = new Size(170, 34),
-                Location = new Point(36, 439),
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 8.5f, FontStyle.Regular),
+                Size = new Size(174, 36),
+                Location = new Point(36, 455),
                 Text = "Uninstall KnowToMigrate",
-                ForeColor = Color.FromArgb(239, 68, 68),
-                BackColor = Color.FromArgb(20, 10, 10),
-                Cursor = Cursors.Hand,
+                IsDanger = false,
                 Visible = false
             };
-            _btnUninstallLink.FlatAppearance.BorderColor = Color.FromArgb(80, 30, 30);
-            _btnUninstallLink.FlatAppearance.BorderSize = 1;
             _btnUninstallLink.Click += (s, e) => SetStep(SetupStep.UninstallConfirm);
             this.Controls.Add(_btnUninstallLink);
 
@@ -734,14 +987,14 @@ namespace KnowToMigrate.Setup
             this.MouseMove += SetupForm_MouseMove;
             this.MouseClick += SetupForm_MouseClick;
 
-            // Smooth pulse timer
+            // Smooth pulse timer for ambient glow
             _pulseTimer = new System.Windows.Forms.Timer();
             _pulseTimer.Interval = 35;
             _pulseTimer.Tick += (s, e) =>
             {
                 _pulseAngle += 0.05f;
                 if (_pulseAngle > 6.28f) _pulseAngle = 0;
-                this.Invalidate(new Rectangle(36, 60, 60, 60)); // Repaint logo glow
+                this.Invalidate(new Rectangle(30, 58, 70, 70));
             };
             _pulseTimer.Start();
         }
@@ -762,6 +1015,9 @@ namespace KnowToMigrate.Setup
             _progressBar.Visible = false;
             _btnUninstallLink.Visible = false;
 
+            _btnPrimary.IsPrimary = true;
+            _btnPrimary.IsDanger = false;
+
             switch (step)
             {
                 case SetupStep.Welcome:
@@ -774,8 +1030,6 @@ namespace KnowToMigrate.Setup
                     _chkLaunch.Visible = true;
 
                     _btnPrimary.Text = alreadyInstalled ? "Reinstall Now" : "Install Now";
-                    _btnPrimary.BackColor = Color.FromArgb(74, 222, 128); // Light Green
-                    _btnPrimary.ForeColor = Color.Black;
                     _btnPrimary.Enabled = true;
 
                     _btnSecondary.Text = "Cancel";
@@ -810,8 +1064,6 @@ namespace KnowToMigrate.Setup
                     _chkFinishDesktop.Checked = _chkDesktop.Checked;
 
                     _btnPrimary.Text = "Finish";
-                    _btnPrimary.BackColor = Color.FromArgb(74, 222, 128); // Light Green
-                    _btnPrimary.ForeColor = Color.Black;
                     _btnPrimary.Enabled = true;
 
                     _btnSecondary.Visible = false;
@@ -823,9 +1075,9 @@ namespace KnowToMigrate.Setup
 
                     _chkRemoveCache.Visible = true;
 
+                    _btnPrimary.IsPrimary = false;
+                    _btnPrimary.IsDanger = true;
                     _btnPrimary.Text = "Uninstall Now";
-                    _btnPrimary.BackColor = Color.FromArgb(220, 38, 38); // Red
-                    _btnPrimary.ForeColor = Color.White;
                     _btnPrimary.Enabled = true;
 
                     _btnSecondary.Text = "Cancel";
@@ -851,8 +1103,6 @@ namespace KnowToMigrate.Setup
                     _lblHeaderSubtitle.Text = "KnowToMigrate has been cleanly removed from your computer.";
 
                     _btnPrimary.Text = "Finish";
-                    _btnPrimary.BackColor = Color.FromArgb(74, 222, 128);
-                    _btnPrimary.ForeColor = Color.Black;
                     _btnPrimary.Enabled = true;
 
                     _btnSecondary.Visible = false;
@@ -867,9 +1117,9 @@ namespace KnowToMigrate.Setup
                     _lblDetail.Visible = true;
                     _lblDetail.Text = _errorMessage;
 
+                    _btnPrimary.IsPrimary = false;
+                    _btnPrimary.IsDanger = false;
                     _btnPrimary.Text = "Close";
-                    _btnPrimary.BackColor = Color.FromArgb(40, 40, 45);
-                    _btnPrimary.ForeColor = Color.White;
                     _btnPrimary.Enabled = true;
 
                     _btnSecondary.Visible = false;
@@ -890,8 +1140,6 @@ namespace KnowToMigrate.Setup
             }
             else if (_currentStep == SetupStep.InstallFinished)
             {
-                // CRUCIAL: USER CLICKED FINISH!
-                // Process selected options:
                 bool runNow = _chkRunNow.Checked;
                 bool ensureDesktop = _chkFinishDesktop.Checked;
 
@@ -954,6 +1202,20 @@ namespace KnowToMigrate.Setup
                 UpdateProgress(15, "Terminating active processes...", "Closing any running KnowToMigrate instances...");
                 Program.KillRunningInstances();
                 Thread.Sleep(300);
+
+                try
+                {
+                    string legacyDir = @"C:\Program Files (x86)\KnowToMigrate";
+                    if (Directory.Exists(legacyDir))
+                    {
+                        Directory.Delete(legacyDir, true);
+                        Program.Log("[INFO] Cleaned up legacy 32-bit install directory: " + legacyDir);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Program.Log("[WARN] Legacy directory cleanup: " + ex.Message);
+                }
 
                 UpdateProgress(35, "Extracting components...", "Unpacking embedded high-speed installation payload...");
                 tempMsi = Program.ExtractMsiPayload();
@@ -1061,6 +1323,11 @@ namespace KnowToMigrate.Setup
                     {
                         Directory.Delete(Program.InstallDir, true);
                     }
+                    string legacyDir = @"C:\Program Files (x86)\KnowToMigrate";
+                    if (Directory.Exists(legacyDir))
+                    {
+                        Directory.Delete(legacyDir, true);
+                    }
                 }
                 catch { }
 
@@ -1082,63 +1349,77 @@ namespace KnowToMigrate.Setup
         {
             base.OnPaint(e);
             Graphics g = e.Graphics;
-            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.SmoothingMode = SmoothingMode.HighQuality;
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+            g.CompositingQuality = CompositingQuality.HighQuality;
 
             int w = this.Width;
             int h = this.Height;
 
             // 1. Base Pure AMOLED Black
-            using (var b = new SolidBrush(Color.FromArgb(10, 10, 10)))
+            using (var b = new SolidBrush(Color.FromArgb(9, 9, 11)))
             {
                 g.FillRectangle(b, 0, 0, w, h);
             }
 
-            // 2. Custom Title Bar
+            // 2. Custom Title Bar (Height: 46)
             int titleBarH = 46;
-            using (var b = new SolidBrush(Color.FromArgb(16, 16, 18)))
+            using (var b = new SolidBrush(Color.FromArgb(14, 14, 18)))
             {
                 g.FillRectangle(b, 0, 0, w, titleBarH);
             }
-            using (var pen = new Pen(Color.FromArgb(32, 32, 36), 1f))
+            using (var pen = new Pen(Color.FromArgb(28, 28, 34), 1f))
             {
                 g.DrawLine(pen, 0, titleBarH, w, titleBarH);
             }
 
-            // TitleBar Badge
+            // Top edge brand gradient accent (2px)
+            using (var gradBrush = new LinearGradientBrush(new Rectangle(0, 0, w, 2), Color.FromArgb(255, 77, 0), Color.FromArgb(255, 138, 0), 0f))
+            {
+                g.FillRectangle(gradBrush, 0, 0, w, 2);
+            }
+
+            // TitleBar Icon Badge
             int iconBoxSize = 26;
             int iconBoxX = 14;
             int iconBoxY = (titleBarH - iconBoxSize) / 2;
             Rectangle iconBox = new Rectangle(iconBoxX, iconBoxY, iconBoxSize, iconBoxSize);
-            DrawRoundedRectangle(g, iconBox, 6, Color.FromArgb(20, 20, 22), Color.FromArgb(74, 222, 128), 1.2f);
+            DrawRoundedRectangle(g, iconBox, 6, Color.FromArgb(20, 20, 24), Color.FromArgb(48, 48, 56), 1f);
             if (_logoImage != null)
             {
                 g.DrawImage(_logoImage, new Rectangle(iconBoxX + 3, iconBoxY + 3, iconBoxSize - 6, iconBoxSize - 6));
             }
             else
             {
-                using (var f = new Font("Segoe UI", 8.5f, FontStyle.Bold))
-                using (var b = new SolidBrush(Color.FromArgb(74, 222, 128)))
+                using (var f = new Font("Segoe UI", 8.0f, FontStyle.Bold))
+                using (var b = new SolidBrush(Color.FromArgb(255, 138, 0)))
                 {
-                    g.DrawString("KM", f, b, iconBoxX + 4, iconBoxY + 4);
+                    g.DrawString("KM", f, b, iconBoxX + 3, iconBoxY + 4);
                 }
             }
 
-            // TitleBar Text
+            // TitleBar Text & Version Pill
             using (var fBold = new Font("Segoe UI", 9.5f, FontStyle.Bold))
-            using (var fNorm = new Font("Segoe UI", 9.5f, FontStyle.Regular))
-            using (var bWhite = new SolidBrush(Color.White))
-            using (var bGreen = new SolidBrush(Color.FromArgb(74, 222, 128)))
+            using (var bWhite = new SolidBrush(Color.FromArgb(245, 245, 245)))
             {
-                g.DrawString("KnowToMigrate", fBold, bWhite, 48, 13);
-                g.DrawString("Setup & Management", fNorm, bGreen, 150, 13);
+                g.DrawString("KnowToMigrate Setup", fBold, bWhite, 48, 13);
+            }
+
+            // Version Badge Pill
+            Rectangle verPill = new Rectangle(204, 13, 108, 20);
+            DrawRoundedRectangle(g, verPill, 10, Color.FromArgb(28, 18, 12), Color.FromArgb(124, 45, 18), 1f);
+            using (var fPill = new Font("Segoe UI", 8.0f, FontStyle.Bold))
+            {
+                TextRenderer.DrawText(g, "v1.0.6 • Transit", fPill, verPill, Color.FromArgb(255, 138, 0), TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             }
 
             // Minimize Button
             Rectangle minRect = new Rectangle(w - 90, 0, 44, titleBarH);
             if (_isMinHovered)
             {
-                using (var b = new SolidBrush(Color.FromArgb(32, 32, 36)))
+                using (var b = new SolidBrush(Color.FromArgb(32, 32, 38)))
                 {
                     g.FillRectangle(b, minRect);
                 }
@@ -1171,14 +1452,14 @@ namespace KnowToMigrate.Setup
             int logoBoxSize = 56;
             Rectangle logoBox = new Rectangle(logoBoxX, logoBoxY, logoBoxSize, logoBoxSize);
 
-            // Subtle pulsing green glow
-            int glowAlpha = (int)(25 + 15 * Math.Sin(_pulseAngle));
-            using (var glowBrush = new SolidBrush(Color.FromArgb(glowAlpha, 74, 222, 128)))
+            // Subtle pulsing brand orange glow
+            int glowAlpha = (int)(28 + 14 * Math.Sin(_pulseAngle));
+            using (var glowBrush = new SolidBrush(Color.FromArgb(glowAlpha, 255, 90, 0)))
             {
-                g.FillEllipse(glowBrush, logoBoxX - 4, logoBoxY - 4, logoBoxSize + 8, logoBoxSize + 8);
+                g.FillEllipse(glowBrush, logoBoxX - 6, logoBoxY - 6, logoBoxSize + 12, logoBoxSize + 12);
             }
 
-            DrawRoundedRectangle(g, logoBox, 14, Color.FromArgb(16, 16, 18), Color.FromArgb(74, 222, 128), 1.5f);
+            DrawRoundedRectangle(g, logoBox, 14, Color.FromArgb(16, 16, 20), Color.FromArgb(255, 90, 0), 1.5f);
             if (_logoImage != null)
             {
                 g.DrawImage(_logoImage, new Rectangle(logoBoxX + 6, logoBoxY + 6, logoBoxSize - 12, logoBoxSize - 12));
@@ -1186,7 +1467,7 @@ namespace KnowToMigrate.Setup
             else
             {
                 using (var f = new Font("Segoe UI", 16.0f, FontStyle.Bold))
-                using (var b = new SolidBrush(Color.FromArgb(74, 222, 128)))
+                using (var b = new SolidBrush(Color.FromArgb(255, 138, 0)))
                 {
                     g.DrawString("KM", f, b, logoBoxX + 8, logoBoxY + 12);
                 }
@@ -1196,38 +1477,46 @@ namespace KnowToMigrate.Setup
             if (_currentStep == SetupStep.Welcome)
             {
                 // Destination Card
-                Rectangle destCard = new Rectangle(36, 142, 468, 64);
-                DrawRoundedRectangle(g, destCard, 12, Color.FromArgb(18, 18, 20), Color.FromArgb(39, 39, 42), 1f);
+                Rectangle destCard = new Rectangle(36, 140, 488, 64);
+                DrawRoundedRectangle(g, destCard, 10, Color.FromArgb(16, 16, 20), Color.FromArgb(36, 36, 42), 1f);
 
                 using (var fLabel = new Font("Segoe UI", 8.5f, FontStyle.Bold))
-                using (var fPath = new Font("Segoe UI", 10.0f, FontStyle.Regular))
-                using (var bMuted = new SolidBrush(Color.FromArgb(156, 163, 175)))
+                using (var fPath = new Font("Segoe UI", 9.5f, FontStyle.Regular))
+                using (var fExtra = new Font("Segoe UI", 8.5f, FontStyle.Regular))
+                using (var bMuted = new SolidBrush(Color.FromArgb(161, 161, 170)))
                 using (var bWhite = new SolidBrush(Color.White))
+                using (var bDim = new SolidBrush(Color.FromArgb(113, 113, 122)))
                 {
-                    g.DrawString("INSTALLATION DESTINATION", fLabel, bMuted, 52, 152);
-                    g.DrawString(Program.InstallDir, fPath, bWhite, 52, 174);
+                    g.DrawString("INSTALLATION DESTINATION", fLabel, bMuted, 52, 150);
+                    g.DrawString(Program.InstallDir, fPath, bWhite, 52, 172);
+                    g.DrawString("Native 64-bit • ~73 MB", fExtra, bDim, 370, 172);
                 }
 
                 // Options Container Card
-                Rectangle optCard = new Rectangle(36, 222, 468, 146);
-                DrawRoundedRectangle(g, optCard, 12, Color.FromArgb(16, 16, 18), Color.FromArgb(32, 32, 36), 1f);
+                Rectangle optCard = new Rectangle(36, 218, 488, 150);
+                DrawRoundedRectangle(g, optCard, 10, Color.FromArgb(14, 14, 18), Color.FromArgb(30, 30, 36), 1f);
 
                 using (var fLabel = new Font("Segoe UI", 8.5f, FontStyle.Bold))
-                using (var bMuted = new SolidBrush(Color.FromArgb(156, 163, 175)))
+                using (var bMuted = new SolidBrush(Color.FromArgb(161, 161, 170)))
                 {
-                    g.DrawString("SETUP & LAUNCH PREFERENCES", fLabel, bMuted, 48, 234);
+                    g.DrawString("SETUP PREFERENCES", fLabel, bMuted, 52, 230);
                 }
             }
             else if (_currentStep == SetupStep.InstallFinished)
             {
-                // Big glowing checkmark
+                // Glowing orange checkmark circle
                 int cx = 70;
                 int cy = 205;
-                using (var bGreen = new SolidBrush(Color.FromArgb(74, 222, 128)))
+                using (var bGlow = new SolidBrush(Color.FromArgb(40, 255, 90, 0)))
                 {
-                    g.FillEllipse(bGreen, cx - 24, cy - 24, 48, 48);
+                    g.FillEllipse(bGlow, cx - 30, cy - 30, 60, 60);
                 }
-                using (var penCheck = new Pen(Color.Black, 3.5f))
+                Rectangle checkCircle = new Rectangle(cx - 24, cy - 24, 48, 48);
+                using (var brush = new LinearGradientBrush(checkCircle, Color.FromArgb(255, 77, 0), Color.FromArgb(255, 138, 0), 45f))
+                {
+                    g.FillEllipse(brush, checkCircle);
+                }
+                using (var penCheck = new Pen(Color.FromArgb(10, 10, 10), 3.5f))
                 {
                     penCheck.StartCap = LineCap.Round;
                     penCheck.EndCap = LineCap.Round;
@@ -1235,25 +1524,25 @@ namespace KnowToMigrate.Setup
                     g.DrawLine(penCheck, cx - 3, cy + 9, cx + 11, cy - 8);
                 }
 
-                using (var fBig = new Font("Segoe UI", 13.0f, FontStyle.Bold))
+                using (var fBig = new Font("Segoe UI", 13.5f, FontStyle.Bold))
                 using (var fSub = new Font("Segoe UI", 9.5f, FontStyle.Regular))
                 using (var bWhite = new SolidBrush(Color.White))
-                using (var bMuted = new SolidBrush(Color.FromArgb(160, 160, 160)))
+                using (var bMuted = new SolidBrush(Color.FromArgb(161, 161, 170)))
                 {
-                    g.DrawString("Installation Completed Successfully!", fBig, bWhite, 110, 192);
-                    g.DrawString("KnowToMigrate is ready to use. Choose finish options below:", fSub, bMuted, 110, 220);
+                    g.DrawString("Installation Complete!", fBig, bWhite, 110, 192);
+                    g.DrawString("KnowToMigrate is ready. Transit Transfer Engine is installed.", fSub, bMuted, 110, 220);
                 }
 
                 // Options card
-                Rectangle finishCard = new Rectangle(36, 260, 468, 110);
-                DrawRoundedRectangle(g, finishCard, 12, Color.FromArgb(18, 18, 20), Color.FromArgb(39, 39, 42), 1f);
+                Rectangle finishCard = new Rectangle(36, 260, 488, 110);
+                DrawRoundedRectangle(g, finishCard, 10, Color.FromArgb(14, 14, 18), Color.FromArgb(32, 32, 38), 1f);
             }
             else if (_currentStep == SetupStep.UninstallConfirm)
             {
                 // Warning badge
                 int cx = 70;
                 int cy = 195;
-                using (var bWarn = new SolidBrush(Color.FromArgb(239, 68, 68)))
+                using (var bWarn = new SolidBrush(Color.FromArgb(220, 38, 38)))
                 {
                     g.FillEllipse(bWarn, cx - 24, cy - 24, 48, 48);
                 }
@@ -1266,25 +1555,26 @@ namespace KnowToMigrate.Setup
                 using (var fBig = new Font("Segoe UI", 12.0f, FontStyle.Bold))
                 using (var fSub = new Font("Segoe UI", 9.0f, FontStyle.Regular))
                 using (var bWhite = new SolidBrush(Color.White))
-                using (var bMuted = new SolidBrush(Color.FromArgb(160, 160, 160)))
+                using (var bMuted = new SolidBrush(Color.FromArgb(161, 161, 170)))
                 {
                     g.DrawString("Are you sure you want to uninstall KnowToMigrate?", fBig, bWhite, 110, 184);
                     g.DrawString("This will remove all installed application binaries and shortcuts.", fSub, bMuted, 110, 212);
                 }
 
-                Rectangle uninstCard = new Rectangle(36, 255, 468, 80);
-                DrawRoundedRectangle(g, uninstCard, 12, Color.FromArgb(18, 18, 20), Color.FromArgb(50, 30, 30), 1f);
+                Rectangle uninstCard = new Rectangle(36, 255, 488, 80);
+                DrawRoundedRectangle(g, uninstCard, 10, Color.FromArgb(18, 12, 12), Color.FromArgb(60, 30, 30), 1f);
             }
             else if (_currentStep == SetupStep.UninstallFinished)
             {
-                // Big checkmark
+                // Orange Checkmark
                 int cx = 70;
                 int cy = 205;
-                using (var bGreen = new SolidBrush(Color.FromArgb(74, 222, 128)))
+                Rectangle checkCircle = new Rectangle(cx - 24, cy - 24, 48, 48);
+                using (var brush = new LinearGradientBrush(checkCircle, Color.FromArgb(255, 77, 0), Color.FromArgb(255, 138, 0), 45f))
                 {
-                    g.FillEllipse(bGreen, cx - 24, cy - 24, 48, 48);
+                    g.FillEllipse(brush, checkCircle);
                 }
-                using (var penCheck = new Pen(Color.Black, 3.5f))
+                using (var penCheck = new Pen(Color.FromArgb(10, 10, 10), 3.5f))
                 {
                     penCheck.StartCap = LineCap.Round;
                     penCheck.EndCap = LineCap.Round;
@@ -1292,30 +1582,30 @@ namespace KnowToMigrate.Setup
                     g.DrawLine(penCheck, cx - 3, cy + 9, cx + 11, cy - 8);
                 }
 
-                using (var fBig = new Font("Segoe UI", 13.0f, FontStyle.Bold))
+                using (var fBig = new Font("Segoe UI", 13.5f, FontStyle.Bold))
                 using (var fSub = new Font("Segoe UI", 9.5f, FontStyle.Regular))
                 using (var bWhite = new SolidBrush(Color.White))
-                using (var bMuted = new SolidBrush(Color.FromArgb(160, 160, 160)))
+                using (var bMuted = new SolidBrush(Color.FromArgb(161, 161, 170)))
                 {
-                    g.DrawString("Uninstallation Completed Successfully!", fBig, bWhite, 110, 192);
+                    g.DrawString("Uninstallation Complete!", fBig, bWhite, 110, 192);
                     g.DrawString("KnowToMigrate has been cleanly removed from this machine.", fSub, bMuted, 110, 220);
                 }
             }
 
             // 5. Bottom Separator
-            using (var pen = new Pen(Color.FromArgb(28, 28, 32), 1f))
+            using (var pen = new Pen(Color.FromArgb(26, 26, 32), 1f))
             {
-                g.DrawLine(pen, 0, h - 76, w, h - 76);
+                g.DrawLine(pen, 0, h - 78, w, h - 78);
             }
 
-            // 6. Outer Ambient Border
-            using (var borderPen = new Pen(Color.FromArgb(74, 222, 128), 1.2f))
+            // 6. Outer Subtle Border
+            using (var borderPen = new Pen(Color.FromArgb(42, 42, 50), 1f))
             {
                 g.DrawRectangle(borderPen, 0, 0, w - 1, h - 1);
             }
         }
 
-        private static void DrawRoundedRectangle(Graphics g, Rectangle r, int radius, Color backColor, Color borderColor, float borderWidth)
+        public static void DrawRoundedRectangle(Graphics g, Rectangle r, int radius, Color backColor, Color borderColor, float borderWidth)
         {
             using (var path = CreateRoundedPath(r, radius))
             {
@@ -1330,7 +1620,7 @@ namespace KnowToMigrate.Setup
             }
         }
 
-        private static GraphicsPath CreateRoundedPath(Rectangle r, int radius)
+        public static GraphicsPath CreateRoundedPath(Rectangle r, int radius)
         {
             var path = new GraphicsPath();
             int d = radius * 2;
