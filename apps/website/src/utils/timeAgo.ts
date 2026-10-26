@@ -1,6 +1,21 @@
 import { useState, useEffect } from 'react';
 
 /**
+ * Returns the exact timestamp of the latest build / project modification.
+ * When built with Vite, __PROJECT_LAST_MODIFIED__ is injected at bundle time.
+ */
+export function getProjectLastModified(fallback?: string): string {
+  try {
+    if (typeof __PROJECT_LAST_MODIFIED__ !== 'undefined' && __PROJECT_LAST_MODIFIED__) {
+      return __PROJECT_LAST_MODIFIED__;
+    }
+  } catch {
+    // fallback if variable is undefined in dev environment
+  }
+  return fallback || new Date().toISOString();
+}
+
+/**
  * Returns an accurate human-friendly relative time string that matches product requirements:
  * "Recently Updated just now", "Recently Updated 1min ago", "Recently Updated 2mins ago", etc.
  * Never outputs a static frozen time string.

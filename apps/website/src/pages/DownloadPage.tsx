@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import { usePlatformDetection, PlatformType } from '../utils/platform'
 import { RELEASE } from '../generated/release'
-import { useLiveTimeAgo } from '../utils/timeAgo'
+import { useLiveTimeAgo, getProjectLastModified } from '../utils/timeAgo'
 
 export interface DownloadEntry {
   id: string
@@ -380,7 +380,7 @@ export function DownloadPage() {
   const windowsDownloads = DEFAULT_WINDOWS_DOWNLOADS
   const androidDownloads = DEFAULT_ANDROID_DOWNLOADS
   // Live ticking relative time engine (e.g. "Recently Updated 1min ago")
-  const liveUpdatedTime = useLiveTimeAgo(RELEASE.publishedAt || Date.now(), 10000)
+  const liveUpdatedTime = useLiveTimeAgo(getProjectLastModified(RELEASE.publishedAt), 10000)
 
   // Auto-select recommended entry based on platform
   const suggestedEntry: DownloadEntry | null =
@@ -493,12 +493,6 @@ export function DownloadPage() {
                       <div className="flex items-center gap-2 mt-2.5 flex-wrap text-xs">
                         <span className="text-[#9A9A9A]">
                           File: <span className="text-[#F5F5F5] font-medium">{suggestedEntry.filename}</span> · <span className="text-[#D4D4D4] font-medium">{suggestedEntry.size}</span>
-                        </span>
-                        <span className="text-white/20">·</span>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-[#FF8A00] bg-[#FF8A00]/10 border border-[#FF8A00]/25 shadow-[0_0_10px_rgba(255,138,0,0.12)]">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#FF8A00] animate-pulse shadow-[0_0_6px_#FF8A00]" />
-                          <Clock className="w-3 h-3 text-[#FF8A00]" />
-                          <span>{liveUpdatedTime}</span>
                         </span>
                       </div>
                     </div>

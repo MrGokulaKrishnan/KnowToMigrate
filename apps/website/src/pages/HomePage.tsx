@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Shield, Wifi, Smartphone, Monitor, ArrowRight, CheckCircle, Zap, RefreshCw, Lock, LayoutGrid, Radio, Link2, Globe, Download } from 'lucide-react'
 import { usePlatformDetection } from '../utils/platform'
 import { RELEASE } from '../generated/release'
-import { useLiveTimeAgo } from '../utils/timeAgo'
+import { useLiveTimeAgo, getProjectLastModified } from '../utils/timeAgo'
 
 /* ─── Particle background ──────────────────────────────────── */
 function ParticleField() {
@@ -77,7 +77,7 @@ export function HomePage({ onOpenAppPreview }: HomePageProps) {
   const platform = usePlatformDetection()
 
   // Live ticking relative time engine (e.g. "Recently Updated 1min ago")
-  const liveUpdatedTime = useLiveTimeAgo(RELEASE.publishedAt || Date.now(), 10000)
+  const liveUpdatedTime = useLiveTimeAgo(getProjectLastModified(RELEASE.publishedAt), 10000)
 
   // Set document title
   useEffect(() => {
