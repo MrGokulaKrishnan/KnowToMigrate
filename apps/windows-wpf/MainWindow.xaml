@@ -626,12 +626,9 @@
 
                                             </Border>
 
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
                                                 <TextBlock Text="Move device" FontSize="14" FontWeight="SemiBold" Foreground="#F5F5F5" />
-
-                                                <TextBlock Text="Move files, apps, and data to another device" FontSize="11" Foreground="#8C8C8C" Margin="0,2,0,0" />
-
+                                                <TextBlock Text="Move files, apps, and data to another device" FontSize="11" Foreground="#8C8C8C" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" />
                                             </StackPanel>
 
                                             <Border Grid.Column="2" Background="#10FFFFFF" CornerRadius="8" Padding="10,6" VerticalAlignment="Center">
@@ -807,111 +804,58 @@
                                     <Grid Margin="4,0,4,8" Opacity="0.6">
 
                                         <Grid.ColumnDefinitions>
-
-                                            <ColumnDefinition Width="2.5*" />
-
-                                            <ColumnDefinition Width="2*" />
-
-                                            <ColumnDefinition Width="1*" />
-
-                                            <ColumnDefinition Width="1.5*" />
-
+                                            <ColumnDefinition Width="2.5*" MinWidth="130" />
+                                            <ColumnDefinition x:Name="ColHeaderDirection" Width="2*" MinWidth="90" />
+                                            <ColumnDefinition Width="1*" MinWidth="55" />
+                                            <ColumnDefinition Width="1.5*" MinWidth="85" />
                                         </Grid.ColumnDefinitions>
-
                                         <TextBlock Grid.Column="0" Text="File" FontSize="11" Foreground="#8C8C8C" />
-
-                                        <TextBlock Grid.Column="1" Text="Direction" FontSize="11" Foreground="#8C8C8C" />
-
+                                        <TextBlock Grid.Column="1" x:Name="HeaderDirectionText" Text="Direction" FontSize="11" Foreground="#8C8C8C" />
                                         <TextBlock Grid.Column="2" Text="Size" FontSize="11" Foreground="#8C8C8C" />
-
                                         <TextBlock Grid.Column="3" Text="Integrity" FontSize="11" Foreground="#8C8C8C" />
-
                                     </Grid>
 
-
-
                                     <!-- Dynamic Recent Transfers List -->
-
                                     <ListBox x:Name="ListHomeRecent" Background="Transparent" BorderThickness="0" MaxHeight="220" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-
                                         <ListBox.ItemContainerStyle>
-
                                             <Style TargetType="ListBoxItem">
-
                                                 <Setter Property="Template">
-
                                                     <Setter.Value>
-
                                                         <ControlTemplate TargetType="ListBoxItem">
-
                                                             <Border x:Name="RowBorder" Background="Transparent" BorderBrush="#0DFFFFFF" BorderThickness="0,0,0,1" Padding="4,8">
-
                                                                 <ContentPresenter />
-
                                                             </Border>
-
                                                             <ControlTemplate.Triggers>
-
                                                                 <Trigger Property="IsMouseOver" Value="True">
-
                                                                     <Setter TargetName="RowBorder" Property="Background" Value="#08FFFFFF" />
-
                                                                 </Trigger>
-
                                                             </ControlTemplate.Triggers>
-
                                                         </ControlTemplate>
-
                                                     </Setter.Value>
-
                                                 </Setter>
-
                                             </Style>
-
                                         </ListBox.ItemContainerStyle>
-
                                         <ListBox.ItemTemplate>
-
                                             <DataTemplate>
-
                                                 <Grid>
-
                                                     <Grid.ColumnDefinitions>
-
-                                                        <ColumnDefinition Width="2.5*" />
-
-                                                        <ColumnDefinition Width="2*" />
-
-                                                        <ColumnDefinition Width="1*" />
-
-                                                        <ColumnDefinition Width="1.5*" />
-
+                                                        <ColumnDefinition Width="2.5*" MinWidth="130" />
+                                                        <ColumnDefinition Width="{Binding ElementName=ColHeaderDirection, Path=Width}" MinWidth="{Binding ElementName=ColHeaderDirection, Path=MinWidth}" />
+                                                        <ColumnDefinition Width="1*" MinWidth="55" />
+                                                        <ColumnDefinition Width="1.5*" MinWidth="85" />
                                                     </Grid.ColumnDefinitions>
-
                                                     <TextBlock Grid.Column="0" Text="{Binding FileName}" FontSize="13" Foreground="#F5F5F5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-
-                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Visibility="{Binding ElementName=HeaderDirectionText, Path=Visibility}">
                                                         <TextBlock Text="{Binding DirectionDisplay}" FontSize="12" Foreground="{Binding DirectionBrush}" FontWeight="Medium" Margin="0,0,6,0" />
-
                                                         <TextBlock Text="{Binding DeviceName}" FontSize="12" Foreground="#8C8C8C" TextTrimming="CharacterEllipsis" />
-
                                                     </StackPanel>
-
-                                                    <TextBlock Grid.Column="2" Text="{Binding FormattedSize}" FontSize="12" Foreground="#8C8C8C" VerticalAlignment="Center" />
-
-                                                    <Border Grid.Column="3" Background="#264ADE80" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
-
-                                                        <TextBlock Text="SHA-256 verified" Foreground="#4ADE80" FontSize="11" FontWeight="SemiBold" />
-
+                                                    <TextBlock Grid.Column="2" Text="{Binding FormattedSize}" FontSize="12" Foreground="#8C8C8C" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                    <Border Grid.Column="3" Background="{Binding VerifiedBadgeBgBrush}" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding VerifiedBadge}" Foreground="{Binding VerifiedBadgeBrush}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                                                     </Border>
-
                                                 </Grid>
-
                                             </DataTemplate>
-
                                         </ListBox.ItemTemplate>
-
                                     </ListBox>
 
 

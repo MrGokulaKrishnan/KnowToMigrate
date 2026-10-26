@@ -40,6 +40,20 @@ namespace KnowToMigrate.Services
             }
         }
 
+        public string LastSessionId { get; private set; } = string.Empty;
+        public string LastVerifiedSha256 { get; private set; } = string.Empty;
+
+        public Task<bool> SendFilesAsync(
+            string targetIp,
+            int targetPort,
+            string localDeviceId,
+            string localDeviceName,
+            IReadOnlyList<string> filePaths,
+            CancellationToken token)
+        {
+            return SendFilesAsync(targetIp, targetPort, localDeviceId, localDeviceName, filePaths, KtmTransportCodes.WifiLan, token);
+        }
+
         public async Task<bool> SendFilesAsync(
             string targetIp,
             int targetPort,
@@ -68,7 +82,7 @@ namespace KnowToMigrate.Services
                 Status = TransferStatus.Connecting,
                 StartTimeMs = startMs,
                 IsEncrypted = false,
-                IsIntegrityVerified = true
+                IsIntegrityVerified = false
             };
             _currentProgress = progress;
 
@@ -84,6 +98,8 @@ namespace KnowToMigrate.Services
                     SenderDeviceId = localDeviceId,
                     SenderDeviceName = localDeviceName
                 };
+                LastSessionId = manifest.SessionId;
+                LastVerifiedSha256 = string.Empty;
 
                 int fileIdx = 0;
                 long totalBytes = 0;
@@ -297,6 +313,12 @@ namespace KnowToMigrate.Services
                         progress.ErrorMessage = $"Checksum mismatch on recipient for {fileItem.RelativePath}";
                         OnProgress?.Invoke(progress);
                         throw new CryptographicException($"Checksum mismatch on recipient for {fileItem.RelativePath}");
+                    }
+
+                    progress.IsIntegrityVerified = true;
+                    if (!string.IsNullOrEmpty(fileComp.Sha256))
+                    {
+                        LastVerifiedSha256 = fileComp.Sha256;
                     }
                 }
 

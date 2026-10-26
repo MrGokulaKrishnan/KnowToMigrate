@@ -24,6 +24,8 @@ namespace KnowToMigrate.Services
         public ObservableCollection<DiscoveredDevice> NearbyDevices { get; } = new();
         public ObservableCollection<TransferProgressInfo> TransferHistory { get; } = new();
 
+        public static Func<KtmHandshake, Task<bool>>? IncomingTransferPrompter { get; set; }
+
         public event Action<DiscoveredDevice>? OnDeviceFound;
         public event Action<TransferProgressInfo>? OnProgress;
         public event Action<string, bool, string>? OnTransferDone;
@@ -58,18 +60,18 @@ namespace KnowToMigrate.Services
                 });
             };
 
-            // Wire server
             // Wire server with custom Liquid Glass transfer acceptance modal (replacing legacy MessageBox)
             TransferServer.OnHandshakeReceived += async handshake =>
             {
-                return await Application.Current.Dispatcher.InvokeAsync(async () =>
+                if (IncomingTransferPrompter != null)
                 {
-                    if (Application.Current?.MainWindow is MainWindow mw)
+                    if (Application.Current?.Dispatcher != null && !Application.Current.Dispatcher.CheckAccess())
                     {
-                        return await mw.PromptIncomingTransferAsync(handshake);
+                        return await Application.Current.Dispatcher.InvokeAsync(async () => await IncomingTransferPrompter(handshake)).Result;
                     }
-                    return false;
-                }).Result;
+                    return await IncomingTransferPrompter(handshake);
+                }
+                return false;
             };
 
             TransferServer.OnProgress += prog =>

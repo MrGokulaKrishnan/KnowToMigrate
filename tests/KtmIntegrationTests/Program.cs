@@ -25,7 +25,7 @@ namespace KtmIntegrationTests
             Directory.CreateDirectory(receiveDir);
 
             int passCount = 0;
-            int totalTests = 4;
+            int totalTests = 8;
 
             try
             {
@@ -55,6 +55,34 @@ namespace KtmIntegrationTests
                 bool test4Pass = await RunInterruptionAndResumeTestAsync(sendDir, receiveDir, 100 * 1024 * 1024);
                 if (test4Pass) { passCount++; Console.ForegroundColor = ConsoleColor.Green; Console.WriteLine(">>> TEST 4: PASS\n"); }
                 else { Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine(">>> TEST 4: FAIL\n"); }
+                Console.ResetColor();
+
+                // TEST 5: Exactly One History Record Per Session (Deduplication)
+                Console.WriteLine("--- TEST 5: Single History Record Per Session ---");
+                bool test5Pass = RunSingleRecordPerSessionTest();
+                if (test5Pass) { passCount++; Console.ForegroundColor = ConsoleColor.Green; Console.WriteLine(">>> TEST 5: PASS\n"); }
+                else { Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine(">>> TEST 5: FAIL\n"); }
+                Console.ResetColor();
+
+                // TEST 6: Receiving Files with Nothing Staged Writes No Sent-Style Record
+                Console.WriteLine("--- TEST 6: Receive With Nothing Staged (No Phantom Sent Record) ---");
+                bool test6Pass = RunReceiveWithNothingStagedTest();
+                if (test6Pass) { passCount++; Console.ForegroundColor = ConsoleColor.Green; Console.WriteLine(">>> TEST 6: PASS\n"); }
+                else { Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine(">>> TEST 6: FAIL\n"); }
+                Console.ResetColor();
+
+                // TEST 7: Honest Integrity Status (No Hash -> Not Checked)
+                Console.WriteLine("--- TEST 7: Honest Integrity Badge (No Hash -> Not Checked) ---");
+                bool test7Pass = RunHonestIntegrityStatusTest();
+                if (test7Pass) { passCount++; Console.ForegroundColor = ConsoleColor.Green; Console.WriteLine(">>> TEST 7: PASS\n"); }
+                else { Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine(">>> TEST 7: FAIL\n"); }
+                Console.ResetColor();
+
+                // TEST 8: History Migration (Idempotent, Clean Phantoms, Preserve Valid)
+                Console.WriteLine("--- TEST 8: History Migration Idempotency & Clean Phantoms ---");
+                bool test8Pass = RunHistoryMigrationTest(testRoot);
+                if (test8Pass) { passCount++; Console.ForegroundColor = ConsoleColor.Green; Console.WriteLine(">>> TEST 8: PASS\n"); }
+                else { Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine(">>> TEST 8: FAIL\n"); }
                 Console.ResetColor();
             }
             finally
@@ -344,6 +372,236 @@ namespace KtmIntegrationTests
             Console.WriteLine($"Resumed File Hash Verified: {match} (Source == Dest SHA-256)");
 
             return match && startingResumeOffset > 0;
+        }
+
+        static bool RunSingleRecordPerSessionTest()
+        {
+            string testSession = "test-session-" + Guid.NewGuid().ToString("N");
+            var item1 = new HistoricalTransferItem
+            {
+                SessionId = testSession,
+                FileName = "document.pdf",
+                TotalBytes = 1024,
+                DeviceName = "Pixel 8",
+                Direction = TransferDirection.Received,
+                Status = "Complete"
+            };
+
+            bool firstRecord = TransferService.Instance.Record(item1);
+            if (!firstRecord)
+            {
+                Console.WriteLine("[ERROR] First record for session failed to record.");
+                return false;
+            }
+
+            // Attempt duplicate record for same session ID (e.g. from phantom completion)
+            var item2 = new HistoricalTransferItem
+            {
+                SessionId = testSession,
+                FileName = "0 items transferred",
+                TotalBytes = 0,
+                DeviceName = "Nearby Target",
+                Direction = TransferDirection.Sent,
+                Status = "Complete"
+            };
+
+            bool secondRecord = TransferService.Instance.Record(item2);
+            if (secondRecord)
+            {
+                Console.WriteLine("[ERROR] Second record for same session ID was incorrectly accepted!");
+                return false;
+            }
+
+            Console.WriteLine("Deduplication verified: exactly one record accepted per session ID.");
+            return true;
+        }
+
+        static bool RunReceiveWithNothingStagedTest()
+        {
+            // Simulate receiving a file when _selectedFiles is empty
+            var stagedFiles = new List<string>(); // Nothing staged
+            string sessionId = "test-recv-" + Guid.NewGuid().ToString("N");
+
+            // Receive handler writes legitimate receiveItem
+            var receiveItem = new HistoricalTransferItem
+            {
+                SessionId = sessionId,
+                FileName = "photo.jpg",
+                TotalBytes = 2048,
+                DeviceName = "Galaxy S24",
+                Direction = TransferDirection.Received,
+                Status = "Complete"
+            };
+
+            bool recorded = TransferService.Instance.Record(receiveItem);
+            if (!recorded) return false;
+
+            // In old bug, OnTransferCompleted was called and read stagedFiles.Count == 0 to write a phantom record.
+            // Under new code, OnTransferCompleted only updates UI state and does NOT create any record.
+            // If someone mistakenly tried to record a phantom sent record:
+            if (stagedFiles.Count == 0)
+            {
+                // Nothing staged; no sent-style record must be written
+                var phantom = new HistoricalTransferItem
+                {
+                    SessionId = sessionId,
+                    FileName = $"{stagedFiles.Count} items transferred",
+                    DeviceName = "Nearby Target",
+                    Direction = TransferDirection.Sent
+                };
+                bool phantomRecorded = TransferService.Instance.Record(phantom);
+                if (phantomRecorded)
+                {
+                    Console.WriteLine("[ERROR] Phantom sent record was recorded when receiving files!");
+                    return false;
+                }
+            }
+
+            Console.WriteLine("Receive verified: no sent-style record written when nothing staged.");
+            return true;
+        }
+
+        static bool RunHonestIntegrityStatusTest()
+        {
+            // 1. Record with empty hash -> "Not checked"
+            var itemNoHash = new HistoricalTransferItem { Sha256 = "", Status = "Complete" };
+            if (itemNoHash.VerifiedBadge != "Not checked")
+            {
+                Console.WriteLine($"[ERROR] Expected 'Not checked', got '{itemNoHash.VerifiedBadge}'");
+                return false;
+            }
+
+            // 2. StatusBadge for Complete -> "Complete", NOT "Verified"
+            if (itemNoHash.StatusBadge == "Verified")
+            {
+                Console.WriteLine("[ERROR] StatusBadge incorrectly reported 'Verified' for Complete status without hash.");
+                return false;
+            }
+
+            // 3. Record with legacy literal "verified" -> "Not checked"
+            var itemLegacyVerified = new HistoricalTransferItem { Sha256 = "verified", Status = "Complete" };
+            if (itemLegacyVerified.VerifiedBadge != "Not checked")
+            {
+                Console.WriteLine($"[ERROR] Legacy 'verified' literal must report 'Not checked', got '{itemLegacyVerified.VerifiedBadge}'");
+                return false;
+            }
+
+            // 4. Record with real computed hash -> "Verified"
+            var itemRealHash = new HistoricalTransferItem
+            {
+                Sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                Status = "Complete"
+            };
+            if (itemRealHash.VerifiedBadge != "Verified")
+            {
+                Console.WriteLine($"[ERROR] Expected 'Verified' for real SHA-256, got '{itemRealHash.VerifiedBadge}'");
+                return false;
+            }
+
+            Console.WriteLine("Honest integrity verified: No hash => 'Not checked'; Complete does not imply Verified.");
+            return true;
+        }
+
+        static bool RunHistoryMigrationTest(string testDir)
+        {
+            string testHistoryPath = Path.Combine(testDir, "test_history.json");
+
+            // Create legacy history.json with:
+            // 1. Valid sent item
+            // 2. Phantom item ("0 items transferred" / "Nearby Target" / "verified")
+            // 3. Valid received item with "in" direction
+            string legacyJson = @"[
+  {
+    ""TransferId"": ""id-1"",
+    ""FileName"": ""notes.txt"",
+    ""TotalBytes"": 512,
+    ""DeviceName"": ""AndroidPhone"",
+    ""Direction"": ""out"",
+    ""Status"": ""Complete"",
+    ""Sha256"": ""abc123def456""
+  },
+  {
+    ""TransferId"": ""id-2"",
+    ""FileName"": ""0 items transferred"",
+    ""TotalBytes"": 0,
+    ""DeviceName"": ""Nearby Target"",
+    ""Direction"": ""out"",
+    ""Status"": ""Complete"",
+    ""Sha256"": ""verified""
+  },
+  {
+    ""TransferId"": ""id-3"",
+    ""FileName"": ""song.mp3"",
+    ""TotalBytes"": 4096,
+    ""DeviceName"": ""Laptop"",
+    ""Direction"": ""in"",
+    ""Status"": ""Complete"",
+    ""Sha256"": """"
+  }
+]";
+            File.WriteAllText(testHistoryPath, legacyJson);
+
+            // Step 1: Run migration once
+            bool migrated = UserSettingsManager.EnsureMigratedHistory(testHistoryPath);
+            if (!migrated)
+            {
+                Console.WriteLine("[ERROR] First migration run returned false.");
+                return false;
+            }
+
+            // Check that a .bak backup file was created
+            var bakFiles = Directory.GetFiles(testDir, "history.json.bak.*");
+            if (bakFiles.Length == 0)
+            {
+                Console.WriteLine("[ERROR] Migration did not create history.json.bak.<timestamp> backup file.");
+                return false;
+            }
+            int initialBakCount = bakFiles.Length;
+
+            // Load items and assert phantom removed and valid preserved
+            var itemsAfterMigration = UserSettingsManager.LoadHistory(testHistoryPath);
+            if (itemsAfterMigration.Count != 2)
+            {
+                Console.WriteLine($"[ERROR] Expected 2 items after phantom removal, got {itemsAfterMigration.Count}");
+                return false;
+            }
+
+            if (itemsAfterMigration.Any(i => i.FileName == "0 items transferred" && i.DeviceName == "Nearby Target"))
+            {
+                Console.WriteLine("[ERROR] Phantom row was not removed by migration!");
+                return false;
+            }
+
+            if (!itemsAfterMigration.Any(i => i.FileName == "notes.txt") || !itemsAfterMigration.Any(i => i.FileName == "song.mp3"))
+            {
+                Console.WriteLine("[ERROR] Valid items were not preserved by migration!");
+                return false;
+            }
+
+            // Step 2: Run migration second time (Idempotency test)
+            bool secondRun = UserSettingsManager.EnsureMigratedHistory(testHistoryPath);
+            if (secondRun)
+            {
+                Console.WriteLine("[ERROR] Second migration run returned true; expected idempotent false (already migrated).");
+                return false;
+            }
+
+            var bakFilesAfterSecond = Directory.GetFiles(testDir, "history.json.bak.*");
+            if (bakFilesAfterSecond.Length != initialBakCount)
+            {
+                Console.WriteLine("[ERROR] Second migration run created an extra backup file (not idempotent).");
+                return false;
+            }
+
+            var itemsAfterSecond = UserSettingsManager.LoadHistory(testHistoryPath);
+            if (itemsAfterSecond.Count != 2)
+            {
+                Console.WriteLine("[ERROR] Second migration corrupted item count.");
+                return false;
+            }
+
+            Console.WriteLine("Migration verified: backup created, phantom removed, valid preserved, second run idempotent.");
+            return true;
         }
     }
 }

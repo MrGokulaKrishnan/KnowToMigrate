@@ -42,13 +42,63 @@ namespace KnowToMigrate.Services
         public string? SkippedUpdateVersion { get; set; } = null;
     }
 
+    [JsonConverter(typeof(TransferDirectionJsonConverter))]
+    public enum TransferDirection
+    {
+        Sent,
+        Received,
+        Web,
+        Sending = Sent,
+        Receiving = Received
+    }
+
+    public class TransferDirectionJsonConverter : JsonConverter<TransferDirection>
+    {
+        public override TransferDirection Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.String)
+            {
+                string? str = reader.GetString();
+                if (string.Equals(str, "in", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(str, "received", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(str, "receiving", StringComparison.OrdinalIgnoreCase))
+                {
+                    return TransferDirection.Received;
+                }
+                if (string.Equals(str, "out", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(str, "sent", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(str, "sending", StringComparison.OrdinalIgnoreCase))
+                {
+                    return TransferDirection.Sent;
+                }
+                if (string.Equals(str, "web", StringComparison.OrdinalIgnoreCase))
+                {
+                    return TransferDirection.Web;
+                }
+            }
+            else if (reader.TokenType == JsonTokenType.Number)
+            {
+                int val = reader.GetInt32();
+                if (Enum.IsDefined(typeof(TransferDirection), val))
+                    return (TransferDirection)val;
+            }
+            return TransferDirection.Received;
+        }
+
+        public override void Write(Utf8JsonWriter writer, TransferDirection value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
+
     public class HistoricalTransferItem
     {
         public string TransferId { get; set; } = Guid.NewGuid().ToString("N");
+        public string SessionId { get; set; } = string.Empty;
         public string FileName { get; set; } = "";
         public long TotalBytes { get; set; }
         public string DeviceName { get; set; } = "";
-        public string Direction { get; set; } = "in"; // "in" or "out"
+        public TransferDirection Direction { get; set; } = TransferDirection.Received;
         public string Status { get; set; } = "Complete"; // "Complete", "Cancelled", "Failed"
         public DateTime TimestampUtc { get; set; } = DateTime.UtcNow;
         public string Sha256 { get; set; } = "";
@@ -64,32 +114,58 @@ namespace KnowToMigrate.Services
         [JsonIgnore]
         public string DirectionDisplay => Direction switch
         {
-            "in" => "Received",
-            "out" => "Sent",
-            "web" => "Web Share",
+            TransferDirection.Received => "Received",
+            TransferDirection.Sent => "Sent",
+            TransferDirection.Web => "Web Share",
             _ => "Transferred"
         };
+
+        private static SolidColorBrush ResolveThemeBrush(string themeKey, Color fallback)
+        {
+            try
+            {
+                if (System.Windows.Application.Current?.Resources[themeKey] is SolidColorBrush brush)
+                    return brush;
+            }
+            catch { }
+            return new SolidColorBrush(fallback);
+        }
 
         [JsonIgnore]
         public SolidColorBrush DirectionBrush => Direction switch
         {
-            "in" => new SolidColorBrush(Color.FromRgb(74, 222, 128)),
-            "out" => new SolidColorBrush(Color.FromRgb(255, 90, 0)),
-            "web" => new SolidColorBrush(Color.FromRgb(56, 189, 248)),
-            _ => new SolidColorBrush(Color.FromRgb(204, 204, 204))
+            TransferDirection.Received => ResolveThemeBrush("TextSecondary", Color.FromRgb(204, 204, 204)), // Neutral light grey
+            TransferDirection.Sent => ResolveThemeBrush("KmOrange", Color.FromRgb(255, 90, 0)),             // Orange accent
+            TransferDirection.Web => ResolveThemeBrush("BrushWebBlue", Color.FromRgb(56, 189, 248)),        // Blue
+            _ => new SolidColorBrush(Color.FromRgb(140, 140, 140))
         };
 
         [JsonIgnore]
         public SolidColorBrush DirectionBgBrush => Direction switch
         {
-            "in" => new SolidColorBrush(Color.FromRgb(13, 38, 20)),
-            "out" => new SolidColorBrush(Color.FromRgb(28, 14, 0)),
-            "web" => new SolidColorBrush(Color.FromRgb(12, 23, 31)),
-            _ => new SolidColorBrush(Color.FromRgb(20, 20, 20))
+            TransferDirection.Received => new SolidColorBrush(Color.FromArgb(30, 204, 204, 204)),
+            TransferDirection.Sent => new SolidColorBrush(Color.FromArgb(38, 255, 90, 0)),
+            TransferDirection.Web => new SolidColorBrush(Color.FromArgb(38, 56, 189, 248)),
+            _ => new SolidColorBrush(Color.FromArgb(20, 20, 20, 20))
         };
 
         [JsonIgnore]
-        public string VerifiedBadge => string.IsNullOrEmpty(Sha256) || Sha256 == "pending" ? "VERIFIED" : "SHA-256 VERIFIED";
+        public bool IsShaVerified => !string.IsNullOrEmpty(Sha256) &&
+                                     !string.Equals(Sha256, "pending", StringComparison.OrdinalIgnoreCase) &&
+                                     !string.Equals(Sha256, "verified", StringComparison.OrdinalIgnoreCase);
+
+        [JsonIgnore]
+        public string VerifiedBadge => IsShaVerified ? "Verified" : "Not checked";
+
+        [JsonIgnore]
+        public SolidColorBrush VerifiedBadgeBrush => IsShaVerified
+            ? ResolveThemeBrush("BrushSuccess", Color.FromRgb(34, 197, 94))
+            : ResolveThemeBrush("TextMuted", Color.FromRgb(140, 140, 140));
+
+        [JsonIgnore]
+        public SolidColorBrush VerifiedBadgeBgBrush => IsShaVerified
+            ? new SolidColorBrush(Color.FromArgb(38, 34, 197, 94))
+            : new SolidColorBrush(Color.FromArgb(26, 140, 140, 140));
 
         [JsonIgnore]
         public string DayGroup
@@ -104,17 +180,30 @@ namespace KnowToMigrate.Services
         }
 
         [JsonIgnore]
-        public string StatusBadge => Status == "Complete" ? "Verified" : Status;
+        public string StatusBadge => Status;
 
         [JsonIgnore]
         public SolidColorBrush StatusBadgeBrush => Status == "Complete"
-            ? new SolidColorBrush(Color.FromRgb(74, 222, 128))
-            : new SolidColorBrush(Color.FromRgb(239, 68, 68));
+            ? ResolveThemeBrush("BrushSuccess", Color.FromRgb(34, 197, 94))
+            : ResolveThemeBrush("BrushError", Color.FromRgb(239, 68, 68));
 
         [JsonIgnore]
         public SolidColorBrush StatusBadgeBgBrush => Status == "Complete"
-            ? new SolidColorBrush(Color.FromArgb(38, 74, 222, 128))
+            ? new SolidColorBrush(Color.FromArgb(38, 34, 197, 94))
             : new SolidColorBrush(Color.FromArgb(38, 239, 68, 68));
+    }
+
+    public class TransferRecord : HistoricalTransferItem
+    {
+    }
+
+    public class HistoryContainer
+    {
+        [JsonPropertyName("schemaVersion")]
+        public int SchemaVersion { get; set; } = 2;
+
+        [JsonPropertyName("items")]
+        public List<HistoricalTransferItem> Items { get; set; } = new();
     }
 
     public class TrustedDeviceItem
@@ -150,6 +239,7 @@ namespace KnowToMigrate.Services
         static UserSettingsManager()
         {
             EnsureDirectories();
+            EnsureMigratedHistory();
         }
 
         public static void EnsureDirectories()
@@ -162,6 +252,81 @@ namespace KnowToMigrate.Services
                 if (!Directory.Exists(BackupDirectory)) Directory.CreateDirectory(BackupDirectory);
             }
             catch { }
+        }
+
+        public static bool EnsureMigratedHistory(string? customHistoryPath = null)
+        {
+            lock (_syncLock)
+            {
+                try
+                {
+                    string targetFile = customHistoryPath ?? HistoryFile;
+                    if (!File.Exists(targetFile)) return false;
+
+                    string json = File.ReadAllText(targetFile).Trim();
+                    if (string.IsNullOrWhiteSpace(json)) return false;
+
+                    // Idempotency check: if schemaVersion >= 2, already migrated
+                    if (json.StartsWith("{"))
+                    {
+                        try
+                        {
+                            using var doc = JsonDocument.Parse(json);
+                            if (doc.RootElement.TryGetProperty("schemaVersion", out var ver) && ver.GetInt32() >= 2)
+                            {
+                                return false; // Already migrated, do nothing
+                            }
+                        }
+                        catch { }
+                    }
+
+                    // Perform backup: history.json -> history.json.bak.<timestamp>
+                    string timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+                    string dir = Path.GetDirectoryName(targetFile) ?? BaseDataDirectory;
+                    string backupFile = Path.Combine(dir, $"history.json.bak.{timestamp}");
+                    File.Copy(targetFile, backupFile, true);
+
+                    // Load items (either from legacy array or older format)
+                    List<HistoricalTransferItem> items;
+                    if (json.StartsWith("["))
+                    {
+                        items = JsonSerializer.Deserialize<List<HistoricalTransferItem>>(json) ?? new List<HistoricalTransferItem>();
+                    }
+                    else
+                    {
+                        var container = JsonSerializer.Deserialize<HistoryContainer>(json);
+                        items = container?.Items ?? new List<HistoricalTransferItem>();
+                    }
+
+                    // Clean existing data:
+                    // Remove records whose FileName ends with " items transferred" and whose DeviceName is "Nearby Target"
+                    items.RemoveAll(r => (r.FileName != null && r.FileName.EndsWith(" items transferred", StringComparison.OrdinalIgnoreCase)) &&
+                                         (r.DeviceName == "Nearby Target"));
+
+                    // Also clear any literal "verified" strings
+                    foreach (var item in items)
+                    {
+                        if (string.Equals(item.Sha256, "verified", StringComparison.OrdinalIgnoreCase))
+                        {
+                            item.Sha256 = "";
+                        }
+                    }
+
+                    var newContainer = new HistoryContainer
+                    {
+                        SchemaVersion = 2,
+                        Items = items
+                    };
+
+                    string migratedJson = JsonSerializer.Serialize(newContainer, new JsonSerializerOptions { WriteIndented = true });
+                    File.WriteAllText(targetFile, migratedJson);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
         }
 
         public static KtmUserSettings LoadSettings()
@@ -199,17 +364,26 @@ namespace KnowToMigrate.Services
             }
         }
 
-        public static List<HistoricalTransferItem> LoadHistory()
+        public static List<HistoricalTransferItem> LoadHistory(string? customHistoryPath = null)
         {
             lock (_syncLock)
             {
                 try
                 {
-                    if (File.Exists(HistoryFile))
+                    string targetFile = customHistoryPath ?? HistoryFile;
+                    if (File.Exists(targetFile))
                     {
-                        string json = File.ReadAllText(HistoryFile);
-                        var list = JsonSerializer.Deserialize<List<HistoricalTransferItem>>(json);
-                        if (list != null) return list;
+                        string json = File.ReadAllText(targetFile).Trim();
+                        if (json.StartsWith("["))
+                        {
+                            var list = JsonSerializer.Deserialize<List<HistoricalTransferItem>>(json);
+                            if (list != null) return list;
+                        }
+                        else if (json.StartsWith("{"))
+                        {
+                            var container = JsonSerializer.Deserialize<HistoryContainer>(json);
+                            if (container != null && container.Items != null) return container.Items;
+                        }
                     }
                 }
                 catch { }
@@ -218,18 +392,25 @@ namespace KnowToMigrate.Services
             }
         }
 
-        public static void AddHistoryItem(HistoricalTransferItem item)
+        public static void AddHistoryItem(HistoricalTransferItem item, string? customHistoryPath = null)
         {
             lock (_syncLock)
             {
                 try
                 {
-                    var list = LoadHistory();
+                    string targetFile = customHistoryPath ?? HistoryFile;
+                    var list = LoadHistory(targetFile);
                     list.Insert(0, item);
                     if (list.Count > 200) list.RemoveRange(200, list.Count - 200);
 
-                    string json = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
-                    File.WriteAllText(HistoryFile, json);
+                    var container = new HistoryContainer
+                    {
+                        SchemaVersion = 2,
+                        Items = list
+                    };
+
+                    string json = JsonSerializer.Serialize(container, new JsonSerializerOptions { WriteIndented = true });
+                    File.WriteAllText(targetFile, json);
                 }
                 catch { }
             }

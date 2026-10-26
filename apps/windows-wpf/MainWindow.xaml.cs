@@ -580,11 +580,10 @@ namespace KnowToMigrate
 
                 UpdateDiscoveryStatus();
 
-
+                KtmManager.IncomingTransferPrompter = PromptIncomingTransferAsync;
+                SizeChanged += MainWindow_SizeChanged;
 
                 KtmManager.Instance.OnProgress += OnTransferProgress;
-
-
 
                 KtmManager.Instance.OnTransferDone += OnTransferCompleted;
 
@@ -778,39 +777,18 @@ namespace KnowToMigrate
 
 
 
-                                Direction = "web",
-
-
-
+                                Direction = TransferDirection.Web,
                                 Status = "Complete",
-
-
-
                                 Transport = "Web Share HTTP",
-
-
-
-                                Sha256 = "verified",
-
-
-
+                                Sha256 = "",
                                 FilePath = Path.Combine(KtmManager.Instance.DownloadDirectory, fileName)
-
-
-
                             };
 
-
-
-                            UserSettingsManager.AddHistoryItem(webItem);
-
-
-
-                            _ledgerEntries.Insert(0, webItem);
-
-
-
-                            UpdateLedgerUI();
+                            if (TransferService.Instance.Record(webItem))
+                            {
+                                _ledgerEntries.Insert(0, webItem);
+                                UpdateLedgerUI();
+                            }
 
 
 
@@ -1417,8 +1395,7 @@ namespace KnowToMigrate
                         TxtIntelligenceQuality.Text = $"●●●●● {info.ConnectionQuality} · {info.LatencyMs:F1} ms";
 
                     if (TxtIntegrityBadge != null)
-
-                        TxtIntegrityBadge.Text = info.IsIntegrityVerified ? "BLAKE3 Verified" : "SHA-256 Verified";
+                        TxtIntegrityBadge.Text = info.IsIntegrityVerified ? "SHA-256 Verified" : "Verifying...";
 
                     if (TxtParticleSender != null)
 
@@ -1682,51 +1659,22 @@ namespace KnowToMigrate
 
 
 
+                    SessionId = info.SessionId,
                     FileName = displayName,
-
-
-
                     TotalBytes = info.TotalBytes,
-
-
-
                     DeviceName = string.IsNullOrEmpty(info.PeerName) ? "Nearby Device" : info.PeerName,
-
-
-
-                    Direction = "in",
-
-
-
+                    Direction = TransferDirection.Received,
                     Status = "Complete",
-
-
-
                     Transport = info.TransportType ?? "Wi-Fi",
-
-
-
-                    Sha256 = "verified",
-
-
-
+                    Sha256 = !string.IsNullOrEmpty(info.FinalizedSha256) ? info.FinalizedSha256 : "",
                     FilePath = _lastReceivedFilePath
-
-
-
                 };
 
-
-
-                UserSettingsManager.AddHistoryItem(receiveItem);
-
-
-
-                _ledgerEntries.Insert(0, receiveItem);
-
-
-
-                UpdateLedgerUI();
+                if (TransferService.Instance.Record(receiveItem))
+                {
+                    _ledgerEntries.Insert(0, receiveItem);
+                    UpdateLedgerUI();
+                }
 
 
 
@@ -2323,197 +2271,19 @@ namespace KnowToMigrate
 
 
         private void OnTransferCompleted(string sessionId, bool success, string message)
-
-
-
         {
-
-
-
             Dispatcher.Invoke(() =>
-
-
-
             {
-
-
-
-                if (success)
-
-
-
-                {
-
-
-
-                    try
-
-
-
-                    {
-
-
-
-                        long totalBytes = 0;
-
-
-
-                        string title = $"{_selectedFiles.Count} items transferred";
-
-
-
-                        if (_selectedFiles.Count == 1 && File.Exists(_selectedFiles[0]))
-
-
-
-                        {
-
-
-
-                            var fi = new FileInfo(_selectedFiles[0]);
-
-
-
-                            title = fi.Name;
-
-
-
-                            totalBytes = fi.Length;
-
-
-
-                        }
-
-
-
-                        else
-
-
-
-                        {
-
-
-
-                            foreach (var f in _selectedFiles)
-
-
-
-                            {
-
-
-
-                                if (File.Exists(f)) totalBytes += new FileInfo(f).Length;
-
-
-
-                            }
-
-
-
-                        }
-
-
-
-                        var entry = new HistoricalTransferItem
-
-
-
-                        {
-
-
-
-                            FileName = title,
-
-
-
-                            TotalBytes = totalBytes,
-
-
-
-                            DeviceName = _selectedDevice?.DeviceName ?? "Nearby Target",
-
-
-
-                            Direction = "out",
-
-
-
-                            Status = "Complete",
-
-
-
-                            Transport = _selectedDevice?.ActiveTransport ?? "Wi-Fi",
-
-
-
-                            Sha256 = "verified",
-
-
-
-                            FilePath = _selectedFiles.Count > 0 ? _selectedFiles[0] : null
-
-
-
-                        };
-
-
-
-                        UserSettingsManager.AddHistoryItem(entry);
-
-
-
-                        _ledgerEntries.Insert(0, entry);
-
-
-
-                        UpdateLedgerUI();
-
-
-
-                    }
-
-
-
-                    catch { }
-
-
-
-                }
-
-
+                UpdateLedgerUI();
 
                 // If user scheduled an update after transfer completed, apply now
-
-
-
                 if (_updatePendingAfterTransfer)
-
-
-
                 {
-
-
-
                     _updatePendingAfterTransfer = false;
-
-
-
                     PanelActiveTransferWarning.Visibility = Visibility.Collapsed;
-
-
-
                     KtmUpdateService.Instance.ApplyUpdateAndRestart();
-
-
-
                 }
-
-
-
             });
-
-
-
         }
 
 
@@ -4167,17 +3937,47 @@ namespace KnowToMigrate
 
 
                 if (success)
-
-
-
                 {
+                    try
+                    {
+                        long totalBytes = 0;
+                        string title = $"{_selectedFiles.Count} items transferred";
+                        if (_selectedFiles.Count == 1 && File.Exists(_selectedFiles[0]))
+                        {
+                            var fi = new FileInfo(_selectedFiles[0]);
+                            title = fi.Name;
+                            totalBytes = fi.Length;
+                        }
+                        else
+                        {
+                            foreach (var f in _selectedFiles)
+                            {
+                                if (File.Exists(f)) totalBytes += new FileInfo(f).Length;
+                            }
+                        }
 
+                        var sendItem = new HistoricalTransferItem
+                        {
+                            SessionId = KtmManager.Instance.TransferClient.LastSessionId,
+                            FileName = title,
+                            TotalBytes = totalBytes,
+                            DeviceName = targetDevice?.DeviceName ?? "Nearby Target",
+                            Direction = TransferDirection.Sent,
+                            Status = "Complete",
+                            Transport = targetDevice?.ActiveTransport ?? "Wi-Fi",
+                            Sha256 = KtmManager.Instance.TransferClient.LastVerifiedSha256 ?? "",
+                            FilePath = _selectedFiles.Count > 0 ? _selectedFiles[0] : null
+                        };
 
+                        if (TransferService.Instance.Record(sendItem))
+                        {
+                            _ledgerEntries.Insert(0, sendItem);
+                            UpdateLedgerUI();
+                        }
+                    }
+                    catch { }
 
                     MessageBox.Show("Transfer completed and cryptographically verified!", "KnowToMigrate Success", MessageBoxButton.OK, MessageBoxImage.Information);
-
-
-
                 }
 
 
@@ -5814,6 +5614,20 @@ private void CancelTransfer_Click(object sender, RoutedEventArgs e)
 
 
 
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            bool hideDirection = e.NewSize.Width < 850;
+            if (ColHeaderDirection != null)
+            {
+                ColHeaderDirection.Width = hideDirection ? new GridLength(0) : new GridLength(2, GridUnitType.Star);
+                ColHeaderDirection.MinWidth = hideDirection ? 0 : 90;
+            }
+            if (HeaderDirectionText != null)
+            {
+                HeaderDirectionText.Visibility = hideDirection ? Visibility.Collapsed : Visibility.Visible;
+            }
+        }
+
         #endregion
 
 
@@ -6635,24 +6449,13 @@ private void CancelTransfer_Click(object sender, RoutedEventArgs e)
 
 
             BtnOpenDownloadsFolder_Click(sender, e);
-
-
-
         }
 
-
-
         #endregion
 
-
-
         #endregion
-
-
 
     }
-
-
 
 }
 

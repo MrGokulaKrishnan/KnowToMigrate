@@ -269,12 +269,6 @@ namespace KnowToMigrate.Services
         public long TotalBytesTransferred { get; set; }
     }
 
-    public enum TransferDirection
-    {
-        Sending,
-        Receiving
-    }
-
     public enum TransferStatus
     {
         Idle,
@@ -327,6 +321,7 @@ namespace KnowToMigrate.Services
         public string TransportType { get; set; } = "Wi-Fi (LAN)";
         public string FinalizedFilePath { get; set; } = string.Empty;
         public string FinalizedFileName { get; set; } = string.Empty;
+        public string FinalizedSha256 { get; set; } = string.Empty;
 
         public double Percentage => TotalBytes > 0 ? Math.Min(100.0, (double)BytesTransferred / TotalBytes * 100.0) : 0.0;
         public long RemainingBytes => Math.Max(0L, TotalBytes - BytesTransferred);
@@ -375,7 +370,7 @@ namespace KnowToMigrate.Services
         public string ConnectionQuality { get; set; } = "Excellent";
         public double LatencyMs { get; set; } = 2.4;
         public bool IsEncrypted { get; set; } = false; // Transport encryption is not implemented yet
-        public bool IsIntegrityVerified { get; set; } = true;
+        public bool IsIntegrityVerified { get; set; } = false;
         public List<TransferQueueItem> QueueItems { get; set; } = new();
     }
 

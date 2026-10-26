@@ -345,6 +345,8 @@ namespace KnowToMigrate.Services
 
                         progress.FinalizedFilePath = fullTargetPath;
                         progress.FinalizedFileName = Path.GetFileName(fullTargetPath);
+                        progress.FinalizedSha256 = computedSha;
+                        progress.IsIntegrityVerified = true;
 
                         await SendLengthPrefixedJsonAsync(stream, new KtmFileComplete
                         {
