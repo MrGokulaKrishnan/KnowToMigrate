@@ -1210,7 +1210,7 @@
 
                                                             <Ellipse Width="6" Height="6" Fill="#22C55E" Margin="0,0,6,0" VerticalAlignment="Center" />
 
-                                                            <TextBlock x:Name="TxtIntelligenceTransport" Text="Pluto Auto · Wi-Fi LAN" FontSize="11" FontWeight="SemiBold" Foreground="#FF8A00" VerticalAlignment="Center" />
+                                                            <TextBlock x:Name="TxtIntelligenceTransport" Text="Transit Auto · Wi-Fi LAN" FontSize="11" FontWeight="SemiBold" Foreground="#FF8A00" VerticalAlignment="Center" />
 
                                                         </StackPanel>
 

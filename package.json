@@ -14,7 +14,7 @@
     "test": "npm run test --workspaces --if-present",
     "web:dev": "npm --workspace=@knowtomigrate/website run dev",
     "web:build": "npm --workspace=@knowtomigrate/website run build",
-    "test:transfer-sim": "node packages/core-engine/dist/tests/run_mock_transfer.js"
+    "test:transfer-sim": "node packages/transit-engine/dist/tests/run_mock_transfer.js"
   },
   "keywords": [
     "file-sharing",

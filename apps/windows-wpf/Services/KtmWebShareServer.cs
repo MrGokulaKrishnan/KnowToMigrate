@@ -375,7 +375,7 @@ namespace KnowToMigrate.Services
                 <input type='file' id='fileInput' style='display:none' multiple onchange='handleFiles(this.files)' />
                 <div style='font-size: 32px; margin-bottom: 8px;'>+</div>
                 <div style='font-size: 14px; font-weight: 600; margin-bottom: 4px;'>Tap to Select Files to Upload</div>
-                <div style='font-size: 11px; color: var(--text-sub);'>Any format · Encrypted over local Wi-Fi · Zero Cloud</div>
+                <div style='font-size: 11px; color: var(--text-sub);'>Any format · Local Wi-Fi only · No cloud</div>
             </div>
             <div class='progress-box' id='progressBox'>
                 <div class='progress-bar-wrap'>
@@ -399,7 +399,7 @@ namespace KnowToMigrate.Services
         </section>
 
         <footer class='footer'>
-            KnowToMigrate Pluto Engine · Zero-Install Cross-Platform Web Portal
+            KnowToMigrate Transit Engine · Zero-Install Cross-Platform Web Portal
         </footer>
     </div>
 

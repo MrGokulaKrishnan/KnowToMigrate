@@ -17,7 +17,7 @@ namespace KnowToMigrate.Services
 
         public List<string> LocalSupportedTransports => new()
         {
-            KtmTransportCodes.PlutoAuto,
+            KtmTransportCodes.TransitAuto,
             KtmTransportCodes.WifiLan,
             KtmTransportCodes.WifiDirect,
             KtmTransportCodes.Bluetooth
@@ -47,7 +47,7 @@ namespace KnowToMigrate.Services
         }
 
         /// <summary>
-        /// Probes Wi-Fi LAN reachability and measures real round-trip socket latency for Pluto Auto scoring.
+        /// Probes Wi-Fi LAN reachability and measures real round-trip socket latency for Transit Auto scoring.
         /// </summary>
         public async Task<bool> ProbeWifiLanReachabilityAsync(DiscoveredDevice target, int timeoutMs = 800)
         {
@@ -97,8 +97,8 @@ namespace KnowToMigrate.Services
         }
 
         /// <summary>
-        /// Evaluates target device capabilities and selects the BEST transport under Pluto Auto:
-        /// 1. Wi-Fi LAN (Pluto Auto): When direct TCP connects (Fastest: 50-120+ MB/s, 0 negotiation overhead).
+        /// Evaluates target device capabilities and selects the BEST transport under Transit Auto:
+        /// 1. Wi-Fi LAN (Transit Auto): When direct TCP connects (Fastest: 50-120+ MB/s, 0 negotiation overhead).
         /// 2. Wi-Fi Direct: When on separate subnets, AP client isolation, or outdoor (High speed: 30-80 MB/s).
         /// 3. Bluetooth: Fallback when Wi-Fi is disabled (1-2 MB/s).
         /// </summary>
@@ -110,7 +110,7 @@ namespace KnowToMigrate.Services
 
             if (lanReachable && target.SupportedTransports.Contains(KtmTransportCodes.WifiLan))
             {
-                target.BestTransport = KtmTransportCodes.PlutoAuto;
+                target.BestTransport = KtmTransportCodes.TransitAuto;
                 target.ActiveTransport = KtmTransportCodes.WifiLan;
                 return KtmTransportCodes.WifiLan;
             }
@@ -136,7 +136,7 @@ namespace KnowToMigrate.Services
             }
 
             // Default
-            target.BestTransport = KtmTransportCodes.PlutoAuto;
+            target.BestTransport = KtmTransportCodes.TransitAuto;
             target.ActiveTransport = KtmTransportCodes.WifiLan;
             return KtmTransportCodes.WifiLan;
         }

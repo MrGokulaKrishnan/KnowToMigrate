@@ -28,6 +28,29 @@ const vc = version.versionCode
 const releaseDate = version.publishedAt.slice(0, 10)
 
 // Public file name (what users and the apps request) -> stored file (served via a rewrite).
+if (process.argv.includes('--literals')) {
+  // Needs no binaries, so main-branch CI can run it. Fails only on hardcoded release versions.
+  const VL = /KnowToMigrate[\s-]?\d+\.\d+\.\d+|-\d+\.\d+\.\d+\.(apk|exe|msi)\b/
+  const sources = []
+  const collect = (dir) => {
+    for (const name of readdirSync(dir)) {
+      const p = join(dir, name)
+      if (statSync(p).isDirectory()) { if (!['node_modules', 'generated', 'dist'].includes(name)) collect(p) }
+      else if (/\.(tsx?|jsx?)$/.test(name)) sources.push(p)
+    }
+  }
+  collect(join(ROOT, 'apps/website/src'))
+  const hits = []
+  for (const f of sources) readFileSync(f, 'utf8').split('\n').forEach((l, i) => { if (VL.test(l)) hits.push(`${relative(ROOT, f)}:${i + 1}: ${l.trim()}`) })
+  if (hits.length) {
+    console.error('Hardcoded release version in website source. Use RELEASE from src/generated/release.ts:')
+    for (const h of hits) console.error('  ' + h)
+    process.exit(1)
+  }
+  console.log('No hardcoded release versions in website source.')
+  process.exit(0)
+}
+
 const ARTIFACTS = {
   winSetup: { raw: 'KnowToMigrate-Setup.exe' },
   winMsi:   { raw: `KnowToMigrate-${v}-x64.msi` },

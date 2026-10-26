@@ -1,0 +1,7 @@
+#!/bin/sh
+# Gradle wrapper launcher. Runs the committed gradle/wrapper/gradle-wrapper.jar.
+# Regenerate the full wrapper with: gradle wrapper --gradle-version 8.10.2
+set -e
+APP_HOME=$(cd "$(dirname "$0")" && pwd -P)
+if [ -n "$JAVA_HOME" ]; then JAVACMD="$JAVA_HOME/bin/java"; else JAVACMD=java; fi
+exec "$JAVACMD" -Xmx64m -Xms64m -classpath "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain "$@"

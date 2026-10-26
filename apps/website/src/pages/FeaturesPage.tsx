@@ -47,7 +47,7 @@ const features = [
   {
     icon: Lock,
     title: 'Direct Local Transfer',
-    description: 'Files stream directly over your local Wi-Fi or Ethernet network without cloud servers or intermediaries, verified end-to-end with SHA-256 chunk digests.',
+    description: 'Files stream directly over your local Wi-Fi or Ethernet network without cloud servers or intermediaries, verified with SHA-256 chunk digests.',
     badge: 'Security',
   },
   {

@@ -40,3 +40,7 @@ apps/android/.kotlin/
 *.jks
 *.keystore
 scratch/
+
+# Release binaries are produced by CI (release.yml), never committed
+apps/website/public/download/
+artifacts/

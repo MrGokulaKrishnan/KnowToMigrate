@@ -52,7 +52,7 @@ namespace KnowToMigrate.Services
         public string Status { get; set; } = "Complete"; // "Complete", "Cancelled", "Failed"
         public DateTime TimestampUtc { get; set; } = DateTime.UtcNow;
         public string Sha256 { get; set; } = "";
-        public string Transport { get; set; } = "Pluto Direct";
+        public string Transport { get; set; } = "Transit Direct";
         public string? FilePath { get; set; } = null;
 
         [JsonIgnore]

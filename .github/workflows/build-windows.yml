@@ -1,113 +1,26 @@
-name: Build Windows App
+# Windows CI on every change: restore and build both projects. Release binaries come from release.yml.
+name: Windows CI
 
 on:
   push:
-    branches: [ main ]
-    tags: [ 'v*' ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-windows-app:
-    name: Build Windows MSI & EXE
+  build:
+    name: Build app and updater
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup .NET 8
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-
-      - name: Install WiX Toolset
-        run: dotnet tool install --global wix
-
-      - name: Extract Project Version
-        id: get_version
-        shell: pwsh
-        run: |
-          $ver = (Get-Content version.json -Raw | ConvertFrom-Json).version
-          Write-Host "Detected project version: $ver"
-          "VERSION=$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-
-      - name: Restore NuGet packages
-        run: |
-          dotnet restore apps/windows-wpf/KnowToMigrate.csproj
-          dotnet restore apps/windows-updater/KnowToMigrate.Updater.csproj
-
-      - name: Build Windows App & Updater
+      - name: Build
         run: |
           dotnet build apps/windows-wpf/KnowToMigrate.csproj -c Release
           dotnet build apps/windows-updater/KnowToMigrate.Updater.csproj -c Release
-
-      - name: Publish self-contained EXE & Updater
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path releases/windows/publish
-          dotnet publish apps/windows-wpf/KnowToMigrate.csproj `
-            -c Release -r win-x64 `
-            --self-contained true `
-            -p:PublishSingleFile=true `
-            -p:EnableCompressionInSingleFile=true `
-            -o releases/windows/publish/
-
-          dotnet publish apps/windows-updater/KnowToMigrate.Updater.csproj `
-            -c Release -r win-x64 `
-            --self-contained true `
-            -p:PublishSingleFile=true `
-            -p:EnableCompressionInSingleFile=true `
-            -o releases/windows/publish/
-
-      - name: Stage Release EXE
-        shell: pwsh
-        run: |
-          $ver = "${{ steps.get_version.outputs.VERSION }}"
-          Copy-Item releases/windows/publish/KnowToMigrate.exe "releases/windows/KnowToMigrate-$ver-x64.exe" -Force
-          Copy-Item releases/windows/publish/KnowToMigrate.exe "releases/windows/KnowToMigrate-Setup.exe" -Force
-
-      - name: Build MSI Installer
-        shell: pwsh
-        run: |
-          $ver = "${{ steps.get_version.outputs.VERSION }}"
-          wix build Package.wxs -o "releases/windows/KnowToMigrate-$ver-x64.msi"
-
-      - name: Compute SHA-256 Checksums
-        shell: pwsh
-        run: |
-          $ver = "${{ steps.get_version.outputs.VERSION }}"
-          $exePath = "releases/windows/KnowToMigrate-$ver-x64.exe"
-          $msiPath = "releases/windows/KnowToMigrate-$ver-x64.msi"
-          
-          if (Test-Path $exePath) {
-            $exeHash = (Get-FileHash $exePath -Algorithm SHA256).Hash.ToLowerInvariant()
-            $exeHash | Out-File "$exePath.sha256" -NoNewline
-            Write-Host "EXE SHA256 ($exePath): $exeHash"
-          }
-          if (Test-Path $msiPath) {
-            $msiHash = (Get-FileHash $msiPath -Algorithm SHA256).Hash.ToLowerInvariant()
-            $msiHash | Out-File "$msiPath.sha256" -NoNewline
-            Write-Host "MSI SHA256 ($msiPath): $msiHash"
-          }
-
-      - name: Upload Windows Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: KnowToMigrate-Windows-Release
-          path: |
-            releases/windows/KnowToMigrate-*-x64.exe
-            releases/windows/KnowToMigrate-*-x64.exe.sha256
-            releases/windows/KnowToMigrate-*-x64.msi
-            releases/windows/KnowToMigrate-*-x64.msi.sha256
-            releases/windows/KnowToMigrate-Setup.exe
-
-      - name: Create GitHub Release (on tag)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            releases/windows/KnowToMigrate-*-x64.exe
-            releases/windows/KnowToMigrate-*-x64.exe.sha256
-            releases/windows/KnowToMigrate-*-x64.msi
-            releases/windows/KnowToMigrate-*-x64.msi.sha256
-            releases/windows/KnowToMigrate-Setup.exe
-          generate_release_notes: true

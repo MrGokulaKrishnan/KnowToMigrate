@@ -18,7 +18,7 @@ Task 49 — Establish persistent work state, checkpoints, and automated resumpti
 
 ## Completed Tasks
 - [x] **CHECKPOINT 01 — Project Audit & Monorepo Setup**
-  - Archived legacy TypeScript prototype to `archive/core-engine-ts/`.
+  - Archived legacy TypeScript prototype to `archive/transit-engine-ts/`.
   - Structured production monorepo: `apps/windows-wpf`, `apps/android`, `apps/website`, `releases/`, `design/`.
 - [x] **CHECKPOINT 02 — Design Tokens & Branding Uniformity**
   - Generated unified design tokens in `design/tokens/tokens.json`.

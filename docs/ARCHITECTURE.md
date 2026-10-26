@@ -15,7 +15,7 @@
 |  - Mobile (Android): Kotlin + Jetpack Compose + Foreground Service      |
 |  - Web Receiver: Zero-install WebRTC DataChannel + Web Crypto API       |
 +-------------------------------------------------------------------------+
-|  Domain & Core Protocol Engine (@knowtomigrate/core-engine)             |
+|  Domain & Core Protocol Engine (@knowtomigrate/transit-engine)             |
 |  - Chunking Engine: 8MB streaming with positional I/O & backpressure    |
 |  - Cryptographic Engine: AES-256-GCM + ECDH/X25519 + SHA-256 Merkle     |
 |  - State Machine: Event-driven session lifecycle & progress emitter     |
@@ -36,7 +36,7 @@
 ## 2. Directory Monorepo Layout
 
 - `packages/protocol-types`: Type definitions, message enums, manifests, and checkpoints.
-- `packages/core-engine`: High-performance streaming chunker, crypto, discovery, and TCP server/client.
+- `packages/transit-engine`: High-performance streaming chunker, crypto, discovery, and TCP server/client.
 - `packages/design-system`: Liquid Glass AMOLED tokens, gradients, and component styles.
 - `apps/desktop`: Full desktop client application with Home, Send, Receive, Transfer, Migration, History, and Settings views.
 - `apps/android`: Complete Android native Kotlin project with Share Sheet intent filters and background sync service.

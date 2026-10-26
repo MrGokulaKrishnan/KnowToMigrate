@@ -68,7 +68,7 @@ android {
 }
 
 tasks.configureEach {
-    if ((name.startsWith("assemble") || name.startsWith("bundle")) && name.contains("Release")) {
+    if (name == "assembleRelease" || name == "bundleRelease" || name == "packageRelease") {
         doFirst {
             val ks = android.signingConfigs.getByName("release")
             check(ks.storeFile?.exists() == true && !ks.storePassword.isNullOrBlank() && !ks.keyPassword.isNullOrBlank()) {

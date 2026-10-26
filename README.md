@@ -30,7 +30,7 @@
 KnowToMigrate/
 ├── packages/
 │   ├── protocol-types/    # KTM v2 binary and JSON framed message definitions
-│   ├── core-engine/       # Streaming chunker, AES-256-GCM crypto, UDP discovery, TCP server/client
+│   ├── transit-engine/       # Streaming chunker, AES-256-GCM crypto, UDP discovery, TCP server/client
 │   └── design-system/     # Liquid Glass tokens, KM orange palette, and animations
 ├── apps/
 │   ├── windows-wpf/       # Native Windows desktop app (WPF / .NET 8 C# + Win32 Mica/Acrylic)

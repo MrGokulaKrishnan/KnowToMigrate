@@ -67,7 +67,7 @@ namespace KnowToMigrate.Services
                 Direction = TransferDirection.Sending,
                 Status = TransferStatus.Connecting,
                 StartTimeMs = startMs,
-                IsEncrypted = true,
+                IsEncrypted = false,
                 IsIntegrityVerified = true
             };
             _currentProgress = progress;
@@ -232,7 +232,7 @@ namespace KnowToMigrate.Services
 
                             if (token.IsCancellationRequested) break;
 
-                            // Pluto Adaptive Buffer Scaling:
+                            // Transit Adaptive Buffer Scaling:
                             // Dynamic scaling: 1 MB on high-speed connections, 64 KB on degraded/BT, 256 KB default
                             int targetChunkSize = KtmConstants.DefaultChunkSize;
                             if (progress.SpeedMBps > 45.0)

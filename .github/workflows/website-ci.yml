@@ -1,0 +1,28 @@
+# Runs on every change to the website. Never deploys.
+name: Website CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: Type-check, build, and release-version guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/website/package-lock.json
+      - name: Install
+        working-directory: apps/website
+        run: npm ci
+      - name: No hardcoded release versions
+        run: node scripts/release/site-release.mjs --literals
+      - name: Build
+        working-directory: apps/website
+        run: npm run build

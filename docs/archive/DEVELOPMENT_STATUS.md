@@ -13,7 +13,7 @@
 | :--- | :--- |
 | **PROJECT** | KnowToMigrate |
 | **CURRENT VERSION** | 1.0.6 |
-| **WINDOWS STACK** | C# / .NET 8.0 WPF (`apps/windows-wpf/KnowToMigrate.csproj`), single-file self-contained `win-x64`, custom WindowChrome, Pluto Engine v2 (TCP 54124, UDP 54123) |
+| **WINDOWS STACK** | C# / .NET 8.0 WPF (`apps/windows-wpf/KnowToMigrate.csproj`), single-file self-contained `win-x64`, custom WindowChrome, Transit Engine v2 (TCP 54124, UDP 54123) |
 | **INSTALLER** | WiX Toolset v4 Enterprise MSI (`Package.wxs`) + C# Setup Bootstrapper (`apps/windows-setup/SetupBootstrapper.cs`). Native MajorUpgrade configured via `UpgradeCode="C8B72D32-1594-4F77-8E82-7AC4E7D01A4B"` |
 | **STANDALONE UPDATER** | `KnowToMigrate.Updater.exe` (55.5 KB, C# Native WinForms, zero-dependency, self-relocates to `%TEMP%`, enforces SHA-256 verification, manages parent PID exit, executes WiX MajorUpgrade / msiexec, with rollback guard) |
 | **ANDROID STACK** | Kotlin + Jetpack Compose (Material3 + Custom Liquid Glass Design System), Compile SDK 35, Min SDK 26, Gradle 8.7 (`apps/android`), In-app Update Center in `SettingsScreen.kt` |
@@ -35,7 +35,7 @@ KnowToMigrate (v1.0.0)
    │
    ├─► [Update Now] selected:
    │      │
-   │      ├─ Check if Pluto Engine is actively transferring (if active: prompt [Update After Transfer])
+   │      ├─ Check if Transit Engine is actively transferring (if active: prompt [Update After Transfer])
    │      │
    │      ├─ Resumable / secure download to %LOCALAPPDATA%\KnowToMigrate\Updates\pending\
    │      │

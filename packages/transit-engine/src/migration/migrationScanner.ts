@@ -100,7 +100,7 @@ export class MigrationScanner {
       hasSufficientSpace,
       safetyMarginBytes,
       estimatedDurationSeconds,
-      recommendedTransport: 'Direct Wi-Fi 6 P2P (Pluto Engine)'
+      recommendedTransport: 'Direct Wi-Fi 6 P2P (Transit Engine)'
     };
   }
 }

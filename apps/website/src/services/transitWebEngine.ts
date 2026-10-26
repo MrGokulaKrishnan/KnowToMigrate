@@ -28,7 +28,7 @@ export interface TransferSessionProgress {
 
 export type ProgressListener = (progress: TransferSessionProgress) => void;
 
-export class WebTransferEngine {
+export class TransitWebEngine {
   private static readonly DEFAULT_CHUNK_SIZE = 8 * 1024 * 1024; // 8 MB
 
   private sessionId: string = '';

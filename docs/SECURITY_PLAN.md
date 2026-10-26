@@ -141,9 +141,9 @@ To eliminate the risk of AES-GCM nonce collision across millions of chunks:
   - `apps/android/app/src/main/java/com/knowtomigrate/app/network/KtmTransferServer.kt`
   - `apps/android/app/src/main/java/com/knowtomigrate/app/network/KtmTransferClient.kt`
 - **Core Engine (TypeScript):**
-  - `packages/core-engine/src/crypto/cipher.ts`
-  - `packages/core-engine/src/crypto/ecdh.ts`
-  - `packages/core-engine/src/protocol/framing.ts`
+  - `packages/transit-engine/src/crypto/cipher.ts`
+  - `packages/transit-engine/src/crypto/ecdh.ts`
+  - `packages/transit-engine/src/protocol/framing.ts`
 
 ---
 

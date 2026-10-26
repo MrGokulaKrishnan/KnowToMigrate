@@ -65,7 +65,7 @@ const FEATURES = [
   { icon: Shield,      title: 'Direct Local Transfer',     desc: 'High-speed peer-to-peer file transfer directly across your local Wi-Fi without cloud routing or external intermediaries.' },
   { icon: CheckCircle, title: 'SHA-256 Integrity',         desc: 'Every chunk carries a SHA-256 digest. A Merkle root over all chunks is verified after transfer completes on both sides.' },
   { icon: Lock,        title: 'No Account Required',       desc: 'No sign-up, no email, no cloud account. Device identity is a locally-generated keypair stored on your device.' },
-  { icon: Smartphone,  title: 'Android Native App',        desc: 'Kotlin + Jetpack Compose. JNI bridge to the Rust core library (libktm_ffi.so). Foreground service for background receiving.' },
+  { icon: Smartphone,  title: 'Android Native App',        desc: 'Kotlin + Jetpack Compose. Foreground service for background receiving.' },
   { icon: Monitor,     title: 'Windows Native App',        desc: 'WinUI 3 + C# with P/Invoke to ktm_ffi.dll. AMOLED-black design system, native window chrome, system tray support planned.' },
 ]
 

@@ -5,7 +5,7 @@ export const RELEASE = {
   "publishedAt": "2026-10-26T07:19:05Z",
   "releaseDate": "2026-10-26",
   "releaseNotes": [
-    "Pluto Auto Smart Transfer Engine with dynamic latency profiling and automated transport selection",
+    "Transit Auto Smart Transfer Engine with dynamic latency profiling and automated transport selection",
     "Adaptive Transfer streaming with dynamic buffer scaling (64 KB to 1 MB) and resilient retry",
     "Native Pause, Resume, and Interruption Recovery without re-transmitting verified chunks",
     "Real-Time Transfer Intelligence with hardware-accelerated data particle stream and BLAKE3 badging",

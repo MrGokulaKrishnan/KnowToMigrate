@@ -1,75 +1,31 @@
-name: Build Android App
+# Android CI on every change: unit tests and a debug build. No secrets needed.
+name: Android CI
 
 on:
   push:
-    branches: [ main ]
-    tags: [ 'v*' ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-apk:
-    name: Build Android Release APK
+  build:
+    name: Test and debug build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Run Unit Tests
+          distribution: temurin
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+      - name: Unit tests
         working-directory: apps/android
-        run: |
-          chmod +x gradlew
-          ./gradlew test --no-daemon
-
-      - name: Build Release APK
+        run: ./gradlew test --no-daemon
+      - name: Debug build
         working-directory: apps/android
-        env:
-          KTM_KEYSTORE_PATH: ${{ secrets.KTM_KEYSTORE_PATH }}
-          KTM_KEYSTORE_PASSWORD: ${{ secrets.KTM_KEYSTORE_PASSWORD }}
-          KTM_KEY_ALIAS: ${{ secrets.KTM_KEY_ALIAS }}
-          KTM_KEY_PASSWORD: ${{ secrets.KTM_KEY_PASSWORD }}
-        run: |
-          ./gradlew assembleRelease --no-daemon
-
-      - name: Extract Project Version
-        id: get_version
-        run: |
-          VERSION=$(jq -r .version version.json)
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Stage Release Artifacts
-        run: |
-          VERSION="${{ steps.get_version.outputs.VERSION }}"
-          mkdir -p releases/android
-          APK_SRC=$(find apps/android/app/build/outputs/apk/ -name "*.apk" | head -n 1)
-          cp "$APK_SRC" "releases/android/KnowToMigrate-${VERSION}.apk"
-          cd releases/android
-          sha256sum "KnowToMigrate-${VERSION}.apk" > "KnowToMigrate-${VERSION}.apk.sha256"
-          echo "APK SHA-256 Checksum:"
-          cat "KnowToMigrate-${VERSION}.apk.sha256"
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: KnowToMigrate-Android-Release
-          path: |
-            releases/android/KnowToMigrate-*.apk
-            releases/android/KnowToMigrate-*.apk.sha256
-
-      - name: Create GitHub Release (on tag)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            releases/android/KnowToMigrate-*.apk
-            releases/android/KnowToMigrate-*.apk.sha256
-          generate_release_notes: true
+        run: ./gradlew assembleDebug --no-daemon

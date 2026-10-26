@@ -26,14 +26,14 @@ namespace KnowToMigrate.Services
 
     public static class KtmTransportCodes
     {
-        public const string PlutoAuto = "PLUTO_AUTO";
+        public const string TransitAuto = "TRANSIT_AUTO";
         public const string WifiLan = "WIFI_LAN";
         public const string WifiDirect = "WIFI_DIRECT";
         public const string Bluetooth = "BLUETOOTH";
 
         public static string GetDisplayName(string code) => code switch
         {
-            PlutoAuto => "Pluto Auto",
+            TransitAuto => "Transit Auto",
             WifiLan => "Wi-Fi LAN",
             WifiDirect => "Wi-Fi Direct",
             Bluetooth => "Bluetooth",
@@ -42,7 +42,7 @@ namespace KnowToMigrate.Services
 
         public static string GetSpeedRating(string code) => code switch
         {
-            PlutoAuto => "80-120+ MB/s",
+            TransitAuto => "80-120+ MB/s",
             WifiLan => "50-120+ MB/s",
             WifiDirect => "30–80 MB/s",
             Bluetooth => "1–2 MB/s",
@@ -374,7 +374,7 @@ namespace KnowToMigrate.Services
         public bool IsPaused { get; set; }
         public string ConnectionQuality { get; set; } = "Excellent";
         public double LatencyMs { get; set; } = 2.4;
-        public bool IsEncrypted { get; set; } = true;
+        public bool IsEncrypted { get; set; } = false; // Transport encryption is not implemented yet
         public bool IsIntegrityVerified { get; set; } = true;
         public List<TransferQueueItem> QueueItems { get; set; } = new();
     }

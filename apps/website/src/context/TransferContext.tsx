@@ -7,7 +7,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { FileValidator, ValidatedFileItem } from '../services/fileValidator';
 import { StorageService, StoredTransferRecord, StoredSettings } from '../services/storageService';
-import { WebTransferEngine, TransferSessionProgress } from '../services/webTransferEngine';
+import { TransitWebEngine, TransferSessionProgress } from '../services/transitWebEngine';
 
 interface TransferContextValue {
   selectedFiles: ValidatedFileItem[];
@@ -83,7 +83,7 @@ export const TransferProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [history, setHistory] = useState<StoredTransferRecord[]>(() => StorageService.getTransferHistory());
   const [settings, setSettings] = useState<StoredSettings>(() => StorageService.getSettings());
 
-  const engine = useMemo(() => new WebTransferEngine(settings.chunkSizeMB), [settings.chunkSizeMB]);
+  const engine = useMemo(() => new TransitWebEngine(settings.chunkSizeMB), [settings.chunkSizeMB]);
 
   useEffect(() => {
     const unsubscribe = engine.subscribe((progress) => {

@@ -1,5 +1,5 @@
 {
-  "name": "@knowtomigrate/core-engine",
+  "name": "@knowtomigrate/transit-engine",
   "version": "2.0.0",
   "description": "Cross-platform high-throughput file transfer & migration engine with chunked streaming, AES-256-GCM, and SHA-256 Merkle verification",
   "main": "dist/index.js",

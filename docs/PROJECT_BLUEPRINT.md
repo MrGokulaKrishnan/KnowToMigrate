@@ -11,7 +11,7 @@
 1. [Executive Summary & Core Philosophy](#1-executive-summary--core-philosophy)
 2. [End-to-End System Architecture Blueprint](#2-end-to-end-system-architecture-blueprint)
 3. [Exhaustive Tech Stack Breakdown (By Subsystem)](#3-exhaustive-tech-stack-breakdown-by-subsystem)
-   - [3.1 Pluto Transfer Engine (Rust Core)](#31-pluto-transfer-engine-rust-core)
+   - [3.1 Transit Transfer Engine (Rust Core)](#31-transit-transfer-engine-rust-core)
    - [3.2 Windows Native Client (C# / .NET 8 / WPF)](#32-windows-native-client-c--net-8--wpf)
    - [3.3 Windows Independent Updater & Setup Bootstrapper](#33-windows-independent-updater--setup-bootstrapper)
    - [3.4 Android Native Client (Kotlin / Jetpack Compose)](#34-android-native-client-kotlin--jetpack-compose)
@@ -54,7 +54,7 @@ It empowers users to seamlessly transfer entire device file structures—includi
            |                                                      |
            |====== Preflight Capacity Check & Manifest ===========| (Storage Headroom)
            |                                                      |
-           |====== Pluto Engine 8MB Streaming Chunks (Port 54124)=| (Positional I/O)
+           |====== Transit Engine 8MB Streaming Chunks (Port 54124)=| (Positional I/O)
            |                                                      |
            |====== SHA-256 Merkle Verification & Audit Log =======| (Ledger Entry)
            v                                                      v
@@ -65,7 +65,7 @@ It empowers users to seamlessly transfer entire device file structures—includi
 
 ### Core Architectural Pillars
 1. **Offline Sovereignty:** Discovery and transfers execute over local Wi-Fi LAN, Wi-Fi Direct, or ad-hoc local sockets without pinging any external cloud server.
-2. **Pluto Engine Throughput:** High-speed streaming engine utilizing 8MB dynamic chunking, positional disk I/O, asynchronous backpressure, and zero full-file RAM buffering, achieving physical network saturation (80–110 MB/s over standard Wi-Fi 6).
+2. **Transit Engine Throughput:** High-speed streaming engine utilizing 8MB dynamic chunking, positional disk I/O, asynchronous backpressure, and zero full-file RAM buffering, achieving physical network saturation (80–110 MB/s over standard Wi-Fi 6).
 3. **Zero-Trust Cryptographic Integrity:** Every packet is framed with a 50-byte binary header, validated with CRC32, encrypted with AES-256-GCM, and audited post-transfer via a SHA-256 Merkle tree.
 4. **Resilience & Fault Tolerance:** Automatic checkpointing using bitset chunk persistence allows interrupted transfers of 100+ GB folders to resume instantaneously from the exact missing chunk without re-transmitting completed data.
 5. **Unified Liquid Glass AMOLED Aesthetics:** A consistent visual language across all platforms featuring pure AMOLED `#000000` pitch black, vibrant brand orange gradients (`#FF4D00` to `#FF8A00`), real-time Gaussian blurs, and gloss card textures.
@@ -82,9 +82,9 @@ flowchart TD
         WEB["Universal Web Receiver<br/>(React 18 / TypeScript / Tailwind)"]
     end
 
-    subgraph CoreEngineLayer["Pluto Engine & Core Protocol Layer"]
+    subgraph CoreEngineLayer["Transit Engine & Core Protocol Layer"]
         RUST["Rust Core Engine (ktm-ffi / libktm)<br/>Memory-Safe Streaming Core"]
-        CS_ENGINE["Managed C# Transfer Engine<br/>High-Speed Sockets & Pluto Auto"]
+        CS_ENGINE["Managed C# Transfer Engine<br/>High-Speed Sockets & Transit Auto"]
         KT_ENGINE["Managed Kotlin Engine<br/>Coroutines & Foreground Service"]
     end
 
@@ -95,7 +95,7 @@ flowchart TD
         PATHGUARD["PathGuard Directory Traversal Guard"]
     end
 
-    subgraph TransportLayer["Transport & Network Routing (Pluto Auto)"]
+    subgraph TransportLayer["Transport & Network Routing (Transit Auto)"]
         UDP_DISC["UDP Broadcast / Multicast Discovery<br/>Port 54123"]
         TCP_TRANS["Direct TCP Framing Stream<br/>Port 54124"]
         HTTP_SHARE["Lightweight Embedded Web Share Server<br/>Port 54125"]
@@ -123,10 +123,10 @@ flowchart TD
 
 ## 3. Exhaustive Tech Stack Breakdown (By Subsystem)
 
-### 3.1 Pluto Transfer Engine (Rust Core)
+### 3.1 Transit Transfer Engine (Rust Core)
 *Located at `c:\KnowToMigrate\core\`*
 
-The Pluto Transfer Engine core is structured as a multi-crate Rust workspace designed for zero-overhead execution, predictable nanosecond latency, SIMD-accelerated cryptography, and cross-platform compilation to dynamic shared libraries (`ktm_ffi.dll` on Windows and `libktm.so` on Android).
+The Transit Transfer Engine core is structured as a multi-crate Rust workspace designed for zero-overhead execution, predictable nanosecond latency, SIMD-accelerated cryptography, and cross-platform compilation to dynamic shared libraries (`ktm_ffi.dll` on Windows and `libktm.so` on Android).
 
 | Sub-Crate | Primary Purpose | Key Dependencies & Rust Crates |
 | :--- | :--- | :--- |
@@ -237,7 +237,7 @@ The public face and download portal for KnowToMigrate is a lightning-fast Single
 - **Pages:**
   - `HomePage.tsx`: Hero visualizer, animated data streams, interactive platform overview.
   - `DownloadPage.tsx`: Live download cards with real-time SHA-256 checksums, byte sizes, and architecture specifications.
-  - `FeaturesPage.tsx`: In-depth breakdown of Pluto Engine, Migration Missions, and Security Center.
+  - `FeaturesPage.tsx`: In-depth breakdown of Transit Engine, Migration Missions, and Security Center.
   - `DocsPage.tsx`: Step-by-step user onboarding and protocol documentation.
 - **Edge Deployment:** Hosted on Firebase Hosting edge CDN with HTTP/2, automated Gzip/Brotli compression, and immutable cache-control headers for static assets.
 
@@ -474,7 +474,7 @@ c:\KnowToMigrate\
 │   │   │   ├── src\main\
 │   │   │   │   ├── java\com\knowtomigrate\app\
 │   │   │   │   │   ├── data\       # Room DB, TransferRecord, KtmPreferences
-│   │   │   │   │   ├── network\    # Discovery, Transfer Server/Client, Pluto Engine
+│   │   │   │   │   ├── network\    # Discovery, Transfer Server/Client, Transit Engine
 │   │   │   │   │   ├── service\    # Foreground Transfer Service (WakeLock/WifiLock)
 │   │   │   │   │   ├── ui\         # Jetpack Compose Screens, Theme, Components
 │   │   │   │   │   └── updater\    # Android PackageInstaller Self-Updater
@@ -499,12 +499,12 @@ c:\KnowToMigrate\
 │   ├── windows-updater\            # Native C# 55KB Zero-Dependency Updater
 │   └── windows-wpf\                # Active Windows Native Production Application
 │       ├── Assets\                 # Icons, logos, and acoustic wave files
-│       ├── Services\               # Discovery, Pluto Engine, Web Share, Tray, Update
+│       ├── Services\               # Discovery, Transit Engine, Web Share, Tray, Update
 │       ├── Views\                  # IncomingTransferWindow, Dialogs
 │       ├── App.xaml / .cs          # Application lifecycle and resource dictionaries
 │       ├── MainWindow.xaml / .cs   # Primary Liquid Glass AMOLED UI
 │       └── KnowToMigrate.csproj    # .NET 8 WPF Project Definition
-├── core\                           # Rust Pluto Core Engine (Cargo Workspace)
+├── core\                           # Rust Transit Core Engine (Cargo Workspace)
 │   ├── ktm-crypto\                 # AES-256-GCM, X25519 ECDH, SHA-256 Merkle tree
 │   ├── ktm-discovery\              # UDP beacon broadcast & discovery service
 │   ├── ktm-ffi\                    # C-ABI export headers & dynamic library wrapper
@@ -523,7 +523,7 @@ c:\KnowToMigrate\
 │   ├── SECURITY.md                 # Threat model and cryptographic audit
 │   └── PROJECT_BLUEPRINT.md        # This master blueprint and technical deep-dive
 ├── packages\                       # Monorepo Shared TypeScript Packages
-│   ├── core-engine\                # TypeScript core engine reference implementation
+│   ├── transit-engine\                # TypeScript core engine reference implementation
 │   ├── design-system\              # Shared CSS design system tokens
 │   └── protocol-types\             # Shared TypeScript protocol and message types
 ├── relay\                          # Fallback Encrypted Zero-Knowledge Relay Server
