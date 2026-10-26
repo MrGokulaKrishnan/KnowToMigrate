@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -100,6 +100,7 @@ namespace KnowToMigrate.Services
 
         public void Start()
         {
+            KtmNativeBridge.Initialize();
             DiscoveryService.Start();
             TransferServer.Start();
         }
@@ -108,12 +109,17 @@ namespace KnowToMigrate.Services
         {
             DiscoveryService.Stop();
             TransferServer.Stop();
+            KtmNativeBridge.Shutdown();
         }
 
         public async Task<string> EvaluateTargetTransportAsync(DiscoveredDevice target)
         {
             return await KtmTransportManager.Instance.EvaluateAndSelectBestTransportAsync(target);
         }
+
+        public void PauseTransfer() => TransferClient.Pause();
+        public void ResumeTransfer() => TransferClient.Resume();
+        public bool IsTransferPaused => TransferClient.IsPaused;
 
         public async Task<bool> SendFilesAsync(DiscoveredDevice target, IReadOnlyList<string> files, string? forcedTransport = null, CancellationToken token = default)
         {

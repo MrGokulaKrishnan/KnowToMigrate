@@ -8,9 +8,7 @@ package com.knowtomigrate.app.ui.screens
 
 import android.content.Context
 import android.net.Uri
-import android.net.wifi.WifiManager
 import android.os.Build
-import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -71,17 +69,29 @@ fun ReceiveScreen(navController: NavController) {
         }
     }
 
-    // Local IP address detection
+    // Local IP address detection using modern NetworkInterface (no deprecated WifiInfo APIs)
     val localIpAddress = remember {
         try {
-            val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
-            val ipInt = wifiManager?.connectionInfo?.ipAddress ?: 0
-            if (ipInt != 0) {
-                @Suppress("DEPRECATION")
-                Formatter.formatIpAddress(ipInt)
-            } else {
-                "192.168.1.10"
+            var foundIp: String? = null
+            val interfaces = java.net.NetworkInterface.getNetworkInterfaces()
+            if (interfaces != null) {
+                while (interfaces.hasMoreElements() && foundIp == null) {
+                    val nif = interfaces.nextElement()
+                    if (nif.isLoopback || !nif.isUp) continue
+                    val addrs = nif.inetAddresses
+                    while (addrs.hasMoreElements()) {
+                        val addr = addrs.nextElement()
+                        if (!addr.isLoopbackAddress && addr is java.net.Inet4Address) {
+                            val host = addr.hostAddress
+                            if (!host.isNullOrBlank() && !host.startsWith("127.")) {
+                                foundIp = host
+                                break
+                            }
+                        }
+                    }
+                }
             }
+            foundIp ?: "192.168.1.10"
         } catch (_: Exception) {
             "192.168.1.10"
         }

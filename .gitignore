@@ -39,3 +39,4 @@ tests/**/obj/
 apps/android/.kotlin/
 *.jks
 *.keystore
+scratch/

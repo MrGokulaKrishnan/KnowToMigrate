@@ -2,6 +2,7 @@ package com.knowtomigrate.app.ui.components
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,6 +26,8 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import com.knowtomigrate.app.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
@@ -865,32 +868,14 @@ fun KmCheckIcon(
 fun KmMonogramLogo(
     modifier: Modifier = Modifier
 ) {
-    Box(
+    Image(
+        painter = painterResource(id = R.drawable.logo),
+        contentDescription = "KnowToMigrate",
         modifier = modifier
             .size(44.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(
-                Brush.linearGradient(
-                    listOf(Color(0xFFFF4D00), Color(0xFFFF5A00), Color(0xFFFF8A00))
-                )
-            )
-            .drawBehind {
-                drawLine(
-                    color = Color(0x73FFFFFF),
-                    start = Offset(8.dp.toPx(), 1.dp.toPx()),
-                    end = Offset(size.width - 8.dp.toPx(), 1.dp.toPx()),
-                    strokeWidth = 1.dp.toPx()
-                )
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "KM",
-            color = Color(0xFF0A0A0A),
-            fontSize = 17.sp,
-            fontWeight = FontWeight.ExtraBold
-        )
-    }
+            .border(1.dp, Color(0x33FF5A00), RoundedCornerShape(12.dp))
+    )
 }
 
 @Composable

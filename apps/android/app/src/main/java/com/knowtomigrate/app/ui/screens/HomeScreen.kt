@@ -20,6 +20,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,6 +46,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -108,29 +110,15 @@ fun HomeScreen(
                         .padding(top = 4.dp, bottom = 2.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // KM Monogram (40x40 dp)
-                    Box(
+                    // Official KnowToMigrate Logo (40x40 dp)
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = stringResource(R.string.app_name),
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(KmRadii.Button))
-                            .background(KmBrandGradient)
-                            .drawBehind {
-                                drawLine(
-                                    color = Color(0x73FFFFFF),
-                                    start = Offset(0f, 1.dp.toPx()),
-                                    end = Offset(size.width, 1.dp.toPx()),
-                                    strokeWidth = 1.dp.toPx()
-                                )
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "KM",
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 16.sp,
-                            color = KmTextOnGradient
-                        )
-                    }
+                            .border(1.dp, Color(0x33FF5A00), RoundedCornerShape(KmRadii.Button))
+                    )
 
                     Spacer(modifier = Modifier.width(12.dp))
 

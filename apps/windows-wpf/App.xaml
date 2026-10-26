@@ -83,12 +83,12 @@
         </LinearGradientBrush>
 
         <!-- ── Geometries (Clean Vector Icons) ────────────────────────────── -->
-        <Geometry x:Key="KmIconHome">M 3,11 L 12,3 L 21,11 L 21,20 A 1,1 0 0 1 20,21 L 15,21 L 15,15 L 9,15 L 9,21 L 4,21 A 1,1 0 0 1 3,20 Z</Geometry>
+        <Geometry x:Key="KmIconHome">M 3,9 L 12,2 L 21,9 V 20 A 2,2 0 0 1 19,22 H 5 A 2,2 0 0 1 3,20 Z M 9,22 V 12 H 15 V 22</Geometry>
         <Geometry x:Key="KmIconSend">M 22,2 L 11,13 M 22,2 L 15,22 L 11,13 L 2,9 Z</Geometry>
-        <Geometry x:Key="KmIconReceive">M 12,3 L 12,15 M 7,10 L 12,15 L 17,10 M 4,21 L 20,21</Geometry>
-        <Geometry x:Key="KmIconMigrate">M 4,7 L 17,7 L 14,4 M 20,17 L 7,17 L 10,20</Geometry>
+        <Geometry x:Key="KmIconReceive">M 21,15 V 19 A 2,2 0 0 1 19,21 H 5 A 2,2 0 0 1 3,19 V 15 M 7,10 L 12,15 L 17,10 M 12,15 V 3</Geometry>
+        <Geometry x:Key="KmIconMigrate">M 8,3 L 4,7 L 8,11 M 4,7 H 20 M 16,21 L 20,17 L 16,13 M 20,17 H 4</Geometry>
         <Geometry x:Key="KmIconHistory">M 3,12 A 9,9 0 1 0 6,5.3 M 3,4 L 3,9 L 8,9 M 12,7 L 12,12 L 15,14</Geometry>
-        <Geometry x:Key="KmIconSettings">M 12,9 A 3,3 0 1 0 12,15 A 3,3 0 1 0 12,9 M 12,2 L 12,5 M 12,19 L 12,22 M 2,12 L 5,12 M 19,12 L 22,12 M 4.9,4.9 L 7,7 M 17,17 L 19.1,19.1 M 4.9,19.1 L 7,17 M 17,7 L 19.1,4.9</Geometry>
+        <Geometry x:Key="KmIconSettings">M 12.22,2 h -0.44 a 2,2 0 0 0 -2,2 v 0.18 a 2,2 0 0 1 -1,1.73 l -0.43,0.25 a 2,2 0 0 1 -2,0 l -0.15,-0.08 a 2,2 0 0 0 -2.73,0.73 l -0.22,0.38 a 2,2 0 0 0 0.73,2.73 l 0.15,0.1 a 2,2 0 0 1 1,1.72 v 0.51 a 2,2 0 0 1 -1,1.74 l -0.15,0.09 a 2,2 0 0 0 -0.73,2.73 l 0.22,0.38 a 2,2 0 0 0 2.73,0.73 l 0.15,-0.08 a 2,2 0 0 1 2,0 l 0.43,0.25 a 2,2 0 0 1 1,1.73 V 20 a 2,2 0 0 0 2,2 h 0.44 a 2,2 0 0 0 2,-2 v -0.18 a 2,2 0 0 1 1,-1.73 l 0.43,-0.25 a 2,2 0 0 1 2,0 l 0.15,0.08 a 2,2 0 0 0 2.73,-0.73 l 0.22,-0.39 a 2,2 0 0 0 -0.73,-2.73 l -0.15,-0.08 a 2,2 0 0 1 -1,-1.74 v -0.5 a 2,2 0 0 1 1,-1.74 l 0.15,-0.09 a 2,2 0 0 0 0.73,-2.73 l -0.22,-0.38 a 2,2 0 0 0 -2.73,-0.73 l -0.15,0.08 a 2,2 0 0 1 -2,0 l -0.43,-0.25 a 2,2 0 0 1 -1,-1.73 V 4 a 2,2 0 0 0 -2,-2 Z M 12,15 a 3,3 0 1 1 0,-6 3,3 0 0 1 0,6 Z</Geometry>
         <Geometry x:Key="KmIconFile">M 14,2 L 6,2 A 2,2 0 0 0 4,4 L 4,20 A 2,2 0 0 0 6,22 L 18,22 A 2,2 0 0 0 20,20 L 20,8 Z M 14,2 L 14,8 L 20,8</Geometry>
         <Geometry x:Key="KmIconDevice">M 3,6 A 2,2 0 0 1 5,4 L 19,4 A 2,2 0 0 1 21,6 L 21,14 A 2,2 0 0 1 19,16 L 5,16 A 2,2 0 0 1 3,14 Z M 9,20 L 15,20 M 12,16 L 12,20</Geometry>
         <Geometry x:Key="KmIconCheck">M 5,12 L 10,17 L 19,7</Geometry>
