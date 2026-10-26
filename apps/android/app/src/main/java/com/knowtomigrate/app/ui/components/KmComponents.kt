@@ -26,6 +26,9 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.res.painterResource
 import com.knowtomigrate.app.R
 import androidx.compose.ui.text.font.FontWeight
@@ -884,6 +887,19 @@ fun KmRadarWidget(
     size: Dp = 64.dp
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var isScreenVisible by remember { mutableStateOf(true) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            isScreenVisible = event.targetState.isAtLeast(Lifecycle.State.RESUMED)
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     val isReduceMotion = remember {
         try {
             android.provider.Settings.Global.getFloat(
@@ -896,8 +912,10 @@ fun KmRadarWidget(
         }
     }
 
+    val shouldAnimate = !isReduceMotion && isScreenVisible
+
     val transition = rememberInfiniteTransition(label = "radar")
-    val anim1 by if (isReduceMotion) remember { mutableFloatStateOf(0.7f) } else transition.animateFloat(
+    val anim1 by if (!shouldAnimate) remember { mutableFloatStateOf(0.7f) } else transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -906,7 +924,7 @@ fun KmRadarWidget(
         ),
         label = "ring1"
     )
-    val anim2 by if (isReduceMotion) remember { mutableFloatStateOf(0.45f) } else transition.animateFloat(
+    val anim2 by if (!shouldAnimate) remember { mutableFloatStateOf(0.45f) } else transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -915,7 +933,7 @@ fun KmRadarWidget(
         ),
         label = "ring2"
     )
-    val anim3 by if (isReduceMotion) remember { mutableFloatStateOf(0.2f) } else transition.animateFloat(
+    val anim3 by if (!shouldAnimate) remember { mutableFloatStateOf(0.2f) } else transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(

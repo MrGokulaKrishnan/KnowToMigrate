@@ -366,13 +366,17 @@ fun ReceiveScreen(navController: NavController) {
                             text = saveFolder,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = KmTextPrimary
+                            color = KmTextPrimary,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "Saved files show in Downloads and Files",
                             fontSize = 12.sp,
-                            color = KmTextMuted
+                            color = KmTextMuted,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
                     }
 
@@ -446,6 +450,10 @@ fun ReceiveScreen(navController: NavController) {
                             ReceiveDetailItem(
                                 label = "Device ID",
                                 value = "android-${Build.MODEL.lowercase().replace(' ', '-')}"
+                            )
+                            ReceiveDetailItem(
+                                label = "Save path",
+                                value = saveFolder
                             )
                             ReceiveDetailItem(
                                 label = "Local IP",

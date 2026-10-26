@@ -219,7 +219,7 @@ class UpdateManager private constructor(private val context: Context) {
     }
 
     private fun verifySha256(file: File, expectedHash: String): Boolean {
-        if (expectedHash.isBlank()) return true // No hash provided on manifest
+        if (expectedHash.isBlank()) return false // No hash provided on manifest
         return try {
             val digest = MessageDigest.getInstance("SHA-256")
             file.inputStream().use { fis ->

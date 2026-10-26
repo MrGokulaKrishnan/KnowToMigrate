@@ -84,6 +84,20 @@ fun SendScreen(
     var showIpDialog by remember { mutableStateOf(false) }
     var customIpInput by remember { mutableStateOf("") }
     var isAdvancedExpanded by remember { mutableStateOf(false) }
+    var discoveryTimedOut by remember { mutableStateOf(false) }
+    var discoveryAttempt by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(discoveredDevices.size, discoveryAttempt) {
+        if (discoveredDevices.isEmpty()) {
+            discoveryTimedOut = false
+            kotlinx.coroutines.delay(30_000L)
+            if (discoveredDevices.isEmpty()) {
+                discoveryTimedOut = true
+            }
+        } else {
+            discoveryTimedOut = false
+        }
+    }
 
     // Auto-select first discovered device if none is selected
     LaunchedEffect(discoveredDevices) {
@@ -238,7 +252,9 @@ fun SendScreen(
                                                 text = file.name,
                                                 fontSize = 12.sp,
                                                 color = KmTextPrimary,
-                                                maxLines = 1
+                                                maxLines = 1,
+                                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                                modifier = Modifier.widthIn(max = 160.dp)
                                             )
                                             Spacer(modifier = Modifier.width(6.dp))
                                             Box(
@@ -308,37 +324,80 @@ fun SendScreen(
                 }
 
                 if (discoveredDevices.isEmpty()) {
-                    // Spinner row while looking for devices
                     item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(KmRadii.ListRow))
-                                .background(KmGlassBackground)
-                                .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.ListRow))
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(22.dp),
-                                strokeWidth = 2.5.dp,
-                                color = KmOrange,
-                                trackColor = Color(0x1AFFFFFF)
-                            )
-                            Spacer(modifier = Modifier.width(14.dp))
-                            Column {
-                                Text(
-                                    text = stringResource(R.string.status_looking_for_devices),
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = KmTextPrimary
+                        if (!discoveryTimedOut) {
+                            // Spinner row while looking for devices
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(KmRadii.ListRow))
+                                    .background(KmGlassBackground)
+                                    .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.ListRow))
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(22.dp),
+                                    strokeWidth = 2.5.dp,
+                                    color = KmOrange,
+                                    trackColor = Color(0x1AFFFFFF)
                                 )
-                                Text(
-                                    text = "Make sure the receiving device is on the same Wi-Fi.",
-                                    fontSize = 12.sp,
-                                    color = KmTextMuted,
-                                    modifier = Modifier.padding(top = 1.dp)
+                                Spacer(modifier = Modifier.width(14.dp))
+                                Column {
+                                    Text(
+                                        text = stringResource(R.string.status_looking_for_devices),
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = KmTextPrimary
+                                    )
+                                    Text(
+                                        text = "Make sure the receiving device is on the same Wi-Fi.",
+                                        fontSize = 12.sp,
+                                        color = KmTextMuted,
+                                        modifier = Modifier.padding(top = 1.dp)
+                                    )
+                                }
+                            }
+                        } else {
+                            // Timeout failure state with retry action
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(KmRadii.ListRow))
+                                    .background(KmGlassBackground)
+                                    .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.ListRow))
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.WifiOff,
+                                    contentDescription = null,
+                                    tint = KmTextMuted,
+                                    modifier = Modifier.size(22.dp)
                                 )
+                                Spacer(modifier = Modifier.width(14.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "No devices found",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = KmTextPrimary
+                                    )
+                                    Text(
+                                        text = "Check both devices are on the same Wi-Fi.",
+                                        fontSize = 12.sp,
+                                        color = KmTextMuted,
+                                        modifier = Modifier.padding(top = 1.dp)
+                                    )
+                                }
+                                TextButton(
+                                    onClick = {
+                                        discoveryAttempt++
+                                        manager.discoveryService.start()
+                                    }
+                                ) {
+                                    Text("Retry", color = KmOrange, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                     }

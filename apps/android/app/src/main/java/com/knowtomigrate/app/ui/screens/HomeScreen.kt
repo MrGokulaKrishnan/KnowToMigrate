@@ -75,6 +75,20 @@ fun HomeScreen(
     var showClipboardSheet by remember { mutableStateOf(false) }
     var clipboardText by remember { mutableStateOf("") }
     var clipboardStatusMsg by remember { mutableStateOf<String?>(null) }
+    var discoveryTimedOut by remember { mutableStateOf(false) }
+    var discoveryAttempt by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(discoveredDevices.size, discoveryAttempt) {
+        if (discoveredDevices.isEmpty()) {
+            discoveryTimedOut = false
+            kotlinx.coroutines.delay(30_000L)
+            if (discoveredDevices.isEmpty()) {
+                discoveryTimedOut = true
+            }
+        } else {
+            discoveryTimedOut = false
+        }
+    }
     val clipboardManager = remember {
         context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
     }
@@ -236,18 +250,57 @@ fun HomeScreen(
 
                         Column(modifier = Modifier.weight(1f)) {
                             val count = discoveredDevices.size
-                            Text(
-                                text = if (count == 0) stringResource(R.string.status_looking_for_devices) else "$count device${if (count > 1) "s" else ""} nearby",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = KmTextPrimary
-                            )
-                            Text(
-                                text = if (count == 0) "Make sure both devices are on the same Wi-Fi." else "Ready for secure peer transfer.",
-                                fontSize = 12.sp,
-                                color = KmTextMuted,
-                                modifier = Modifier.padding(top = 2.dp)
-                            )
+                            if (count > 0) {
+                                Text(
+                                    text = "$count device${if (count > 1) "s" else ""} nearby",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = KmTextPrimary
+                                )
+                                Text(
+                                    text = "Ready for secure peer transfer.",
+                                    fontSize = 12.sp,
+                                    color = KmTextMuted,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                            } else if (!discoveryTimedOut) {
+                                Text(
+                                    text = stringResource(R.string.status_looking_for_devices),
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = KmTextPrimary
+                                )
+                                Text(
+                                    text = "Make sure both devices are on the same Wi-Fi.",
+                                    fontSize = 12.sp,
+                                    color = KmTextMuted,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                            } else {
+                                Text(
+                                    text = "No devices found",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = KmTextPrimary
+                                )
+                                Text(
+                                    text = "Check both devices are on the same Wi-Fi.",
+                                    fontSize = 12.sp,
+                                    color = KmTextMuted,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                            }
+                        }
+
+                        if (discoveredDevices.isEmpty() && discoveryTimedOut) {
+                            TextButton(
+                                onClick = {
+                                    discoveryAttempt++
+                                    manager.discoveryService.start()
+                                }
+                            ) {
+                                Text("Retry", color = KmOrange, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
                         }
                     }
                 }
@@ -393,7 +446,10 @@ fun HomeScreen(
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = stringResource(R.string.empty_nearby_devices),
+                            text = if (discoveryTimedOut)
+                                "No devices found on your network. Check both devices are connected to the same Wi-Fi and have KnowToMigrate open."
+                            else
+                                stringResource(R.string.empty_nearby_devices),
                             fontSize = 13.sp,
                             color = KmTextMuted
                         )
@@ -526,59 +582,61 @@ fun HomeScreen(
                 }
             }
 
-            // ── 6. Collapsed Clipboard Row (Tapping opens Bottom Sheet) ───────────
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(KmRadii.ListRow))
-                        .background(KmGlassBackground)
-                        .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.ListRow))
-                        .clickable { showClipboardSheet = true }
-                        .padding(14.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+            // ── 6. Collapsed Clipboard Row (Only visible when a paired device is discovered) ───────────
+            if (discoveredDevices.isNotEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(KmRadii.ListRow))
+                            .background(KmGlassBackground)
+                            .border(1.dp, KmGlassBorder, RoundedCornerShape(KmRadii.ListRow))
+                            .clickable { showClipboardSheet = true }
+                            .padding(14.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(KmRadii.Button))
-                                .background(Color(0x0FFFFFFF)),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(KmRadii.Button))
+                                    .background(Color(0x0FFFFFFF)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ContentPaste,
+                                    contentDescription = null,
+                                    tint = KmTextPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.nav_clipboard),
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = KmTextPrimary
+                                )
+                                Text(
+                                    text = "Share text with your PC",
+                                    fontSize = 12.sp,
+                                    color = KmTextMuted,
+                                    modifier = Modifier.padding(top = 1.dp)
+                                )
+                            }
+
                             Icon(
-                                imageVector = Icons.Default.ContentPaste,
-                                contentDescription = null,
-                                tint = KmTextPrimary,
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = "Open",
+                                tint = KmTextMuted,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
-
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.nav_clipboard),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = KmTextPrimary
-                            )
-                            Text(
-                                text = "Share text with your PC",
-                                fontSize = 12.sp,
-                                color = KmTextMuted,
-                                modifier = Modifier.padding(top = 1.dp)
-                            )
-                        }
-
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Open",
-                            tint = KmTextMuted,
-                            modifier = Modifier.size(18.dp)
-                        )
                     }
                 }
             }
