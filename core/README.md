@@ -13,11 +13,8 @@ This directory contains the native Rust workspace for KnowToMigrate, providing h
 
 ---
 
-## ktm_ffi.dll Status
+## Native Engine Architecture
 
-The precompiled binary `ktm_ffi.dll` is checked into `apps/windows-wpf/` for the following reasons:
-1. **Zero Native Build Toolchain Dependency for .NET Developers**: Building the WPF client does not require developers or standard CI runners to install a full Rust/Cargo/LLVM toolchain or MSVC C++ build tools on Windows.
-2. **Deterministic Binary Linkage**: Ensures consistent P/Invoke symbols and ABI compatibility with the managed C# interop wrapper across both development and build machines.
-
-### Binary Deletion Policy
-**Note:** `apps/windows-wpf/ktm_ffi.dll` and `apps/windows-setup` are preserved per project safety constraints. **Only the repository owner decides on the retention, deletion, or dynamic compilation of checked-in native binaries.**
+Per architectural decision on October 27, 2026:
+1. **Windows WPF**: Runs on 100% native managed C# (.NET 8) with zero-allocation socket streaming and asynchronous pipelines. The unused `ktm_ffi.dll` binary has been retired from `apps/windows-wpf/`, eliminating native P/Invoke dependencies and MinGW linker requirements.
+2. **Rust Core (`core/`)**: Retained in the repository as the single-source-of-truth reference implementation for cross-platform unified engine work, targeting standard `x86_64-pc-windows-msvc`.

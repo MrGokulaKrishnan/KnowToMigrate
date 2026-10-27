@@ -102,7 +102,6 @@ namespace KnowToMigrate.Services
 
         public void Start()
         {
-            KtmNativeBridge.Initialize();
             DiscoveryService.Start();
             TransferServer.Start();
         }
@@ -111,7 +110,6 @@ namespace KnowToMigrate.Services
         {
             DiscoveryService.Stop();
             TransferServer.Stop();
-            KtmNativeBridge.Shutdown();
         }
 
         public async Task<string> EvaluateTargetTransportAsync(DiscoveredDevice target)

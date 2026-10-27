@@ -6,7 +6,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>KnowToMigrate.Setup</RootNamespace>
-    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <NoWarn>$(NoWarn);CA1416;CS8618</NoWarn>
     <Platforms>x64</Platforms>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
@@ -15,6 +18,7 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <ApplicationIcon>..\windows-wpf\Assets\KnowToMigrate.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyName>KnowToMigrate-Setup</AssemblyName>
     <Product>KnowToMigrate Setup</Product>
     <Company>KnowTheTech</Company>
@@ -29,7 +33,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="SetupBootstrapper.cs" />
+    <Compile Remove="App.xaml.cs;MainWindow.xaml.cs" />
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Remove="MainWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>

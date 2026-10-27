@@ -56,13 +56,6 @@
                 KeyPath="yes" />
         </Component>
 
-        <Component Id="NativeBridgeComponent" Bitness="always64" Guid="F1A2B3C4-D5E6-7F8A-9B0C-1D2E3F4A5B6C">
-          <File Id="KtmFfiDLL"
-                Name="ktm_ffi.dll"
-                Source="releases\windows\publish\ktm_ffi.dll"
-                KeyPath="yes" />
-        </Component>
-
         <Directory Id="AssetsFolder" Name="Assets">
           <Component Id="AppAssets" Bitness="always64" Guid="D1E2F3A4-B5C6-7D8E-9F0A-1B2C3D4E5F6A">
             <File Id="AppIconFile" Name="KnowToMigrate.ico" Source="apps\windows-wpf\Assets\KnowToMigrate.ico" KeyPath="yes" />
@@ -119,7 +112,6 @@
     <Feature Id="Main" Title="KnowToMigrate Application" Level="1">
       <ComponentRef Id="MainExecutable" />
       <ComponentRef Id="UpdaterExecutable" />
-      <ComponentRef Id="NativeBridgeComponent" />
       <ComponentRef Id="AppAssets" />
       <ComponentRef Id="StartMenuShortcutComponent" />
       <ComponentRef Id="DesktopShortcutComponent" />

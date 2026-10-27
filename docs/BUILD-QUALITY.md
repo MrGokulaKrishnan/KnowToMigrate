@@ -7,12 +7,10 @@
 | `apps/website/public/prototype.html` | 40 KB served publicly | moved to `design/` | Design prototype should not be on the public site |
 | One-off scripts (4) | — | deleted | They rewrote source files from a hard-coded `c:\` path |
 | Root status docs (6) | about 60 KB | `docs/archive/` | Overlapping, out of date |
-| `apps/windows-wpf/ktm_ffi.dll` | 853 KB | kept | Loaded at startup for a version label only; see decision below |
+| `apps/windows-wpf/ktm_ffi.dll` | 853 KB | removed | Retired in favor of native .NET 8 engine; P/Invoke bridge eliminated |
 
-## Decision needed: `ktm_ffi.dll`
-The Windows app loads this DLL at startup and calls only `ktm_init` and `ktm_get_version`. The discovery and transfer functions it exports are never called. Choose one:
-- Keep it, and build it from `core/` in CI (`cargo build --release -p ktm-ffi`), then delete the committed copy. Needs a Rust toolchain in the Windows job, and the build has not been verified here.
-- Remove it, along with `KtmNativeBridge.cs`, and show "Core version: built-in" in Settings.
+## Resolved: `ktm_ffi.dll`
+Removed `ktm_ffi.dll` and `KtmNativeBridge.cs`. The Windows WPF application runs on pure native .NET 8 managed sockets and cryptographic services without external native DLL dependencies. The Rust workspace in `core/` remains preserved for future shared-core work targeting MSVC.
 
 ## Pipeline next steps
 1. Add a test job that runs `dotnet test tests/KtmIntegrationTests` and the Android unit tests. Both exist but no workflow runs them.
