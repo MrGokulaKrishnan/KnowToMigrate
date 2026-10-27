@@ -81,6 +81,18 @@ namespace KnowToMigrate.Setup
                     {
                         if (string.IsNullOrEmpty(a)) continue;
                         string lower = a.ToLowerInvariant();
+                        if (lower.Contains("--layout-check") || lower.Contains("/layout-check") || lower.Contains("-layout-check"))
+                        {
+                            try
+                            {
+                                return SetupForm.RunLayoutCheck();
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("[FATAL] Layout check failed with error: " + ex);
+                                return 1;
+                            }
+                        }
                         if (lower.Contains("/q") || lower.Contains("-q") || lower.Contains("quiet"))
                         {
                             isQuiet = true;
@@ -520,8 +532,9 @@ namespace KnowToMigrate.Setup
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
+            float scale = DeviceDpi / 96f;
+            int radius = (int)Math.Round(8 * scale);
             Rectangle r = new Rectangle(0, 0, Width - 1, Height - 1);
-            int radius = 8;
 
             if (!Enabled)
             {
@@ -540,7 +553,23 @@ namespace KnowToMigrate.Setup
                 return;
             }
 
-            if (_isPrimary)
+            if (_isDanger)
+            {
+                Color bg = _isPressed ? Color.FromArgb(153, 27, 27) : (_isHovered ? Color.FromArgb(220, 38, 38) : Color.FromArgb(185, 28, 28));
+                using (var path = SetupForm.CreateRoundedPath(r, radius))
+                {
+                    using (var brush = new SolidBrush(bg))
+                    {
+                        g.FillPath(brush, path);
+                    }
+                    using (var pen = new Pen(Color.FromArgb(248, 113, 113), 1f))
+                    {
+                        g.DrawPath(pen, path);
+                    }
+                }
+                TextRenderer.DrawText(g, Text, Font, r, Color.White, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            }
+            else if (_isPrimary)
             {
                 Color cTop = _isPressed ? Color.FromArgb(204, 55, 0) : (_isHovered ? Color.FromArgb(255, 96, 20) : Color.FromArgb(255, 77, 0));
                 Color cBottom = _isPressed ? Color.FromArgb(255, 106, 0) : (_isHovered ? Color.FromArgb(255, 160, 64) : Color.FromArgb(255, 138, 0));
@@ -558,22 +587,6 @@ namespace KnowToMigrate.Setup
                 }
 
                 TextRenderer.DrawText(g, Text, Font, r, Color.FromArgb(10, 10, 10), TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-            }
-            else if (_isDanger)
-            {
-                Color bg = _isPressed ? Color.FromArgb(153, 27, 27) : (_isHovered ? Color.FromArgb(220, 38, 38) : Color.FromArgb(185, 28, 28));
-                using (var path = SetupForm.CreateRoundedPath(r, radius))
-                {
-                    using (var brush = new SolidBrush(bg))
-                    {
-                        g.FillPath(brush, path);
-                    }
-                    using (var pen = new Pen(Color.FromArgb(248, 113, 113), 1f))
-                    {
-                        g.DrawPath(pen, path);
-                    }
-                }
-                TextRenderer.DrawText(g, Text, Font, r, Color.White, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             }
             else
             {
@@ -600,6 +613,13 @@ namespace KnowToMigrate.Setup
     public class ModernCheckBox : CheckBox
     {
         private bool _isHovered;
+        private string _helperText;
+
+        public string HelperText
+        {
+            get { return _helperText; }
+            set { _helperText = value; Invalidate(); }
+        }
 
         public ModernCheckBox()
         {
@@ -614,17 +634,40 @@ namespace KnowToMigrate.Setup
         protected override void OnMouseLeave(EventArgs e) { _isHovered = false; Invalidate(); base.OnMouseLeave(e); }
         protected override void OnCheckedChanged(EventArgs e) { Invalidate(); base.OnCheckedChanged(e); }
 
+        public int CalculateHeight(int width, float currentScale)
+        {
+            int s(int v) => (int)Math.Round(v * currentScale);
+            int boxSize = s(18);
+            int textWidth = width - (boxSize + s(10));
+            if (textWidth <= 0) return s(36);
+
+            Size mainSize = SetupForm.MeasureWrapped(Text, Font, textWidth);
+            int totalHeight = mainSize.Height;
+            if (!string.IsNullOrEmpty(_helperText))
+            {
+                using (var helperFont = new Font(Font.FontFamily, 8.5f, FontStyle.Regular))
+                {
+                    Size helperSize = SetupForm.MeasureWrapped(_helperText, helperFont, textWidth);
+                    totalHeight += helperSize.Height + s(4);
+                }
+            }
+            return Math.Max(s(36), totalHeight + s(8));
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
-            int boxSize = 18;
-            int boxY = (Height - boxSize) / 2;
+            float scale = DeviceDpi / 96f;
+            int s(int v) => (int)Math.Round(v * scale);
+
+            int boxSize = s(18);
+            int boxY = s(2);
             Rectangle boxRect = new Rectangle(0, boxY, boxSize, boxSize);
 
-            using (var path = SetupForm.CreateRoundedPath(boxRect, 4))
+            using (var path = SetupForm.CreateRoundedPath(boxRect, s(4)))
             {
                 if (Checked)
                 {
@@ -636,12 +679,12 @@ namespace KnowToMigrate.Setup
                     {
                         g.DrawPath(pen, path);
                     }
-                    using (var penCheck = new Pen(Color.FromArgb(10, 10, 10), 2.2f))
+                    using (var penCheck = new Pen(Color.FromArgb(10, 10, 10), 2.2f * scale))
                     {
                         penCheck.StartCap = LineCap.Round;
                         penCheck.EndCap = LineCap.Round;
-                        g.DrawLine(penCheck, 4, boxY + 9, 7, boxY + 13);
-                        g.DrawLine(penCheck, 7, boxY + 13, 13, boxY + 5);
+                        g.DrawLine(penCheck, boxRect.Left + s(4), boxRect.Top + s(9), boxRect.Left + s(7), boxRect.Top + s(13));
+                        g.DrawLine(penCheck, boxRect.Left + s(7), boxRect.Top + s(13), boxRect.Left + s(14), boxRect.Top + s(5));
                     }
                 }
                 else
@@ -659,9 +702,26 @@ namespace KnowToMigrate.Setup
                 }
             }
 
-            Rectangle textRect = new Rectangle(boxSize + 10, 0, Width - (boxSize + 10), Height);
+            int textX = boxSize + s(10);
+            int textWidth = Width - textX;
+            if (textWidth <= 0) return;
+
             Color textColor = _isHovered ? Color.White : ForeColor;
-            TextRenderer.DrawText(g, Text, Font, textRect, textColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+            Size mainSize = SetupForm.MeasureWrapped(Text, Font, textWidth);
+            Rectangle mainRect = new Rectangle(textX, 0, textWidth, mainSize.Height);
+            SetupForm.DrawWrapped(g, Text, Font, textColor, mainRect);
+
+            if (!string.IsNullOrEmpty(_helperText))
+            {
+                using (var helperFont = new Font(Font.FontFamily, 8.5f, FontStyle.Regular))
+                {
+                    int helperY = mainSize.Height + s(3);
+                    Size helperSize = SetupForm.MeasureWrapped(_helperText, helperFont, textWidth);
+                    Rectangle helperRect = new Rectangle(textX, helperY, textWidth, helperSize.Height);
+                    Color helperColor = Color.FromArgb(161, 161, 170);
+                    SetupForm.DrawWrapped(g, _helperText, helperFont, helperColor, helperRect);
+                }
+            }
         }
     }
 
@@ -725,6 +785,9 @@ namespace KnowToMigrate.Setup
         private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
         [DllImport("user32.dll")]
         private static extern bool ReleaseCapture();
+        [DllImport("kernel32.dll")]
+        private static extern bool AttachConsole(int dwProcessId);
+        private const int ATTACH_PARENT_PROCESS = -1;
 
         protected override CreateParams CreateParams
         {
@@ -764,6 +827,30 @@ namespace KnowToMigrate.Setup
         private System.Windows.Forms.Timer _pulseTimer;
         private float _pulseAngle;
         private string _errorMessage = "";
+        private bool _isInitialized;
+
+        // DPI Scaling Helpers
+        private float CurrentScale => (DeviceDpi > 0) ? ((float)DeviceDpi / 96f) : 1.0f;
+        private int S(int v) => (int)Math.Round(v * CurrentScale);
+
+        // Cached Render Objects
+        private Bitmap _bgCache;
+        private PathGradientBrush _glowBrush;
+        private GraphicsPath _glowPath;
+        private Rectangle _glowRectangle;
+
+        // Scaled Fonts
+        private Font _fTitle;
+        private Font _fSub;
+        private Font _fStatus;
+        private Font _fDetail;
+        private Font _fTitleBar;
+        private Font _fPill;
+        private Font _fCardHeader;
+        private Font _fCardSub;
+        private Font _fWarnEx;
+        private Font _fWarnBig;
+        private Font _fWarnSub;
 
         public SetupForm(string[] args, bool startInUninstall)
         {
@@ -783,6 +870,29 @@ namespace KnowToMigrate.Setup
             {
                 SetStep(SetupStep.Welcome);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _pulseTimer?.Dispose();
+                _bgCache?.Dispose();
+                _glowBrush?.Dispose();
+                _glowPath?.Dispose();
+                _fTitle?.Dispose();
+                _fSub?.Dispose();
+                _fStatus?.Dispose();
+                _fDetail?.Dispose();
+                _fTitleBar?.Dispose();
+                _fPill?.Dispose();
+                _fCardHeader?.Dispose();
+                _fCardSub?.Dispose();
+                _fWarnEx?.Dispose();
+                _fWarnBig?.Dispose();
+                _fWarnSub?.Dispose();
+            }
+            base.Dispose(disposing);
         }
 
         private void LoadLogo()
@@ -824,65 +934,65 @@ namespace KnowToMigrate.Setup
             this.Text = "KnowToMigrate Setup";
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.ClientSize = new Size(560, 520);
+            this.AutoScaleMode = AutoScaleMode.None;
             this.BackColor = Color.FromArgb(9, 9, 11);
             this.ForeColor = Color.White;
             this.DoubleBuffered = true;
             this.ShowInTaskbar = true;
 
+            UpdateFonts(1.0f);
+
             // Header Title
             _lblHeaderTitle = new Label
             {
-                Font = new Font("Segoe UI", 16.5f, FontStyle.Bold),
+                Font = _fTitle,
                 ForeColor = Color.FromArgb(250, 250, 250),
                 BackColor = Color.Transparent,
-                Location = new Point(106, 66),
-                Size = new Size(420, 32),
-                Text = "KnowToMigrate"
+                Text = "KnowToMigrate",
+                AutoSize = false,
+                UseCompatibleTextRendering = false
             };
             this.Controls.Add(_lblHeaderTitle);
 
             // Header Subtitle
             _lblHeaderSubtitle = new Label
             {
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
+                Font = _fSub,
                 ForeColor = Color.FromArgb(161, 161, 170),
                 BackColor = Color.Transparent,
-                Location = new Point(106, 100),
-                Size = new Size(420, 22),
-                Text = "Move Anything. Anywhere. Seamlessly."
+                Text = "Move Anything. Anywhere. Seamlessly.",
+                AutoSize = false,
+                UseCompatibleTextRendering = false
             };
             this.Controls.Add(_lblHeaderSubtitle);
 
             // Status label (for Installing / Uninstalling progress)
             _lblStatus = new Label
             {
-                Font = new Font("Segoe UI", 11.0f, FontStyle.Bold),
+                Font = _fStatus,
                 ForeColor = Color.FromArgb(245, 245, 245),
                 BackColor = Color.Transparent,
-                Location = new Point(40, 190),
-                Size = new Size(480, 26),
-                Visible = false
+                Visible = false,
+                AutoSize = false,
+                UseCompatibleTextRendering = false
             };
             this.Controls.Add(_lblStatus);
 
             // Detail label
             _lblDetail = new Label
             {
-                Font = new Font("Segoe UI", 9.0f, FontStyle.Regular),
+                Font = _fDetail,
                 ForeColor = Color.FromArgb(161, 161, 170),
                 BackColor = Color.Transparent,
-                Location = new Point(40, 220),
-                Size = new Size(480, 44),
-                Visible = false
+                Visible = false,
+                AutoSize = false,
+                UseCompatibleTextRendering = false
             };
             this.Controls.Add(_lblDetail);
 
             // Progress Bar
             _progressBar = new ModernProgressBar
             {
-                Location = new Point(40, 275),
-                Size = new Size(480, 10),
                 Value = 0,
                 Visible = false
             };
@@ -892,27 +1002,21 @@ namespace KnowToMigrate.Setup
             _chkDesktop = new ModernCheckBox
             {
                 Text = "Create Desktop shortcut",
-                Checked = true,
-                Location = new Point(52, 255),
-                Size = new Size(450, 26)
+                Checked = true
             };
             this.Controls.Add(_chkDesktop);
 
             _chkStartMenu = new ModernCheckBox
             {
                 Text = "Add shortcut to Windows Start Menu",
-                Checked = true,
-                Location = new Point(52, 285),
-                Size = new Size(450, 26)
+                Checked = true
             };
             this.Controls.Add(_chkStartMenu);
 
             _chkLaunch = new ModernCheckBox
             {
                 Text = "Launch KnowToMigrate immediately after setup finishes",
-                Checked = true,
-                Location = new Point(52, 315),
-                Size = new Size(450, 26)
+                Checked = true
             };
             this.Controls.Add(_chkLaunch);
 
@@ -923,8 +1027,6 @@ namespace KnowToMigrate.Setup
                 Checked = true,
                 Font = new Font("Segoe UI", 10.0f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(255, 138, 0),
-                Location = new Point(52, 290),
-                Size = new Size(450, 28),
                 Visible = false
             };
             this.Controls.Add(_chkRunNow);
@@ -933,8 +1035,6 @@ namespace KnowToMigrate.Setup
             {
                 Text = "Create Desktop shortcut",
                 Checked = true,
-                Location = new Point(52, 324),
-                Size = new Size(450, 26),
                 Visible = false
             };
             this.Controls.Add(_chkFinishDesktop);
@@ -942,19 +1042,16 @@ namespace KnowToMigrate.Setup
             // Uninstall Checkbox
             _chkRemoveCache = new ModernCheckBox
             {
-                Text = "Remove local configuration, transfer history, and temporary cache",
+                Text = "Also remove settings, transfer history, and cache",
+                HelperText = "Turn this off if you plan to reinstall and keep your history.",
                 Checked = true,
-                Location = new Point(52, 280),
-                Size = new Size(450, 36),
                 Visible = false
             };
             this.Controls.Add(_chkRemoveCache);
 
-            // Primary Action Button ("Install Now" / "Finish" / "Uninstall Now")
+            // Primary Action Button ("Install Now" / "Finish" / "Uninstall")
             _btnPrimary = new ModernButton
             {
-                Size = new Size(130, 42),
-                Location = new Point(394, 452),
                 IsPrimary = true
             };
             _btnPrimary.Click += BtnPrimary_Click;
@@ -963,8 +1060,6 @@ namespace KnowToMigrate.Setup
             // Secondary Action Button ("Cancel" / "Close")
             _btnSecondary = new ModernButton
             {
-                Size = new Size(104, 42),
-                Location = new Point(278, 452),
                 Text = "Cancel"
             };
             _btnSecondary.Click += (s, e) => this.Close();
@@ -973,8 +1068,6 @@ namespace KnowToMigrate.Setup
             // Uninstall Link Button (Visible on Welcome if already installed)
             _btnUninstallLink = new ModernButton
             {
-                Size = new Size(174, 36),
-                Location = new Point(36, 455),
                 Text = "Uninstall KnowToMigrate",
                 IsDanger = false,
                 Visible = false
@@ -987,19 +1080,26 @@ namespace KnowToMigrate.Setup
             this.MouseMove += SetupForm_MouseMove;
             this.MouseClick += SetupForm_MouseClick;
 
-            // Smooth pulse timer for ambient glow
+            // Pulse timer for ambient radial glow (33ms interval, ~30 FPS)
             _pulseTimer = new System.Windows.Forms.Timer();
-            _pulseTimer.Interval = 35;
+            _pulseTimer.Interval = 33;
             _pulseTimer.Tick += (s, e) =>
             {
-                _pulseAngle += 0.05f;
-                if (_pulseAngle > 6.28f) _pulseAngle = 0;
-                this.Invalidate(new Rectangle(30, 58, 70, 70));
+                _pulseAngle += (float)(2 * Math.PI * 0.033 / 2.4);
+                if (_pulseAngle > (float)(2 * Math.PI)) _pulseAngle -= (float)(2 * Math.PI);
+                if (!_glowRectangle.IsEmpty)
+                {
+                    this.Invalidate(_glowRectangle);
+                }
             };
             _pulseTimer.Start();
+
+            _isInitialized = true;
+            ApplyLayout();
+            RebuildCachedBitmaps();
         }
 
-        private void SetStep(SetupStep step)
+        public void SetStep(SetupStep step)
         {
             _currentStep = step;
 
@@ -1077,7 +1177,7 @@ namespace KnowToMigrate.Setup
 
                     _btnPrimary.IsPrimary = false;
                     _btnPrimary.IsDanger = true;
-                    _btnPrimary.Text = "Uninstall Now";
+                    _btnPrimary.Text = "Uninstall";
                     _btnPrimary.Enabled = true;
 
                     _btnSecondary.Text = "Cancel";
@@ -1126,6 +1226,7 @@ namespace KnowToMigrate.Setup
                     break;
             }
 
+            ApplyLayout();
             this.Invalidate();
         }
 
@@ -1355,68 +1456,68 @@ namespace KnowToMigrate.Setup
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             g.CompositingQuality = CompositingQuality.HighQuality;
 
-            int w = this.Width;
-            int h = this.Height;
+            int w = this.ClientSize.Width;
+            int h = this.ClientSize.Height;
 
-            // 1. Base Pure AMOLED Black
-            using (var b = new SolidBrush(Color.FromArgb(9, 9, 11)))
+            // 1. Static Cached Background (AMOLED base, title bar fill, top accent, bottom separator, border)
+            if (_bgCache != null)
             {
-                g.FillRectangle(b, 0, 0, w, h);
+                g.DrawImageUnscaled(_bgCache, 0, 0);
             }
-
-            // 2. Custom Title Bar (Height: 46)
-            int titleBarH = 46;
-            using (var b = new SolidBrush(Color.FromArgb(14, 14, 18)))
+            else
             {
-                g.FillRectangle(b, 0, 0, w, titleBarH);
-            }
-            using (var pen = new Pen(Color.FromArgb(28, 28, 34), 1f))
-            {
-                g.DrawLine(pen, 0, titleBarH, w, titleBarH);
+                using (var b = new SolidBrush(Color.FromArgb(9, 9, 11)))
+                {
+                    g.FillRectangle(b, 0, 0, w, h);
+                }
             }
 
-            // Top edge brand gradient accent (2px)
-            using (var gradBrush = new LinearGradientBrush(new Rectangle(0, 0, w, 2), Color.FromArgb(255, 77, 0), Color.FromArgb(255, 138, 0), 0f))
-            {
-                g.FillRectangle(gradBrush, 0, 0, w, 2);
-            }
+            // 2. Custom Title Bar Elements
+            int titleBarH = S(46);
 
             // TitleBar Icon Badge
-            int iconBoxSize = 26;
-            int iconBoxX = 14;
+            int iconBoxSize = S(26);
+            int iconBoxX = S(14);
             int iconBoxY = (titleBarH - iconBoxSize) / 2;
             Rectangle iconBox = new Rectangle(iconBoxX, iconBoxY, iconBoxSize, iconBoxSize);
-            DrawRoundedRectangle(g, iconBox, 6, Color.FromArgb(20, 20, 24), Color.FromArgb(48, 48, 56), 1f);
+            DrawRoundedRectangle(g, iconBox, S(6), Color.FromArgb(20, 20, 24), Color.FromArgb(48, 48, 56), 1f);
             if (_logoImage != null)
             {
-                g.DrawImage(_logoImage, new Rectangle(iconBoxX + 3, iconBoxY + 3, iconBoxSize - 6, iconBoxSize - 6));
+                g.DrawImage(_logoImage, new Rectangle(iconBoxX + S(3), iconBoxY + S(3), iconBoxSize - S(6), iconBoxSize - S(6)));
             }
             else
             {
                 using (var f = new Font("Segoe UI", 8.0f, FontStyle.Bold))
                 using (var b = new SolidBrush(Color.FromArgb(255, 138, 0)))
                 {
-                    g.DrawString("KM", f, b, iconBoxX + 3, iconBoxY + 4);
+                    TextRenderer.DrawText(g, "KM", f, iconBox, Color.FromArgb(255, 138, 0), TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
                 }
             }
 
             // TitleBar Text & Version Pill
-            using (var fBold = new Font("Segoe UI", 9.5f, FontStyle.Bold))
+            int titleX = S(48);
+            Size titleSize = TextRenderer.MeasureText("KnowToMigrate Setup", _fTitleBar, Size.Empty, TextFormatFlags.NoPadding);
+            int titleY = (titleBarH - titleSize.Height) / 2;
             using (var bWhite = new SolidBrush(Color.FromArgb(245, 245, 245)))
             {
-                g.DrawString("KnowToMigrate Setup", fBold, bWhite, 48, 13);
+                g.DrawString("KnowToMigrate Setup", _fTitleBar, bWhite, titleX, titleY);
             }
 
-            // Version Badge Pill
-            Rectangle verPill = new Rectangle(204, 13, 108, 20);
-            DrawRoundedRectangle(g, verPill, 10, Color.FromArgb(28, 18, 12), Color.FromArgb(124, 45, 18), 1f);
-            using (var fPill = new Font("Segoe UI", 8.0f, FontStyle.Bold))
-            {
-                TextRenderer.DrawText(g, "v1.0.6 • Transit", fPill, verPill, Color.FromArgb(255, 138, 0), TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-            }
+            // Version Badge Pill ("v1.0.6")
+            string pillText = "v1.0.6";
+            Size pillTextSize = TextRenderer.MeasureText(pillText, _fPill, Size.Empty, TextFormatFlags.NoPadding);
+            int pillW = pillTextSize.Width + S(20);
+            int pillH = S(20);
+            int pillX = titleX + titleSize.Width + S(12);
+            int pillY = (titleBarH - pillH) / 2;
+            Rectangle verPill = new Rectangle(pillX, pillY, pillW, pillH);
+            DrawRoundedRectangle(g, verPill, S(10), Color.FromArgb(28, 18, 12), Color.FromArgb(124, 45, 18), 1f);
+            TextRenderer.DrawText(g, pillText, _fPill, verPill, Color.FromArgb(255, 138, 0), TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
 
             // Minimize Button
-            Rectangle minRect = new Rectangle(w - 90, 0, 44, titleBarH);
+            int minW = S(44);
+            int closeW = S(46);
+            Rectangle minRect = new Rectangle(w - minW - closeW, 0, minW, titleBarH);
             if (_isMinHovered)
             {
                 using (var b = new SolidBrush(Color.FromArgb(32, 32, 38)))
@@ -1426,11 +1527,11 @@ namespace KnowToMigrate.Setup
             }
             using (var pen = new Pen(Color.FromArgb(180, 180, 180), 1.5f))
             {
-                g.DrawLine(pen, w - 73, 24, w - 61, 24);
+                g.DrawLine(pen, minRect.Left + S(16), titleBarH / 2, minRect.Right - S(16), titleBarH / 2);
             }
 
             // Close Button
-            Rectangle closeRect = new Rectangle(w - 46, 0, 46, titleBarH);
+            Rectangle closeRect = new Rectangle(w - closeW, 0, closeW, titleBarH);
             if (_isCloseHovered)
             {
                 using (var b = new SolidBrush(Color.FromArgb(220, 38, 38)))
@@ -1440,78 +1541,100 @@ namespace KnowToMigrate.Setup
             }
             using (var pen = new Pen(_isCloseHovered ? Color.White : Color.FromArgb(180, 180, 180), 1.5f))
             {
-                int cx = w - 23;
-                int cy = 23;
-                g.DrawLine(pen, cx - 5, cy - 5, cx + 5, cy + 5);
-                g.DrawLine(pen, cx + 5, cy - 5, cx - 5, cy + 5);
+                int cx = closeRect.Left + closeW / 2;
+                int cy = titleBarH / 2;
+                int arm = S(5);
+                g.DrawLine(pen, cx - arm, cy - arm, cx + arm, cy + arm);
+                g.DrawLine(pen, cx + arm, cy - arm, cx - arm, cy + arm);
             }
 
             // 3. Logo Card (Left of Header)
-            int logoBoxX = 36;
-            int logoBoxY = 64;
-            int logoBoxSize = 56;
+            int logoBoxX = S(36);
+            int logoBoxY = S(64);
+            int logoBoxSize = S(56);
             Rectangle logoBox = new Rectangle(logoBoxX, logoBoxY, logoBoxSize, logoBoxSize);
 
-            // Subtle pulsing brand orange glow
-            int glowAlpha = (int)(28 + 14 * Math.Sin(_pulseAngle));
-            using (var glowBrush = new SolidBrush(Color.FromArgb(glowAlpha, 255, 90, 0)))
+            // Pulsing Radial Glow (70 to 110 alpha, 2.4s cycle)
+            int glowAlpha = (int)Math.Round(90 + 20 * Math.Sin(_pulseAngle));
+            glowAlpha = Math.Max(70, Math.Min(110, glowAlpha));
+
+            if (_glowBrush != null && _glowPath != null)
             {
-                g.FillEllipse(glowBrush, logoBoxX - 6, logoBoxY - 6, logoBoxSize + 12, logoBoxSize + 12);
+                _glowBrush.CenterColor = Color.FromArgb(glowAlpha, 255, 90, 0);
+                var prevSmoothing = g.SmoothingMode;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.FillPath(_glowBrush, _glowPath);
+                g.SmoothingMode = prevSmoothing;
             }
 
-            DrawRoundedRectangle(g, logoBox, 14, Color.FromArgb(16, 16, 20), Color.FromArgb(255, 90, 0), 1.5f);
+            // Logo card background with 1.5px gradient rim (#FF8A00 to #FF4D00 at 80% alpha)
+            using (var cardPath = CreateRoundedPath(logoBox, S(14)))
+            {
+                using (var cardBg = new SolidBrush(Color.FromArgb(16, 16, 20)))
+                {
+                    g.FillPath(cardBg, cardPath);
+                }
+                using (var rimBrush = new LinearGradientBrush(logoBox, Color.FromArgb(204, 255, 138, 0), Color.FromArgb(204, 255, 77, 0), 45f))
+                using (var rimPen = new Pen(rimBrush, 1.5f))
+                {
+                    g.DrawPath(rimPen, cardPath);
+                }
+            }
+
             if (_logoImage != null)
             {
-                g.DrawImage(_logoImage, new Rectangle(logoBoxX + 6, logoBoxY + 6, logoBoxSize - 12, logoBoxSize - 12));
+                g.DrawImage(_logoImage, new Rectangle(logoBoxX + S(6), logoBoxY + S(6), logoBoxSize - S(12), logoBoxSize - S(12)));
             }
             else
             {
                 using (var f = new Font("Segoe UI", 16.0f, FontStyle.Bold))
                 using (var b = new SolidBrush(Color.FromArgb(255, 138, 0)))
                 {
-                    g.DrawString("KM", f, b, logoBoxX + 8, logoBoxY + 12);
+                    TextRenderer.DrawText(g, "KM", f, logoBox, Color.FromArgb(255, 138, 0), TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
                 }
             }
 
             // 4. Middle Content Cards based on step
+            int contentX = S(36);
+            int contentW = w - S(72);
+
             if (_currentStep == SetupStep.Welcome)
             {
                 // Destination Card
-                Rectangle destCard = new Rectangle(36, 140, 488, 64);
-                DrawRoundedRectangle(g, destCard, 10, Color.FromArgb(16, 16, 20), Color.FromArgb(36, 36, 42), 1f);
+                Rectangle destCard = new Rectangle(contentX, S(140), contentW, S(64));
+                DrawRoundedRectangle(g, destCard, S(10), Color.FromArgb(16, 16, 20), Color.FromArgb(36, 36, 42), 1f);
 
-                using (var fLabel = new Font("Segoe UI", 8.5f, FontStyle.Bold))
-                using (var fPath = new Font("Segoe UI", 9.5f, FontStyle.Regular))
-                using (var fExtra = new Font("Segoe UI", 8.5f, FontStyle.Regular))
                 using (var bMuted = new SolidBrush(Color.FromArgb(161, 161, 170)))
                 using (var bWhite = new SolidBrush(Color.White))
                 using (var bDim = new SolidBrush(Color.FromArgb(113, 113, 122)))
                 {
-                    g.DrawString("INSTALLATION DESTINATION", fLabel, bMuted, 52, 150);
-                    g.DrawString(Program.InstallDir, fPath, bWhite, 52, 172);
-                    g.DrawString("Native 64-bit • ~73 MB", fExtra, bDim, 370, 172);
+                    g.DrawString("INSTALLATION DESTINATION", _fCardHeader, bMuted, contentX + S(16), destCard.Top + S(10));
+                    g.DrawString(Program.InstallDir, _fCardSub, bWhite, contentX + S(16), destCard.Top + S(32));
+
+                    string extraText = "Native 64-bit • ~73 MB";
+                    Size extraSize = TextRenderer.MeasureText(extraText, _fCardHeader, Size.Empty, TextFormatFlags.NoPadding);
+                    g.DrawString(extraText, _fCardHeader, bDim, destCard.Right - S(16) - extraSize.Width, destCard.Top + S(32));
                 }
 
                 // Options Container Card
-                Rectangle optCard = new Rectangle(36, 218, 488, 150);
-                DrawRoundedRectangle(g, optCard, 10, Color.FromArgb(14, 14, 18), Color.FromArgb(30, 30, 36), 1f);
+                Rectangle optCard = new Rectangle(contentX, S(216), contentW, S(150));
+                DrawRoundedRectangle(g, optCard, S(10), Color.FromArgb(14, 14, 18), Color.FromArgb(30, 30, 36), 1f);
 
-                using (var fLabel = new Font("Segoe UI", 8.5f, FontStyle.Bold))
                 using (var bMuted = new SolidBrush(Color.FromArgb(161, 161, 170)))
                 {
-                    g.DrawString("SETUP PREFERENCES", fLabel, bMuted, 52, 230);
+                    g.DrawString("SETUP PREFERENCES", _fCardHeader, bMuted, contentX + S(16), optCard.Top + S(12));
                 }
             }
             else if (_currentStep == SetupStep.InstallFinished)
             {
                 // Glowing orange checkmark circle
-                int cx = 70;
-                int cy = 205;
+                int cx = contentX + S(34);
+                int cy = S(205);
                 using (var bGlow = new SolidBrush(Color.FromArgb(40, 255, 90, 0)))
                 {
-                    g.FillEllipse(bGlow, cx - 30, cy - 30, 60, 60);
+                    g.FillEllipse(bGlow, cx - S(30), cy - S(30), S(60), S(60));
                 }
-                Rectangle checkCircle = new Rectangle(cx - 24, cy - 24, 48, 48);
+                Rectangle checkCircle = new Rectangle(cx - S(24), cy - S(24), S(48), S(48));
                 using (var brush = new LinearGradientBrush(checkCircle, Color.FromArgb(255, 77, 0), Color.FromArgb(255, 138, 0), 45f))
                 {
                     g.FillEllipse(brush, checkCircle);
@@ -1520,56 +1643,71 @@ namespace KnowToMigrate.Setup
                 {
                     penCheck.StartCap = LineCap.Round;
                     penCheck.EndCap = LineCap.Round;
-                    g.DrawLine(penCheck, cx - 11, cy + 1, cx - 3, cy + 9);
-                    g.DrawLine(penCheck, cx - 3, cy + 9, cx + 11, cy - 8);
+                    g.DrawLine(penCheck, cx - S(11), cy + S(1), cx - S(3), cy + S(9));
+                    g.DrawLine(penCheck, cx - S(3), cy + S(9), cx + S(11), cy - S(8));
                 }
 
-                using (var fBig = new Font("Segoe UI", 13.5f, FontStyle.Bold))
-                using (var fSub = new Font("Segoe UI", 9.5f, FontStyle.Regular))
-                using (var bWhite = new SolidBrush(Color.White))
-                using (var bMuted = new SolidBrush(Color.FromArgb(161, 161, 170)))
-                {
-                    g.DrawString("Installation Complete!", fBig, bWhite, 110, 192);
-                    g.DrawString("KnowToMigrate is ready. Transit Transfer Engine is installed.", fSub, bMuted, 110, 220);
-                }
+                int textStartX = cx + S(36);
+                int textW = contentX + contentW - textStartX;
+                Rectangle hlRect = new Rectangle(textStartX, S(190), textW, S(28));
+                DrawWrapped(g, "Installation Complete!", _fWarnBig, Color.White, hlRect);
+
+                Rectangle subRect = new Rectangle(textStartX, hlRect.Bottom + S(4), textW, S(22));
+                DrawWrapped(g, "KnowToMigrate is ready. Transit Transfer Engine is installed.", _fSub, Color.FromArgb(161, 161, 170), subRect);
 
                 // Options card
-                Rectangle finishCard = new Rectangle(36, 260, 488, 110);
-                DrawRoundedRectangle(g, finishCard, 10, Color.FromArgb(14, 14, 18), Color.FromArgb(32, 32, 38), 1f);
+                Rectangle finishCard = new Rectangle(contentX, S(260), contentW, S(110));
+                DrawRoundedRectangle(g, finishCard, S(10), Color.FromArgb(14, 14, 18), Color.FromArgb(32, 32, 38), 1f);
             }
             else if (_currentStep == SetupStep.UninstallConfirm)
             {
+                int cardX = contentX;
+                int cardY = S(140);
+                int cardW = contentW;
+
+                int badgeSize = S(44);
+                int badgeX = cardX + S(18);
+                int badgeY = cardY + S(18);
+                Rectangle badgeRect = new Rectangle(badgeX, badgeY, badgeSize, badgeSize);
+
+                int textX = badgeX + badgeSize + S(16);
+                int textW = cardX + cardW - S(18) - textX;
+
+                string headline = "Remove KnowToMigrate from this PC?";
+                Size hlSize = MeasureWrapped(headline, _fWarnBig, textW);
+                Rectangle hlRect = new Rectangle(textX, cardY + S(18), textW, hlSize.Height);
+
+                string body = "Application files, shortcuts, and registry entries will be removed.";
+                int bodyY = hlRect.Bottom + S(6);
+                Size bodySize = MeasureWrapped(body, _fWarnSub, textW);
+                Rectangle bodyRect = new Rectangle(textX, bodyY, textW, bodySize.Height);
+
+                int cardH = Math.Max(badgeSize + S(36), S(18) + hlSize.Height + S(6) + bodySize.Height + S(18));
+                Rectangle uninstCard = new Rectangle(cardX, cardY, cardW, cardH);
+                DrawRoundedRectangle(g, uninstCard, S(10), Color.FromArgb(18, 12, 12), Color.FromArgb(60, 30, 30), 1f);
+
                 // Warning badge
-                int cx = 70;
-                int cy = 195;
                 using (var bWarn = new SolidBrush(Color.FromArgb(220, 38, 38)))
                 {
-                    g.FillEllipse(bWarn, cx - 24, cy - 24, 48, 48);
+                    g.FillEllipse(bWarn, badgeRect);
                 }
-                using (var fEx = new Font("Segoe UI", 20.0f, FontStyle.Bold))
-                using (var bWhite = new SolidBrush(Color.White))
-                {
-                    g.DrawString("!", fEx, bWhite, cx - 7, cy - 19);
-                }
+                TextRenderer.DrawText(g, "!", _fWarnEx, badgeRect, Color.White, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
 
-                using (var fBig = new Font("Segoe UI", 12.0f, FontStyle.Bold))
-                using (var fSub = new Font("Segoe UI", 9.0f, FontStyle.Regular))
-                using (var bWhite = new SolidBrush(Color.White))
-                using (var bMuted = new SolidBrush(Color.FromArgb(161, 161, 170)))
-                {
-                    g.DrawString("Are you sure you want to uninstall KnowToMigrate?", fBig, bWhite, 110, 184);
-                    g.DrawString("This will remove all installed application binaries and shortcuts.", fSub, bMuted, 110, 212);
-                }
+                DrawWrapped(g, headline, _fWarnBig, Color.White, hlRect);
+                DrawWrapped(g, body, _fWarnSub, Color.FromArgb(161, 161, 170), bodyRect);
 
-                Rectangle uninstCard = new Rectangle(36, 255, 488, 80);
-                DrawRoundedRectangle(g, uninstCard, 10, Color.FromArgb(18, 12, 12), Color.FromArgb(60, 30, 30), 1f);
+                // Checkbox card container
+                int chkCardY = uninstCard.Bottom + S(16);
+                int chkCardH = _chkRemoveCache.Height + S(20);
+                Rectangle chkCard = new Rectangle(cardX, chkCardY, cardW, chkCardH);
+                DrawRoundedRectangle(g, chkCard, S(10), Color.FromArgb(14, 14, 18), Color.FromArgb(32, 32, 38), 1f);
             }
             else if (_currentStep == SetupStep.UninstallFinished)
             {
                 // Orange Checkmark
-                int cx = 70;
-                int cy = 205;
-                Rectangle checkCircle = new Rectangle(cx - 24, cy - 24, 48, 48);
+                int cx = contentX + S(34);
+                int cy = S(205);
+                Rectangle checkCircle = new Rectangle(cx - S(24), cy - S(24), S(48), S(48));
                 using (var brush = new LinearGradientBrush(checkCircle, Color.FromArgb(255, 77, 0), Color.FromArgb(255, 138, 0), 45f))
                 {
                     g.FillEllipse(brush, checkCircle);
@@ -1578,35 +1716,35 @@ namespace KnowToMigrate.Setup
                 {
                     penCheck.StartCap = LineCap.Round;
                     penCheck.EndCap = LineCap.Round;
-                    g.DrawLine(penCheck, cx - 11, cy + 1, cx - 3, cy + 9);
-                    g.DrawLine(penCheck, cx - 3, cy + 9, cx + 11, cy - 8);
+                    g.DrawLine(penCheck, cx - S(11), cy + S(1), cx - S(3), cy + S(9));
+                    g.DrawLine(penCheck, cx - S(3), cy + S(9), cx + S(11), cy - S(8));
                 }
 
-                using (var fBig = new Font("Segoe UI", 13.5f, FontStyle.Bold))
-                using (var fSub = new Font("Segoe UI", 9.5f, FontStyle.Regular))
-                using (var bWhite = new SolidBrush(Color.White))
-                using (var bMuted = new SolidBrush(Color.FromArgb(161, 161, 170)))
-                {
-                    g.DrawString("Uninstallation Complete!", fBig, bWhite, 110, 192);
-                    g.DrawString("KnowToMigrate has been cleanly removed from this machine.", fSub, bMuted, 110, 220);
-                }
-            }
+                int textStartX = cx + S(36);
+                int textW = contentX + contentW - textStartX;
+                Rectangle hlRect = new Rectangle(textStartX, S(190), textW, S(28));
+                DrawWrapped(g, "Uninstallation Complete!", _fWarnBig, Color.White, hlRect);
 
-            // 5. Bottom Separator
-            using (var pen = new Pen(Color.FromArgb(26, 26, 32), 1f))
-            {
-                g.DrawLine(pen, 0, h - 78, w, h - 78);
+                Rectangle subRect = new Rectangle(textStartX, hlRect.Bottom + S(4), textW, S(22));
+                DrawWrapped(g, "KnowToMigrate has been cleanly removed from this machine.", _fSub, Color.FromArgb(161, 161, 170), subRect);
             }
+        }
 
-            // 6. Outer Subtle Border
-            using (var borderPen = new Pen(Color.FromArgb(42, 42, 50), 1f))
-            {
-                g.DrawRectangle(borderPen, 0, 0, w - 1, h - 1);
-            }
+        public static Size MeasureWrapped(string text, Font font, int maxWidth)
+        {
+            if (string.IsNullOrEmpty(text) || maxWidth <= 0) return Size.Empty;
+            return TextRenderer.MeasureText(text, font, new Size(maxWidth, int.MaxValue), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
+        }
+
+        public static void DrawWrapped(Graphics g, string text, Font font, Color color, Rectangle rect)
+        {
+            if (string.IsNullOrEmpty(text) || rect.Width <= 0 || rect.Height <= 0) return;
+            TextRenderer.DrawText(g, text, font, rect, color, TextFormatFlags.WordBreak | TextFormatFlags.Top | TextFormatFlags.NoPadding);
         }
 
         public static void DrawRoundedRectangle(Graphics g, Rectangle r, int radius, Color backColor, Color borderColor, float borderWidth)
         {
+            if (r.Width <= 0 || r.Height <= 0) return;
             using (var path = CreateRoundedPath(r, radius))
             {
                 using (var b = new SolidBrush(backColor))
@@ -1624,6 +1762,13 @@ namespace KnowToMigrate.Setup
         {
             var path = new GraphicsPath();
             int d = radius * 2;
+            if (d > r.Width) d = r.Width;
+            if (d > r.Height) d = r.Height;
+            if (d <= 0)
+            {
+                path.AddRectangle(r);
+                return path;
+            }
             path.AddArc(r.Left, r.Top, d, d, 180, 90);
             path.AddArc(r.Right - d, r.Top, d, d, 270, 90);
             path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
@@ -1634,7 +1779,9 @@ namespace KnowToMigrate.Setup
 
         private void SetupForm_MouseDown(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left && e.Y <= 46 && e.X < this.Width - 90)
+            int titleBarH = S(46);
+            int buttonsW = S(90);
+            if (e.Button == MouseButtons.Left && e.Y <= titleBarH && e.X < this.Width - buttonsW)
             {
                 ReleaseCapture();
                 SendMessage(this.Handle, 0xA1, 0x2, 0);
@@ -1643,29 +1790,487 @@ namespace KnowToMigrate.Setup
 
         private void SetupForm_MouseMove(object sender, MouseEventArgs e)
         {
-            bool closeHover = (e.X >= this.Width - 46 && e.X <= this.Width && e.Y >= 0 && e.Y <= 46);
-            bool minHover = (e.X >= this.Width - 90 && e.X < this.Width - 46 && e.Y >= 0 && e.Y <= 46);
+            int titleBarH = S(46);
+            int closeW = S(46);
+            int minW = S(44);
+            int buttonsW = closeW + minW;
+
+            bool closeHover = (e.X >= this.Width - closeW && e.X <= this.Width && e.Y >= 0 && e.Y <= titleBarH);
+            bool minHover = (e.X >= this.Width - buttonsW && e.X < this.Width - closeW && e.Y >= 0 && e.Y <= titleBarH);
 
             if (closeHover != _isCloseHovered || minHover != _isMinHovered)
             {
                 _isCloseHovered = closeHover;
                 _isMinHovered = minHover;
-                this.Invalidate(new Rectangle(this.Width - 92, 0, 92, 46));
+                this.Invalidate(new Rectangle(this.Width - buttonsW - 2, 0, buttonsW + 2, titleBarH));
             }
         }
 
         private void SetupForm_MouseClick(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left && e.Y <= 46)
+            int titleBarH = S(46);
+            int closeW = S(46);
+            int minW = S(44);
+            int buttonsW = closeW + minW;
+
+            if (e.Button == MouseButtons.Left && e.Y <= titleBarH)
             {
-                if (e.X >= this.Width - 46 && e.X <= this.Width)
+                if (e.X >= this.Width - closeW && e.X <= this.Width)
                 {
                     this.Close();
                 }
-                else if (e.X >= this.Width - 90 && e.X < this.Width - 46)
+                else if (e.X >= this.Width - buttonsW && e.X < this.Width - closeW)
                 {
                     this.WindowState = FormWindowState.Minimized;
                 }
+            }
+        }
+
+        protected override void OnDpiChanged(DpiChangedEventArgs e)
+        {
+            base.OnDpiChanged(e);
+            UpdateFonts(1.0f);
+            ApplyLayout();
+            RebuildCachedBitmaps();
+            this.Invalidate();
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            if (!_isInitialized) return;
+            if (this.WindowState == FormWindowState.Minimized)
+            {
+                if (_pulseTimer != null && _pulseTimer.Enabled) _pulseTimer.Stop();
+            }
+            else
+            {
+                if (Form.ActiveForm == this && _pulseTimer != null && !_pulseTimer.Enabled) _pulseTimer.Start();
+                RebuildCachedBitmaps();
+                ApplyLayout();
+                this.Invalidate();
+            }
+        }
+
+        protected override void OnActivated(EventArgs e)
+        {
+            base.OnActivated(e);
+            if (this.WindowState != FormWindowState.Minimized && _pulseTimer != null && !_pulseTimer.Enabled)
+            {
+                _pulseTimer.Start();
+            }
+        }
+
+        protected override void OnDeactivate(EventArgs e)
+        {
+            base.OnDeactivate(e);
+            if (_pulseTimer != null && _pulseTimer.Enabled)
+            {
+                _pulseTimer.Stop();
+            }
+        }
+
+        private void RebuildGlow()
+        {
+            _glowBrush?.Dispose();
+            _glowPath?.Dispose();
+
+            int logoBoxX = S(36);
+            int logoBoxY = S(64);
+            int logoBoxSize = S(56);
+            Rectangle logoBox = new Rectangle(logoBoxX, logoBoxY, logoBoxSize, logoBoxSize);
+
+            int cx = logoBoxX + logoBoxSize / 2;
+            int cy = logoBoxY + logoBoxSize / 2;
+            int glowRadius = S(38);
+
+            _glowPath = new GraphicsPath();
+            _glowPath.AddEllipse(cx - glowRadius, cy - glowRadius, glowRadius * 2, glowRadius * 2);
+
+            _glowBrush = new PathGradientBrush(_glowPath)
+            {
+                CenterColor = Color.FromArgb(90, 255, 90, 0),
+                SurroundColors = new Color[] { Color.FromArgb(0, 255, 90, 0) }
+            };
+
+            int inflate = glowRadius - logoBoxSize / 2 + S(4);
+            _glowRectangle = Rectangle.Inflate(logoBox, inflate, inflate);
+        }
+
+        private void RebuildCachedBitmaps()
+        {
+            _bgCache?.Dispose();
+            int w = this.ClientSize.Width;
+            int h = this.ClientSize.Height;
+            if (w <= 0 || h <= 0) return;
+
+            _bgCache = new Bitmap(w, h);
+            using (Graphics bgG = Graphics.FromImage(_bgCache))
+            {
+                bgG.SmoothingMode = SmoothingMode.HighQuality;
+                bgG.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                bgG.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                // 1. Base Pure AMOLED Black
+                using (var b = new SolidBrush(Color.FromArgb(9, 9, 11)))
+                {
+                    bgG.FillRectangle(b, 0, 0, w, h);
+                }
+
+                // 2. Custom Title Bar Background (Height: S(46))
+                int titleBarH = S(46);
+                using (var b = new SolidBrush(Color.FromArgb(14, 14, 18)))
+                {
+                    bgG.FillRectangle(b, 0, 0, w, titleBarH);
+                }
+                using (var pen = new Pen(Color.FromArgb(28, 28, 34), 1f))
+                {
+                    bgG.DrawLine(pen, 0, titleBarH, w, titleBarH);
+                }
+
+                // Top edge brand gradient accent (2px)
+                using (var gradBrush = new LinearGradientBrush(new Rectangle(0, 0, w, 2), Color.FromArgb(255, 77, 0), Color.FromArgb(255, 138, 0), 0f))
+                {
+                    bgG.FillRectangle(gradBrush, 0, 0, w, 2);
+                }
+
+                // Bottom Separator
+                using (var pen = new Pen(Color.FromArgb(26, 26, 32), 1f))
+                {
+                    bgG.DrawLine(pen, 0, h - S(78), w, h - S(78));
+                }
+
+                // Outer Subtle Border
+                using (var borderPen = new Pen(Color.FromArgb(42, 42, 50), 1f))
+                {
+                    bgG.DrawRectangle(borderPen, 0, 0, w - 1, h - 1);
+                }
+            }
+
+            RebuildGlow();
+        }
+
+        private void UpdateFonts(float fontScaleMultiplier)
+        {
+            _fTitle?.Dispose();
+            _fSub?.Dispose();
+            _fStatus?.Dispose();
+            _fDetail?.Dispose();
+            _fTitleBar?.Dispose();
+            _fPill?.Dispose();
+            _fCardHeader?.Dispose();
+            _fCardSub?.Dispose();
+            _fWarnEx?.Dispose();
+            _fWarnBig?.Dispose();
+            _fWarnSub?.Dispose();
+
+            _fTitle = new Font("Segoe UI", 16.5f * fontScaleMultiplier, FontStyle.Bold);
+            _fSub = new Font("Segoe UI", 9.5f * fontScaleMultiplier, FontStyle.Regular);
+            _fStatus = new Font("Segoe UI", 11.0f * fontScaleMultiplier, FontStyle.Bold);
+            _fDetail = new Font("Segoe UI", 9.0f * fontScaleMultiplier, FontStyle.Regular);
+            _fTitleBar = new Font("Segoe UI", 9.5f * fontScaleMultiplier, FontStyle.Bold);
+            _fPill = new Font("Segoe UI", 8.0f * fontScaleMultiplier, FontStyle.Bold);
+            _fCardHeader = new Font("Segoe UI", 8.5f * fontScaleMultiplier, FontStyle.Bold);
+            _fCardSub = new Font("Segoe UI", 9.5f * fontScaleMultiplier, FontStyle.Regular);
+            _fWarnEx = new Font("Segoe UI", 20.0f * fontScaleMultiplier, FontStyle.Bold);
+            _fWarnBig = new Font("Segoe UI", 12.0f * fontScaleMultiplier, FontStyle.Bold);
+            _fWarnSub = new Font("Segoe UI", 9.0f * fontScaleMultiplier, FontStyle.Regular);
+
+            if (_lblHeaderTitle != null) _lblHeaderTitle.Font = _fTitle;
+            if (_lblHeaderSubtitle != null) _lblHeaderSubtitle.Font = _fSub;
+            if (_lblStatus != null) _lblStatus.Font = _fStatus;
+            if (_lblDetail != null) _lblDetail.Font = _fDetail;
+        }
+
+        public void ApplyLayoutForScale(float scale)
+        {
+            if (!_isInitialized) return;
+            int s(int v) => (int)Math.Round(v * scale);
+
+            this.ClientSize = new Size(s(560), s(520));
+            int w = this.ClientSize.Width;
+            int h = this.ClientSize.Height;
+
+            int contentX = s(36);
+            int contentW = w - s(72);
+
+            // Header Labels
+            int headerLeft = s(106);
+            int headerW = w - headerLeft - s(36);
+
+            _lblHeaderTitle.AutoSize = false;
+            _lblHeaderTitle.UseCompatibleTextRendering = false;
+            _lblHeaderTitle.Location = new Point(headerLeft, s(64));
+            _lblHeaderTitle.Width = headerW;
+            Size titleMeasured = MeasureWrapped(_lblHeaderTitle.Text, _lblHeaderTitle.Font, headerW);
+            _lblHeaderTitle.Height = Math.Max(s(28), titleMeasured.Height);
+
+            _lblHeaderSubtitle.AutoSize = false;
+            _lblHeaderSubtitle.UseCompatibleTextRendering = false;
+            _lblHeaderSubtitle.Location = new Point(headerLeft, _lblHeaderTitle.Bottom + s(2));
+            _lblHeaderSubtitle.Width = headerW;
+            Size subMeasured = MeasureWrapped(_lblHeaderSubtitle.Text, _lblHeaderSubtitle.Font, headerW);
+            _lblHeaderSubtitle.Height = Math.Max(s(20), subMeasured.Height);
+
+            // Status & Detail labels for Installing / Uninstalling
+            _lblStatus.Location = new Point(s(40), s(190));
+            _lblStatus.Size = new Size(w - s(80), s(26));
+            _lblDetail.Location = new Point(s(40), s(222));
+            _lblDetail.Size = new Size(w - s(80), s(44));
+            _progressBar.Location = new Point(s(40), s(275));
+            _progressBar.Size = new Size(w - s(80), s(10));
+
+            // Welcome Checkboxes
+            int chkX = contentX + s(16);
+            int chkW = contentW - s(32);
+            int welcomeOptY = s(216);
+
+            _chkDesktop.Width = chkW;
+            _chkDesktop.Height = _chkDesktop.CalculateHeight(chkW, scale);
+            _chkDesktop.Location = new Point(chkX, welcomeOptY + s(36));
+
+            _chkStartMenu.Width = chkW;
+            _chkStartMenu.Height = _chkStartMenu.CalculateHeight(chkW, scale);
+            _chkStartMenu.Location = new Point(chkX, _chkDesktop.Bottom + s(4));
+
+            _chkLaunch.Width = chkW;
+            _chkLaunch.Height = _chkLaunch.CalculateHeight(chkW, scale);
+            _chkLaunch.Location = new Point(chkX, _chkStartMenu.Bottom + s(4));
+
+            // Finish Checkboxes
+            int finishOptY = s(260);
+            _chkRunNow.Width = chkW;
+            _chkRunNow.Height = _chkRunNow.CalculateHeight(chkW, scale);
+            _chkRunNow.Location = new Point(chkX, finishOptY + s(16));
+
+            _chkFinishDesktop.Width = chkW;
+            _chkFinishDesktop.Height = _chkFinishDesktop.CalculateHeight(chkW, scale);
+            _chkFinishDesktop.Location = new Point(chkX, _chkRunNow.Bottom + s(8));
+
+            // Uninstall Checkbox
+            int uninstCardY = s(140);
+            int badgeSize = s(44);
+            int textX = contentX + s(18) + badgeSize + s(16);
+            int textW = contentX + contentW - s(18) - textX;
+            Size hlSize = MeasureWrapped("Remove KnowToMigrate from this PC?", _fWarnBig, textW);
+            Size bodySize = MeasureWrapped("Application files, shortcuts, and registry entries will be removed.", _fWarnSub, textW);
+            int uninstCardH = Math.Max(badgeSize + s(36), s(18) + hlSize.Height + s(6) + bodySize.Height + s(18));
+            int chkCardY = uninstCardY + uninstCardH + s(16);
+
+            _chkRemoveCache.Text = "Also remove settings, transfer history, and cache";
+            _chkRemoveCache.HelperText = "Turn this off if you plan to reinstall and keep your history.";
+            _chkRemoveCache.Width = contentW - s(28);
+            _chkRemoveCache.Height = _chkRemoveCache.CalculateHeight(_chkRemoveCache.Width, scale);
+            _chkRemoveCache.Location = new Point(contentX + s(14), chkCardY + s(10));
+
+            // Buttons
+            int btnH = s(40);
+            int btnY = h - s(78) + (s(78) - btnH) / 2;
+
+            Size primaryTextSize = TextRenderer.MeasureText(_btnPrimary.Text, _btnPrimary.Font, Size.Empty, TextFormatFlags.NoPadding);
+            int primaryW = Math.Max(s(120), primaryTextSize.Width + s(40));
+            _btnPrimary.Size = new Size(primaryW, btnH);
+            _btnPrimary.Location = new Point(w - s(36) - primaryW, btnY);
+
+            Size secTextSize = TextRenderer.MeasureText(_btnSecondary.Text, _btnSecondary.Font, Size.Empty, TextFormatFlags.NoPadding);
+            int secW = Math.Max(s(104), secTextSize.Width + s(36));
+            _btnSecondary.Size = new Size(secW, btnH);
+            _btnSecondary.Location = new Point(_btnPrimary.Left - s(12) - secW, btnY);
+
+            Size linkTextSize = TextRenderer.MeasureText(_btnUninstallLink.Text, _btnUninstallLink.Font, Size.Empty, TextFormatFlags.NoPadding);
+            int linkW = Math.Max(s(160), linkTextSize.Width + s(24));
+            _btnUninstallLink.Size = new Size(linkW, btnH);
+            _btnUninstallLink.Location = new Point(s(36), btnY);
+        }
+
+        public void ApplyLayout()
+        {
+            ApplyLayoutForScale(CurrentScale);
+        }
+
+        public static int RunLayoutCheck()
+        {
+            AttachConsole(ATTACH_PARENT_PROCESS);
+
+            Console.WriteLine("==================================================================");
+            Console.WriteLine("KnowToMigrate Setup - Layout & Text Integrity Regression Check");
+            Console.WriteLine("==================================================================");
+
+            try
+            {
+                int totalViolations = 0;
+                float[] testScales = new float[] { 1.0f, 1.25f, 1.50f, 1.75f };
+
+                using (var form = new SetupForm(new string[0], false))
+                {
+                    form._pulseTimer?.Stop();
+                    form.CreateControl();
+
+                    foreach (float testScale in testScales)
+                    {
+                        Console.WriteLine(string.Format("\n--- Testing Scale: {0:0}% (DPI: {1}) ---", testScale * 100f, (int)Math.Round(testScale * 96f)));
+                        int scaleViolations = 0;
+
+                        float current = (form.CurrentScale > 0) ? form.CurrentScale : 1.0f;
+                        form.UpdateFonts(testScale / current);
+
+                        foreach (SetupStep step in Enum.GetValues(typeof(SetupStep)))
+                        {
+                            form.SetStep(step);
+                            form.ApplyLayoutForScale(testScale);
+
+                    Rectangle clientRect = form.ClientRectangle;
+
+                    // 1. Control Bounds Check
+                    foreach (Control c in form.Controls)
+                    {
+                        if (!c.Visible) continue;
+
+                        if (c.Left < clientRect.Left || c.Top < clientRect.Top ||
+                            c.Right > clientRect.Right || c.Bottom > clientRect.Bottom)
+                        {
+                            Console.WriteLine(string.Format("[VIOLATION] [Step: {0}] Control '{1}' (Bounds: {2}) exceeds Client bounds ({3}).", step, c.GetType().Name, c.Bounds, clientRect));
+                            scaleViolations++;
+                        }
+                    }
+
+                    // 2. Control Overlap Check
+                    var visibleList = new System.Collections.Generic.List<Control>();
+                    foreach (Control c in form.Controls)
+                    {
+                        if (c.Visible) visibleList.Add(c);
+                    }
+
+                    for (int i = 0; i < visibleList.Count; i++)
+                    {
+                        for (int j = i + 1; j < visibleList.Count; j++)
+                        {
+                            Control c1 = visibleList[i];
+                            Control c2 = visibleList[j];
+
+                            if (c1.Bounds.IntersectsWith(c2.Bounds))
+                            {
+                                Console.WriteLine(string.Format("[VIOLATION] [Step: {0}] Controls '{1}' and '{2}' overlap: {3}.", step, c1.GetType().Name, c2.GetType().Name, Rectangle.Intersect(c1.Bounds, c2.Bounds)));
+                                scaleViolations++;
+                            }
+                        }
+                    }
+
+                    // 3. Text Fitting Checks
+                    if (form._btnPrimary.Visible)
+                    {
+                        Size pTextSize = TextRenderer.MeasureText(form._btnPrimary.Text, form._btnPrimary.Font, Size.Empty, TextFormatFlags.NoPadding);
+                        if (pTextSize.Width > form._btnPrimary.Width - (int)(16 * testScale))
+                        {
+                            Console.WriteLine(string.Format("[VIOLATION] [Step: {0}] Primary button text '{1}' ({2}px) clipped in button width ({3}px).", step, form._btnPrimary.Text, pTextSize.Width, form._btnPrimary.Width));
+                            scaleViolations++;
+                        }
+                    }
+
+                    if (form._btnSecondary.Visible)
+                    {
+                        Size sTextSize = TextRenderer.MeasureText(form._btnSecondary.Text, form._btnSecondary.Font, Size.Empty, TextFormatFlags.NoPadding);
+                        if (sTextSize.Width > form._btnSecondary.Width - (int)(16 * testScale))
+                        {
+                            Console.WriteLine(string.Format("[VIOLATION] [Step: {0}] Secondary button text '{1}' ({2}px) clipped in button width ({3}px).", step, form._btnSecondary.Text, sTextSize.Width, form._btnSecondary.Width));
+                            scaleViolations++;
+                        }
+                    }
+
+                    // Header Labels
+                    Size titleTextSize = MeasureWrapped(form._lblHeaderTitle.Text, form._lblHeaderTitle.Font, form._lblHeaderTitle.Width);
+                    if (titleTextSize.Height > form._lblHeaderTitle.Height)
+                    {
+                        Console.WriteLine(string.Format("[VIOLATION] [Step: {0}] Header title '{1}' height ({2}px) exceeds label height ({3}px).", step, form._lblHeaderTitle.Text, titleTextSize.Height, form._lblHeaderTitle.Height));
+                        scaleViolations++;
+                    }
+
+                    Size subTextSize = MeasureWrapped(form._lblHeaderSubtitle.Text, form._lblHeaderSubtitle.Font, form._lblHeaderSubtitle.Width);
+                    if (subTextSize.Height > form._lblHeaderSubtitle.Height)
+                    {
+                        Console.WriteLine(string.Format("[VIOLATION] [Step: {0}] Header subtitle '{1}' height ({2}px) exceeds label height ({3}px).", step, form._lblHeaderSubtitle.Text, subTextSize.Height, form._lblHeaderSubtitle.Height));
+                        scaleViolations++;
+                    }
+
+                    // Title Bar checks
+                    int s(int v) => (int)Math.Round(v * testScale);
+                    int titleX = s(48);
+                    Size tSize = TextRenderer.MeasureText("KnowToMigrate Setup", form._fTitleBar, Size.Empty, TextFormatFlags.NoPadding);
+                    int pillX = titleX + tSize.Width + s(12);
+                    Size pillTSize = TextRenderer.MeasureText("v1.0.6", form._fPill, Size.Empty, TextFormatFlags.NoPadding);
+                    int pillW = pillTSize.Width + s(20);
+                    int minBtnX = form.ClientSize.Width - s(90);
+
+                    if (pillX <= titleX + tSize.Width)
+                    {
+                        Console.WriteLine(string.Format("[VIOLATION] [TitleBar] Title text overlaps version pill (Title Right: {0}, Pill Left: {1}).", titleX + tSize.Width, pillX));
+                        scaleViolations++;
+                    }
+                    if (pillX + pillW >= minBtnX)
+                    {
+                        Console.WriteLine(string.Format("[VIOLATION] [TitleBar] Version pill overlaps minimize button (Pill Right: {0}, Min Left: {1}).", pillX + pillW, minBtnX));
+                        scaleViolations++;
+                    }
+
+                    // UninstallConfirm Card & Headline check
+                    if (step == SetupStep.UninstallConfirm)
+                    {
+                        int cardX = s(36);
+                        int cardW = form.ClientSize.Width - s(72);
+                        int badgeSize = s(44);
+                        int tX = cardX + s(18) + badgeSize + s(16);
+                        int tW = cardX + cardW - s(18) - tX;
+
+                        Size hlSize = MeasureWrapped("Remove KnowToMigrate from this PC?", form._fWarnBig, tW);
+                        Size bSize = MeasureWrapped("Application files, shortcuts, and registry entries will be removed.", form._fWarnSub, tW);
+                        int cardH = Math.Max(badgeSize + s(36), s(18) + hlSize.Height + s(6) + bSize.Height + s(18));
+
+                        if (cardX + cardW > form.ClientSize.Width)
+                        {
+                            Console.WriteLine(string.Format("[VIOLATION] [Step: UninstallConfirm] Card width exceeds window width."));
+                            scaleViolations++;
+                        }
+
+                        if (form._chkRemoveCache.Bottom > form.ClientSize.Height - s(78))
+                        {
+                            Console.WriteLine(string.Format("[VIOLATION] [Step: UninstallConfirm] Checkbox bottom ({0}) overlaps bottom bar ({1}).", form._chkRemoveCache.Bottom, form.ClientSize.Height - s(78)));
+                            scaleViolations++;
+                        }
+                    }
+                }
+
+                if (scaleViolations == 0)
+                {
+                    Console.WriteLine(string.Format("[PASS] Scale {0:0}%: 0 violations found. All controls within client bounds, no overlaps, all text fits.", testScale * 100f));
+                }
+                else
+                {
+                    Console.WriteLine(string.Format("[FAIL] Scale {0:0}%: {1} violations found.", testScale * 100f, scaleViolations));
+                    totalViolations += scaleViolations;
+                }
+            }
+
+                }
+
+                Console.WriteLine("\n------------------------------------------------------------------");
+                if (totalViolations == 0)
+                {
+                    Console.WriteLine("[ALL PASSED] Layout regression check PASSED across all scales (100%, 125%, 150%, 175%).");
+                    Console.WriteLine("==================================================================");
+                    return 0;
+                }
+                else
+                {
+                    Console.WriteLine(string.Format("[FAILED] Total layout violations: {0}.", totalViolations));
+                    Console.WriteLine("==================================================================");
+                    return 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[FATAL] Layout regression check crashed with error:\n" + ex);
+                Console.WriteLine("==================================================================");
+                return 1;
             }
         }
     }
