@@ -520,10 +520,25 @@ namespace KnowToMigrate.Services
 
             Log($"[INFO] Spawning standalone updater: '{updaterExe}' for target version {AvailableManifest.Version}");
 
+            bool isBackground = false;
+            Application.Current?.Dispatcher?.Invoke(() =>
+            {
+                if (Application.Current.MainWindow != null && !Application.Current.MainWindow.IsVisible)
+                {
+                    isBackground = true;
+                }
+            });
+
+            string updaterArgs = $"--package \"{stagedPackage}\" --expected-sha256 \"{winDetails.Sha256}\" --target-dir \"{currentDir.TrimEnd('\\')}\" --main-exe \"{mainExe}\" --parent-pid {Process.GetCurrentProcess().Id} --target-version \"{AvailableManifest.Version}\" --previous-version \"{CurrentVersion}\"";
+            if (isBackground)
+            {
+                updaterArgs += " --background";
+            }
+
             var psi = new ProcessStartInfo
             {
                 FileName = updaterExe,
-                Arguments = $"--package \"{stagedPackage}\" --expected-sha256 \"{winDetails.Sha256}\" --target-dir \"{currentDir.TrimEnd('\\')}\" --main-exe \"{mainExe}\" --parent-pid {Process.GetCurrentProcess().Id} --target-version \"{AvailableManifest.Version}\" --previous-version \"{CurrentVersion}\"",
+                Arguments = updaterArgs,
                 UseShellExecute = true,
                 Verb = "runas"
             };
@@ -537,6 +552,17 @@ namespace KnowToMigrate.Services
                 // Gracefully close current application
                 Application.Current?.Dispatcher?.Invoke(() =>
                 {
+                    var mw = Application.Current.MainWindow;
+                    if (mw != null)
+                    {
+                        var method = mw.GetType().GetMethod("ExplicitExit");
+                        if (method != null)
+                        {
+                            method.Invoke(mw, null);
+                            return;
+                        }
+                    }
+                    KtmManager.Instance.Stop();
                     Application.Current.Shutdown(0);
                 });
                 return true;

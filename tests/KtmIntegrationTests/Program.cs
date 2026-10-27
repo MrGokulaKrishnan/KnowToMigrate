@@ -25,7 +25,7 @@ namespace KtmIntegrationTests
             Directory.CreateDirectory(receiveDir);
 
             int passCount = 0;
-            int totalTests = 8;
+            int totalTests = 11;
 
             try
             {
@@ -83,6 +83,27 @@ namespace KtmIntegrationTests
                 bool test8Pass = RunHistoryMigrationTest(testRoot);
                 if (test8Pass) { passCount++; Console.ForegroundColor = ConsoleColor.Green; Console.WriteLine(">>> TEST 8: PASS\n"); }
                 else { Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine(">>> TEST 8: FAIL\n"); }
+                Console.ResetColor();
+
+                // TEST 9: Single-Instance Named Pipe IPC Argument Forwarding
+                Console.WriteLine("--- TEST 9: Single-Instance IPC Argument Forwarding ---");
+                bool test9Pass = await RunSingleInstanceIpcTestAsync();
+                if (test9Pass) { passCount++; Console.ForegroundColor = ConsoleColor.Green; Console.WriteLine(">>> TEST 9: PASS\n"); }
+                else { Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine(">>> TEST 9: FAIL\n"); }
+                Console.ResetColor();
+
+                // TEST 10: Start With Windows HKCU Run Registry Entry
+                Console.WriteLine("--- TEST 10: Start With Windows HKCU Registry Key ---");
+                bool test10Pass = RunRegistryRunEntryTest();
+                if (test10Pass) { passCount++; Console.ForegroundColor = ConsoleColor.Green; Console.WriteLine(">>> TEST 10: PASS\n"); }
+                else { Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine(">>> TEST 10: FAIL\n"); }
+                Console.ResetColor();
+
+                // TEST 11: Transfer Server Pause Receiving
+                Console.WriteLine("--- TEST 11: Transfer Server Pause Receiving ---");
+                bool test11Pass = await RunPauseReceivingTestAsync(receiveDir);
+                if (test11Pass) { passCount++; Console.ForegroundColor = ConsoleColor.Green; Console.WriteLine(">>> TEST 11: PASS\n"); }
+                else { Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine(">>> TEST 11: FAIL\n"); }
                 Console.ResetColor();
             }
             finally
@@ -602,6 +623,235 @@ namespace KtmIntegrationTests
 
             Console.WriteLine("Migration verified: backup created, phantom removed, valid preserved, second run idempotent.");
             return true;
+        }
+
+        static async Task<bool> RunSingleInstanceIpcTestAsync()
+        {
+            var tcs = new TaskCompletionSource<string[]>();
+            bool acquired = KtmSingleInstance.TryAcquire();
+            if (!acquired)
+            {
+                Console.WriteLine("[ERROR] Could not acquire single-instance mutex for test.");
+                return false;
+            }
+
+            try
+            {
+                KtmSingleInstance.StartIpcListener(
+                    onActivateReceived: args => tcs.TrySetResult(args),
+                    onShutdownReceived: () => { });
+
+                await Task.Delay(200);
+
+                string testArg = @"C:\test\file.txt";
+                bool sent = KtmSingleInstance.SendArgsToPrimary(new[] { testArg });
+                if (!sent)
+                {
+                    Console.WriteLine("[ERROR] SendArgsToPrimary returned false.");
+                    return false;
+                }
+
+                var completedTask = await Task.WhenAny(tcs.Task, Task.Delay(3000));
+                if (completedTask != tcs.Task)
+                {
+                    Console.WriteLine("[ERROR] Timed out waiting for IPC arguments.");
+                    return false;
+                }
+
+                var receivedArgs = await tcs.Task;
+                if (receivedArgs.Length == 0 || receivedArgs[0] != testArg)
+                {
+                    Console.WriteLine($"[ERROR] IPC argument mismatch. Expected {testArg}, got {string.Join(", ", receivedArgs)}");
+                    return false;
+                }
+
+                Console.WriteLine($"IPC argument forwarding verified: received '{receivedArgs[0]}' within timeout.");
+                return true;
+            }
+            finally
+            {
+                KtmSingleInstance.Release();
+            }
+        }
+
+        static bool RunRegistryRunEntryTest()
+        {
+            try
+            {
+                // Step 1: Set true
+                UserSettingsManager.SetStartWithWindows(true);
+                using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", false))
+                {
+                    var val = key?.GetValue("KnowToMigrate") as string;
+                    if (val == null || !val.Contains("--background"))
+                    {
+                        Console.WriteLine($"[ERROR] Registry entry missing or missing --background: {val}");
+                        return false;
+                    }
+                }
+
+                // Step 2: Set false
+                UserSettingsManager.SetStartWithWindows(false);
+                using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", false))
+                {
+                    var val = key?.GetValue("KnowToMigrate");
+                    if (val != null)
+                    {
+                        Console.WriteLine($"[ERROR] Registry entry still exists after disabling: {val}");
+                        return false;
+                    }
+                }
+
+                Console.WriteLine("StartWithWindows registry write & cleanup verified successfully.");
+                return true;
+            }
+            finally
+            {
+                UserSettingsManager.SetStartWithWindows(false);
+            }
+        }
+
+        static async Task<bool> RunPauseReceivingTestAsync(string receiveDir)
+        {
+            int testPort = 54131;
+            using var server = new KtmTransferServer(receiveDir, testPort);
+            server.Start();
+            await Task.Delay(200);
+
+            try
+            {
+                // Step 1: Set paused
+                server.IsPaused = true;
+                bool rejectedOrClosed = false;
+
+                try
+                {
+                    using (var client = new System.Net.Sockets.TcpClient())
+                    {
+                        await client.ConnectAsync("127.0.0.1", testPort);
+                        using var stream = client.GetStream();
+
+                        var handshake = new KtmHandshake
+                        {
+                            DeviceId = "test-device",
+                            DeviceName = "TestDevice",
+                            Pin = "123456"
+                        };
+
+                        byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(handshake));
+                        byte[] lenBytes = new byte[4];
+                        lenBytes[0] = (byte)(jsonBytes.Length >> 24);
+                        lenBytes[1] = (byte)(jsonBytes.Length >> 16);
+                        lenBytes[2] = (byte)(jsonBytes.Length >> 8);
+                        lenBytes[3] = (byte)jsonBytes.Length;
+
+                        await stream.WriteAsync(lenBytes, 0, 4);
+                        await stream.WriteAsync(jsonBytes, 0, jsonBytes.Length);
+                        await stream.FlushAsync();
+
+                        byte[] respLenBytes = new byte[4];
+                        var readTask = stream.ReadAsync(respLenBytes, 0, 4);
+                        var timeoutTask = Task.Delay(2000);
+                        var winner = await Task.WhenAny(readTask, timeoutTask);
+                        if (winner == timeoutTask)
+                        {
+                            Console.WriteLine("[ERROR] Pause test hung on reading response.");
+                            return false;
+                        }
+
+                        int bytesRead = await readTask;
+                        if (bytesRead == 4)
+                        {
+                            int respLen = (respLenBytes[0] << 24) | (respLenBytes[1] << 16) | (respLenBytes[2] << 8) | respLenBytes[3];
+                            byte[] respBytes = new byte[respLen];
+                            await stream.ReadAsync(respBytes, 0, respLen);
+                            var ack = System.Text.Json.JsonSerializer.Deserialize<KtmHandshakeAck>(System.Text.Encoding.UTF8.GetString(respBytes));
+                            if (ack?.Accepted != true)
+                            {
+                                rejectedOrClosed = true;
+                            }
+                        }
+                        else
+                        {
+                            rejectedOrClosed = true;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    rejectedOrClosed = true;
+                }
+
+                if (!rejectedOrClosed)
+                {
+                    Console.WriteLine("[ERROR] Server did not reject or close connection while paused.");
+                    return false;
+                }
+
+                // Step 2: Unpause
+                server.IsPaused = false;
+                server.OnHandshakeReceived += h => Task.FromResult(true);
+
+                using (var client2 = new System.Net.Sockets.TcpClient())
+                {
+                    await client2.ConnectAsync("127.0.0.1", testPort);
+                    using var stream2 = client2.GetStream();
+
+                    var handshake2 = new KtmHandshake
+                    {
+                        DeviceId = "test-device-2",
+                        DeviceName = "TestDevice2",
+                        Pin = "123456"
+                    };
+
+                    byte[] jsonBytes2 = System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(handshake2));
+                    byte[] lenBytes2 = new byte[4];
+                    lenBytes2[0] = (byte)(jsonBytes2.Length >> 24);
+                    lenBytes2[1] = (byte)(jsonBytes2.Length >> 16);
+                    lenBytes2[2] = (byte)(jsonBytes2.Length >> 8);
+                    lenBytes2[3] = (byte)jsonBytes2.Length;
+
+                    await stream2.WriteAsync(lenBytes2, 0, 4);
+                    await stream2.WriteAsync(jsonBytes2, 0, jsonBytes2.Length);
+                    await stream2.FlushAsync();
+
+                    byte[] respLenBytes2 = new byte[4];
+                    var readTask2 = stream2.ReadAsync(respLenBytes2, 0, 4);
+                    var timeoutTask2 = Task.Delay(3000);
+                    var winner2 = await Task.WhenAny(readTask2, timeoutTask2);
+                    if (winner2 == timeoutTask2)
+                    {
+                        Console.WriteLine("[ERROR] Step 2 hung waiting for unpaused handshake response.");
+                        return false;
+                    }
+
+                    int r = await readTask2;
+                    if (r == 4)
+                    {
+                        int respLen2 = (respLenBytes2[0] << 24) | (respLenBytes2[1] << 16) | (respLenBytes2[2] << 8) | respLenBytes2[3];
+                        byte[] respBytes2 = new byte[respLen2];
+                        await stream2.ReadAsync(respBytes2, 0, respLen2);
+                        var ack2 = System.Text.Json.JsonSerializer.Deserialize<KtmHandshakeAck>(System.Text.Encoding.UTF8.GetString(respBytes2));
+                        if (ack2?.Accepted != true)
+                        {
+                            Console.WriteLine("[ERROR] Server did not accept connection when unpaused!");
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("[ERROR] Unexpected disconnect during unpaused handshake.");
+                        return false;
+                    }
+                }
+
+                Console.WriteLine("Pause receiving test passed: rejected while paused, accepted when resumed.");
+                return true;
+            }
+            finally
+            {
+                server.Stop();
+            }
         }
     }
 }

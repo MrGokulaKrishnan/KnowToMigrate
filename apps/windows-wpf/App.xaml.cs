@@ -1,8 +1,11 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Threading;
+using KnowToMigrate.Services;
 
 namespace KnowToMigrate
 {
@@ -22,9 +25,18 @@ namespace KnowToMigrate
         public const string AppUserModelId = "KnowToMigrate.App";
         public static string[] InitialFilesToStage { get; private set; } = Array.Empty<string>();
 
+        private MainWindow? _mainWindow;
+
         protected override void OnStartup(StartupEventArgs e)
         {
-            if (e.Args.Length > 0) { InitialFilesToStage = e.Args; }
+            // 1. Single Instance Check & Argument Forwarding
+            if (!KtmSingleInstance.TryAcquire(e.Args))
+            {
+                Shutdown(0);
+                return;
+            }
+
+            // 2. Windows AppUserModelID
             try
             {
                 SetCurrentProcessExplicitAppUserModelID(AppUserModelId);
@@ -36,6 +48,67 @@ namespace KnowToMigrate
             DispatcherUnhandledException += App_DispatcherUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+            // 3. Command Line & Background Check
+            bool isBackground = e.Args.Any(a => string.Equals(a, "--background", StringComparison.OrdinalIgnoreCase) ||
+                                                string.Equals(a, "/background", StringComparison.OrdinalIgnoreCase) ||
+                                                string.Equals(a, "-background", StringComparison.OrdinalIgnoreCase));
+
+            var files = e.Args.Where(a => !a.StartsWith("-") && !a.StartsWith("/")).ToArray();
+            if (files.Length > 0)
+            {
+                InitialFilesToStage = files;
+            }
+
+            if (isBackground)
+            {
+                var settings = UserSettingsManager.LoadSettings();
+                if (!settings.StartWhenSignedIn)
+                {
+                    LogMessage("[Startup] Started with --background but StartWhenSignedIn is disabled. Exiting.");
+                    Shutdown(0);
+                    return;
+                }
+            }
+
+            // 4. Instantiate MainWindow
+            _mainWindow = new MainWindow();
+            MainWindow = _mainWindow;
+
+            if (isBackground)
+            {
+                // Force Win32 window handle creation without showing window so tray icon can register
+                new WindowInteropHelper(_mainWindow).EnsureHandle();
+                _mainWindow.InitializeBackgroundMode();
+            }
+            else
+            {
+                _mainWindow.Show();
+                _mainWindow.Activate();
+            }
+
+            // 5. Start IPC Listener for argument forwarding and graceful updater shutdown
+            KtmSingleInstance.StartListening(
+                args =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        _mainWindow?.HandleIpcArgs(args);
+                    });
+                },
+                () =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        _mainWindow?.TrayManager?.ForceShutdown();
+                    });
+                });
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            KtmSingleInstance.StopListening();
+            base.OnExit(e);
         }
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
@@ -68,8 +141,18 @@ namespace KnowToMigrate
         {
             try
             {
-                string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "crash.log");
+                string logPath = Path.Combine(UserSettingsManager.LogsDirectory, "crash.log");
                 File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] {ex}\n\n");
+            }
+            catch { }
+        }
+
+        public static void LogMessage(string message)
+        {
+            try
+            {
+                string logPath = Path.Combine(UserSettingsManager.LogsDirectory, "application.log");
+                File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] {message}\n");
             }
             catch { }
         }

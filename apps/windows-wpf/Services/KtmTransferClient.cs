@@ -15,8 +15,10 @@ namespace KnowToMigrate.Services
         public event Action<TransferProgressInfo>? OnProgress;
         private volatile bool _isPaused = false;
         private TransferProgressInfo? _currentProgress;
+        private int _activeTransfers;
 
         public bool IsPaused => _isPaused;
+        public bool HasActiveTransfers => Volatile.Read(ref _activeTransfers) > 0;
 
         public void Pause()
         {
@@ -65,6 +67,7 @@ namespace KnowToMigrate.Services
         {
             if (filePaths.Count == 0) return true;
 
+            Interlocked.Increment(ref _activeTransfers);
             _isPaused = false;
             using var client = new TcpClient();
             client.ReceiveBufferSize = 64 * 1024;
@@ -338,6 +341,10 @@ namespace KnowToMigrate.Services
                 progress.ErrorMessage = ex.Message;
                 OnProgress?.Invoke(progress);
                 return false;
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _activeTransfers);
             }
         }
 

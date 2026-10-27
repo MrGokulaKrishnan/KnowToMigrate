@@ -18,6 +18,10 @@ namespace KnowToMigrate.Services
         private TcpListener? _listener;
         private CancellationTokenSource? _cts;
         private bool _isDisposed;
+        private int _activeTransfers;
+
+        public bool IsPaused { get; set; } = false;
+        public bool HasActiveTransfers => Volatile.Read(ref _activeTransfers) > 0;
 
         public event Func<KtmHandshake, Task<bool>>? OnHandshakeReceived;
         public event Action<TransferProgressInfo>? OnProgress;
@@ -59,6 +63,22 @@ namespace KnowToMigrate.Services
                 while (!token.IsCancellationRequested)
                 {
                     var client = await _listener.AcceptTcpClientAsync(token);
+                    if (IsPaused)
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                using (client)
+                                using (var stream = client.GetStream())
+                                {
+                                    await SendLengthPrefixedJsonAsync(stream, new KtmHandshakeAck { Accepted = false, Reason = "Receiver is currently paused" }, token);
+                                }
+                            }
+                            catch { }
+                        }, token);
+                        continue;
+                    }
                     _ = Task.Run(() => HandleIncomingClientAsync(client, token), token);
                 }
             }
@@ -71,18 +91,21 @@ namespace KnowToMigrate.Services
 
         private async Task HandleIncomingClientAsync(TcpClient client, CancellationToken token)
         {
-            using (client)
-            using (var stream = client.GetStream())
+            Interlocked.Increment(ref _activeTransfers);
+            try
             {
-                client.ReceiveBufferSize = 256 * 1024;
-                client.SendBufferSize = 64 * 1024;
-                client.NoDelay = true;
-
-                string sessionId = string.Empty;
-                var progress = new TransferProgressInfo();
-
-                try
+                using (client)
+                using (var stream = client.GetStream())
                 {
+                    client.ReceiveBufferSize = 256 * 1024;
+                    client.SendBufferSize = 64 * 1024;
+                    client.NoDelay = true;
+
+                    string sessionId = string.Empty;
+                    var progress = new TransferProgressInfo();
+
+                    try
+                    {
                     // 1. Read HANDSHAKE
                     string handshakeJson = await ReadLengthPrefixedJsonAsync(stream, token);
                     var handshake = JsonSerializer.Deserialize<KtmHandshake>(handshakeJson);
@@ -377,6 +400,11 @@ namespace KnowToMigrate.Services
                     OnProgress?.Invoke(progress);
                     OnTransferCompleted?.Invoke(sessionId, false, ex.Message);
                 }
+                }
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _activeTransfers);
             }
         }
 

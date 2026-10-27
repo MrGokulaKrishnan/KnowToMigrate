@@ -2103,6 +2103,98 @@
 
 
 
+                                    <!-- SECTION: SYSTEM & BACKGROUND -->
+
+                                    <Border Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="20" Margin="0,0,0,14">
+
+                                        <StackPanel>
+
+                                            <TextBlock Text="System &amp; Background" FontSize="14" FontWeight="SemiBold" Foreground="#F5F5F5" Margin="0,0,0,14" />
+
+
+
+                                            <!-- Keep receiving when closed -->
+
+                                            <Grid Margin="0,0,0,14">
+
+                                                <StackPanel VerticalAlignment="Center">
+
+                                                    <TextBlock Text="Keep receiving when closed" FontSize="13" Foreground="#F5F5F5" FontWeight="Medium" />
+
+                                                    <TextBlock Text="Runs in notification area so nearby devices can reach this PC" FontSize="11" Foreground="#8C8C8C" Margin="0,2,0,0" />
+
+                                                </StackPanel>
+
+                                                <CheckBox x:Name="ChkKeepRunningWhenClosed" Style="{StaticResource KmToggleSwitch}" Checked="ChkKeepRunningWhenClosed_Changed" Unchecked="ChkKeepRunningWhenClosed_Changed" HorizontalAlignment="Right" VerticalAlignment="Center" ToolTip="Runs in notification area so nearby devices can reach this PC" />
+
+                                            </Grid>
+
+
+
+                                            <!-- Taskbar Tip -->
+
+                                            <Border Background="#06FFFFFF" BorderBrush="#14FFFFFF" BorderThickness="1" CornerRadius="10" Padding="12,8" Margin="0,0,0,14">
+
+                                                <DockPanel LastChildFill="False">
+
+                                                    <TextBlock Text="Tip: Drag KnowToMigrate onto the taskbar in Windows Settings to keep the tray icon visible." FontSize="11" Foreground="#8C8C8C" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="380" />
+
+                                                    <Button Content="Taskbar settings" Click="BtnTaskbarSettings_Click" Style="{StaticResource KmGlassButton}" MinHeight="26" Padding="10,2" FontSize="10" DockPanel.Dock="Right" VerticalAlignment="Center" />
+
+                                                </DockPanel>
+
+                                            </Border>
+
+
+
+                                            <Border Height="1" Background="#0FFFFFFF" Margin="0,0,0,14" />
+
+
+
+                                            <!-- Start when I sign in -->
+
+                                            <Grid Margin="0,0,0,14">
+
+                                                <StackPanel VerticalAlignment="Center">
+
+                                                    <TextBlock Text="Start when I sign in" FontSize="13" Foreground="#F5F5F5" FontWeight="Medium" />
+
+                                                    <TextBlock Text="Starts minimized in the background when Windows boots" FontSize="11" Foreground="#8C8C8C" Margin="0,2,0,0" />
+
+                                                </StackPanel>
+
+                                                <CheckBox x:Name="ChkStartWhenSignedIn" Style="{StaticResource KmToggleSwitch}" Checked="ChkStartWhenSignedIn_Changed" Unchecked="ChkStartWhenSignedIn_Changed" HorizontalAlignment="Right" VerticalAlignment="Center" />
+
+                                            </Grid>
+
+
+
+                                            <Border Height="1" Background="#0FFFFFFF" Margin="0,0,0,14" />
+
+
+
+                                            <!-- Notify on transfer complete -->
+
+                                            <Grid Margin="0,0,0,4">
+
+                                                <StackPanel VerticalAlignment="Center">
+
+                                                    <TextBlock Text="Notify on transfer complete" FontSize="13" Foreground="#F5F5F5" FontWeight="Medium" />
+
+                                                    <TextBlock Text="Show notification when a file transfer finishes" FontSize="11" Foreground="#8C8C8C" Margin="0,2,0,0" />
+
+                                                </StackPanel>
+
+                                                <CheckBox x:Name="ChkNotifyOnTransferComplete" Style="{StaticResource KmToggleSwitch}" Checked="ChkNotifyOnTransferComplete_Changed" Unchecked="ChkNotifyOnTransferComplete_Changed" HorizontalAlignment="Right" VerticalAlignment="Center" />
+
+                                            </Grid>
+
+                                        </StackPanel>
+
+                                    </Border>
+
+
+
                                     <!-- SECTION 3: NETWORK -->
 
                                     <Border Background="#09FFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="16" Padding="20" Margin="0,0,0,14">

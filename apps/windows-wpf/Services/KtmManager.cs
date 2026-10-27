@@ -24,6 +24,14 @@ namespace KnowToMigrate.Services
         public ObservableCollection<DiscoveredDevice> NearbyDevices { get; } = new();
         public ObservableCollection<TransferProgressInfo> TransferHistory { get; } = new();
 
+        public bool IsReceivingPaused
+        {
+            get => TransferServer.IsPaused;
+            set => TransferServer.IsPaused = value;
+        }
+
+        public bool HasActiveTransfers => TransferServer.HasActiveTransfers || TransferClient.HasActiveTransfers;
+
         public static Func<KtmHandshake, Task<bool>>? IncomingTransferPrompter { get; set; }
 
         public event Action<DiscoveredDevice>? OnDeviceFound;

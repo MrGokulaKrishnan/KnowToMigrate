@@ -112,6 +112,8 @@ namespace KnowToMigrate
 
 
         private KtmTrayManager? _trayManager;
+        public KtmTrayManager? TrayManager => _trayManager;
+        private bool _isExplicitExit = false;
 
 
 
@@ -638,6 +640,9 @@ namespace KnowToMigrate
 
 
                 ChkMinimizeToTray.IsChecked = settings.MinimizeToTray;
+                ChkKeepRunningWhenClosed.IsChecked = settings.KeepRunningWhenClosed;
+                ChkStartWhenSignedIn.IsChecked = settings.StartWhenSignedIn;
+                ChkNotifyOnTransferComplete.IsChecked = settings.NotifyOnTransferComplete;
 
 
 
@@ -674,6 +679,20 @@ namespace KnowToMigrate
 
 
                 _trayManager.Initialize();
+                _trayManager.OnSendFilesRequested += () => Dispatcher.Invoke(() =>
+                {
+                    RestoreFromTray();
+                    Nav_Click(BtnNavSend, new RoutedEventArgs());
+                });
+                _trayManager.OnOpenSettingsRequested += () => Dispatcher.Invoke(() =>
+                {
+                    RestoreFromTray();
+                    Nav_Click(BtnNavSettings, new RoutedEventArgs());
+                });
+                _trayManager.OnExitRequested += () =>
+                {
+                    _isExplicitExit = true;
+                };
 
 
 
@@ -1149,41 +1168,29 @@ namespace KnowToMigrate
 
 
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
-
-
-
         {
-
-
+            if (!_isExplicitExit)
+            {
+                var settings = UserSettingsManager.LoadSettings();
+                if (settings.KeepRunningWhenClosed)
+                {
+                    e.Cancel = true;
+                    WindowBoundsManager.SaveWindowState(this);
+                    Hide();
+                    StopUiTimers();
+                    _trayManager?.ShowFirstTimeBalloonTip();
+                    return;
+                }
+            }
 
             // Save window state on close so we can restore it correctly next launch
-
-
-
             WindowBoundsManager.SaveWindowState(this);
-
-
-
             Views.IncomingTransferWindow.CancelPending();
-
-
-
             _transferCts?.Cancel();
-
-
-
             KtmManager.Instance.Stop();
-
-
-
             _trayManager?.Dispose();
-
-
-
             KtmWebShareServer.Instance.Stop();
-
-
-
+            Application.Current.Shutdown();
         }
 
 
@@ -1217,6 +1224,14 @@ namespace KnowToMigrate
 
 
                     PanelProgress.Visibility = Visibility.Collapsed;
+                    _trayManager?.SetState(KtmManager.Instance.IsReceivingPaused ? TrayState.Paused : TrayState.Ready, KtmManager.Instance.IsReceivingPaused ? "KnowToMigrate · Paused" : "KnowToMigrate · Ready to receive");
+                    if (!IsVisible && UserSettingsManager.LoadSettings().NotifyOnTransferComplete)
+                    {
+                        if (info.Direction == TransferDirection.Receiving)
+                            _trayManager?.ShowNotification("File Received", $"{info.CurrentFileName} ({KtmFormatting.FormatBytes(info.TotalBytes)}) received.");
+                        else
+                            _trayManager?.ShowNotification("Transfer Complete", $"{info.CurrentFileName} ({KtmFormatting.FormatBytes(info.TotalBytes)}) sent.");
+                    }
 
 
 
@@ -1281,6 +1296,7 @@ namespace KnowToMigrate
 
 
                     PanelProgress.Visibility = Visibility.Collapsed;
+                    _trayManager?.SetState(TrayState.Error, "KnowToMigrate · Error");
 
 
 
@@ -1317,6 +1333,7 @@ namespace KnowToMigrate
 
 
                                         PanelProgress.Visibility = Visibility.Visible;
+                    _trayManager?.SetState(TrayState.Receiving, $"{info.SpeedMBps:F1} MB/s");
 
                     ProgressBarTransfer.Value = info.Percentage;
 
@@ -1667,21 +1684,14 @@ namespace KnowToMigrate
 
 
         public Task<bool> PromptIncomingTransferAsync(KtmHandshake handshake)
-
-
-
         {
-
-
-
-            // Dedicated transient IncomingTransferWindow: appears above desktop, flashes taskbar if background, without locking TopMost
-
-
-
+            if (!IsVisible)
+            {
+                _trayManager?.ShowNotification(
+                    "Incoming Transfer",
+                    $"{handshake.DeviceName} wants to connect and send files.");
+            }
             return Views.IncomingTransferWindow.EnqueueAndPromptAsync(handshake);
-
-
-
         }
 
 
@@ -4479,6 +4489,7 @@ private void CancelTransfer_Click(object sender, RoutedEventArgs e)
 
 
             {
+                StopUiTimers();
 
 
 
@@ -4509,6 +4520,8 @@ private void CancelTransfer_Click(object sender, RoutedEventArgs e)
             }
 
 
+
+            StartUiTimers();
 
             if (this.WindowState == WindowState.Maximized)
 
@@ -6270,9 +6283,125 @@ private void CancelTransfer_Click(object sender, RoutedEventArgs e)
 
         #endregion
 
+    
+        private void ChkKeepRunningWhenClosed_Changed(object sender, RoutedEventArgs e)
+        {
+            var settings = UserSettingsManager.LoadSettings();
+            settings.KeepRunningWhenClosed = ChkKeepRunningWhenClosed.IsChecked == true;
+            UserSettingsManager.SaveSettings(settings);
+        }
+
+        private void ChkStartWhenSignedIn_Changed(object sender, RoutedEventArgs e)
+        {
+            var settings = UserSettingsManager.LoadSettings();
+            bool enable = ChkStartWhenSignedIn.IsChecked == true;
+            settings.StartWhenSignedIn = enable;
+            UserSettingsManager.SetStartWithWindows(enable);
+            UserSettingsManager.SaveSettings(settings);
+            _trayManager?.UpdateStartWhenSignedInMenu(enable);
+        }
+
+        private void ChkNotifyOnTransferComplete_Changed(object sender, RoutedEventArgs e)
+        {
+            var settings = UserSettingsManager.LoadSettings();
+            settings.NotifyOnTransferComplete = ChkNotifyOnTransferComplete.IsChecked == true;
+            UserSettingsManager.SaveSettings(settings);
+        }
+
+        private void BtnTaskbarSettings_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo("ms-settings:taskbar") { UseShellExecute = true });
+            }
+            catch { }
+        }
+
+        public void ExplicitExit()
+        {
+            _isExplicitExit = true;
+            _trayManager?.Dispose();
+            Close();
+            Application.Current.Shutdown();
+        }
+
+        public void RestoreFromTray()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                Show();
+                if (WindowState == WindowState.Minimized)
+                {
+                    WindowState = WindowState.Normal;
+                }
+                Activate();
+                Focus();
+                StartUiTimers();
+            });
+        }
+
+        public void InitializeBackgroundMode()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                Hide();
+                StopUiTimers();
+                _trayManager?.SetState(TrayState.Ready, "KnowToMigrate · Ready to receive");
+            });
+        }
+
+        public void HandleIpcArgs(string[] args)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                RestoreFromTray();
+                if (args != null && args.Length > 0)
+                {
+                    var validFiles = args.Where(f => !string.IsNullOrWhiteSpace(f) && (File.Exists(f) || Directory.Exists(f))).ToList();
+                    if (validFiles.Count > 0)
+                    {
+                        foreach (var f in validFiles)
+                        {
+                            if (!_selectedFiles.Contains(f))
+                            {
+                                _selectedFiles.Add(f);
+                            }
+                        }
+                        UpdateFileSelectionUI();
+                        Nav_Click(BtnNavSend, new RoutedEventArgs());
+                    }
+                }
+            });
+        }
+
+        private void StopUiTimers()
+        {
+            try
+            {
+                _liveTimingTimer.Stop();
+                if (TryFindResource("RadarPulseAnimation") is System.Windows.Media.Animation.Storyboard sb)
+                {
+                    sb.Pause(this);
+                }
+            }
+            catch { }
+        }
+
+        private void StartUiTimers()
+        {
+            try
+            {
+                if (!_liveTimingTimer.IsEnabled)
+                {
+                    _liveTimingTimer.Start();
+                }
+                if (TryFindResource("RadarPulseAnimation") is System.Windows.Media.Animation.Storyboard sb)
+                {
+                    sb.Resume(this);
+                }
+            }
+            catch { }
+        }
+
     }
-
 }
-
-
-

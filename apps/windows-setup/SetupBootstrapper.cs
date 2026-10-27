@@ -441,6 +441,7 @@ namespace KnowToMigrate.Setup
                 {
                     RemoveShortcuts();
                     CleanRegistry();
+                    ConfigureFirewall(false);
 
                     var psi = new ProcessStartInfo
                     {
@@ -474,12 +475,85 @@ namespace KnowToMigrate.Setup
 
                     EnsureShortcuts(true, true);
                     RegisterSystemIdentity();
+                    ConfigureFirewall(true);
                     return 0;
                 }
             }
             finally
             {
                 try { if (tempMsi != null && File.Exists(tempMsi)) File.Delete(tempMsi); } catch { }
+            }
+        }
+
+        public static bool IsAdministrator()
+        {
+            try
+            {
+                var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+                var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static void ConfigureFirewall(bool install)
+        {
+            try
+            {
+                if (!IsAdministrator())
+                {
+                    Log("[INFO] Not running as administrator. Skipping firewall configuration.");
+                    return;
+                }
+
+                if (install)
+                {
+                    Log("[INFO] Configuring inbound Windows Firewall rules on Private profile...");
+                    // TCP ports 54124, 54125
+                    RunNetsh("advfirewall firewall add rule name=\"KnowToMigrate\" dir=in action=allow protocol=TCP localport=54124,54125 profile=private");
+                    // UDP port 54123
+                    RunNetsh("advfirewall firewall add rule name=\"KnowToMigrate Discovery\" dir=in action=allow protocol=UDP localport=54123 profile=private");
+                }
+                else
+                {
+                    Log("[INFO] Removing Windows Firewall rules...");
+                    RunNetsh("advfirewall firewall delete rule name=\"KnowToMigrate\"");
+                    RunNetsh("advfirewall firewall delete rule name=\"KnowToMigrate Discovery\"");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log("[WARN] Firewall configuration non-fatal error: " + ex.Message);
+            }
+        }
+
+        private static void RunNetsh(string arguments)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "netsh.exe",
+                    Arguments = arguments,
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+                using (var proc = Process.Start(psi))
+                {
+                    if (proc != null)
+                    {
+                        proc.WaitForExit(5000);
+                        Log("[INFO] netsh " + arguments + " exited with code " + proc.ExitCode);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log("[WARN] Failed executing netsh " + arguments + ": " + ex.Message);
             }
         }
     }
@@ -1356,6 +1430,7 @@ namespace KnowToMigrate.Setup
 
                 UpdateProgress(95, "Registering application...", "Registering Windows application identity and protocol handlers...");
                 Program.RegisterSystemIdentity();
+                Program.ConfigureFirewall(true);
                 Thread.Sleep(400);
 
                 UpdateProgress(100, "Installation complete!", "Ready to launch.");
@@ -1406,6 +1481,7 @@ namespace KnowToMigrate.Setup
 
                 UpdateProgress(80, "Cleaning system registry...", "Unregistering application entries...");
                 Program.CleanRegistry();
+                Program.ConfigureFirewall(false);
 
                 if (_chkRemoveCache.Checked)
                 {

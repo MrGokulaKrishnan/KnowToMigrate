@@ -31,6 +31,10 @@ namespace KnowToMigrate.Services
         public bool AutoCheckForUpdates { get => CheckUpdatesAutomatically; set => CheckUpdatesAutomatically = value; }
 
         public bool MinimizeToTray { get; set; } = true;
+        public bool KeepRunningWhenClosed { get; set; } = true;
+        public bool StartWhenSignedIn { get; set; } = false;
+        public bool NotifyOnTransferComplete { get; set; } = true;
+        public bool HasShownCloseToTrayTip { get; set; } = false;
         public bool SoundEffectsEnabled { get; set; } = true;
         public bool ShellContextMenuEnabled { get; set; } = true;
         public DuplicateResolutionMode DuplicateHandling { get; set; } = DuplicateResolutionMode.KeepBoth;
@@ -120,7 +124,7 @@ namespace KnowToMigrate.Services
             _ => "Transferred"
         };
 
-        private static SolidColorBrush ResolveThemeBrush(string themeKey, Color fallback)
+        private static SolidColorBrush ResolveThemeBrush(string themeKey, System.Windows.Media.Color fallback)
         {
             try
             {
@@ -543,6 +547,32 @@ namespace KnowToMigrate.Services
                     else
                     {
                         Registry.CurrentUser.DeleteSubKeyTree(relKey, false);
+                    }
+                }
+            }
+            catch { }
+        }
+
+        public static void SetStartWithWindows(bool enable)
+        {
+            try
+            {
+                string exePath = Process.GetCurrentProcess().MainModule?.FileName ?? Environment.ProcessPath ?? "";
+                if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
+                {
+                    exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "KnowToMigrate.exe");
+                }
+
+                using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
+                if (key != null)
+                {
+                    if (enable)
+                    {
+                        key.SetValue("KnowToMigrate", $"\"{exePath}\" --background");
+                    }
+                    else
+                    {
+                        key.DeleteValue("KnowToMigrate", false);
                     }
                 }
             }

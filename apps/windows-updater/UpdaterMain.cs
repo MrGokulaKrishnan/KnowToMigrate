@@ -119,6 +119,7 @@ namespace KnowToMigrate.Updater
         private string _targetVersion;
         private string _previousVersion;
         private bool _isSilent;
+        private bool _relaunchBackground;
         private int _exitCode;
 
         public int ExitCode { get { return _exitCode; } }
@@ -196,6 +197,29 @@ namespace KnowToMigrate.Updater
                     _previousVersion = args[++i].Trim('"');
                 else if (string.Equals(arg, "--silent", StringComparison.OrdinalIgnoreCase))
                     _isSilent = true;
+                else if (string.Equals(arg, "--background", StringComparison.OrdinalIgnoreCase))
+                    _relaunchBackground = true;
+            }
+        }
+
+        private static bool RequestShutdownViaPipe()
+        {
+            try
+            {
+                using (var client = new System.IO.Pipes.NamedPipeClientStream(".", "KnowToMigrate.IpcPipe.v1", System.IO.Pipes.PipeDirection.Out))
+                {
+                    client.Connect(1000);
+                    using (var writer = new StreamWriter(client, Encoding.UTF8))
+                    {
+                        writer.WriteLine("SHUTDOWN");
+                        writer.Flush();
+                    }
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -602,6 +626,7 @@ namespace KnowToMigrate.Updater
             {
                 // Step 1: Wait for parent PID to exit
                 UpdateStatus("Waiting for KnowToMigrate to close...", "Closing existing application instance...");
+                RequestShutdownViaPipe();
                 if (_parentPid > 0)
                 {
                     try
@@ -612,12 +637,12 @@ namespace KnowToMigrate.Updater
                             Program.Log(string.Format("[INFO] Waiting for parent process (PID: {0}) to exit...", _parentPid));
                             if (!parent.WaitForExit(15000))
                             {
-                                Program.Log("[WARN] Parent process did not exit within 15 seconds. Terminating.");
-                                parent.Kill();
-                                parent.WaitForExit(3000);
+                                Program.Log("[WARN] Parent process did not exit within 15 seconds. Update aborted to prevent corruption.");
+                                throw new TimeoutException("The application did not close in time. Update cancelled to prevent file corruption.");
                             }
                         }
                     }
+                    catch (TimeoutException) { throw; }
                     catch (Exception ex)
                     {
                         Program.Log("[INFO] Parent process check: " + ex.Message);
@@ -750,6 +775,7 @@ namespace KnowToMigrate.Updater
                     {
                         FileName = exeToLaunch,
                         WorkingDirectory = Path.GetDirectoryName(exeToLaunch),
+                        Arguments = _relaunchBackground ? "--background" : "",
                         UseShellExecute = true
                     };
                     Process.Start(psi);
