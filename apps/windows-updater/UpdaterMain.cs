@@ -9,13 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-
-[assembly: AssemblyTitle("KnowToMigrate Updater")]
-[assembly: AssemblyProduct("KnowToMigrate")]
-[assembly: AssemblyCompany("KnowTheTech")]
-[assembly: AssemblyDescription("KnowToMigrate Standalone Native Updater")]
-[assembly: AssemblyVersion("1.0.6.0")]
-[assembly: AssemblyFileVersion("1.0.6.0")]
+using Microsoft.Win32;
 
 namespace KnowToMigrate.Updater
 {
@@ -755,6 +749,7 @@ namespace KnowToMigrate.Updater
 
                 // Step 4: Verification of installed application
                 UpdateStatus("Finalizing update...", "Verifying updated application...");
+                UpdateUninstallRegistry();
                 string exeToLaunch = ResolveMainExePath();
 
                 // Step 5: Clean up staged package
@@ -829,6 +824,84 @@ namespace KnowToMigrate.Updater
                 if (this.IsHandleCreated)
                 {
                     this.BeginInvoke(new Action(this.Close));
+                }
+            }
+        }
+
+        private void UpdateUninstallRegistry()
+        {
+            try
+            {
+                string installDir = !string.IsNullOrWhiteSpace(_targetDir) && Directory.Exists(_targetDir)
+                    ? _targetDir
+                    : Path.GetDirectoryName(ResolveMainExePath()) ?? @"C:\Program Files\KnowToMigrate";
+
+                string versionToWrite = !string.IsNullOrWhiteSpace(_targetVersion)
+                    ? _targetVersion
+                    : KtmVersion.DisplayVersion;
+
+                using (var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\KnowToMigrate"))
+                {
+                    if (key != null)
+                    {
+                        key.SetValue("DisplayName", "KnowToMigrate");
+                        key.SetValue("DisplayVersion", versionToWrite);
+                        key.SetValue("Publisher", "KnowTheTech");
+                        key.SetValue("InstallLocation", installDir);
+
+                        long totalBytes = 0;
+                        if (Directory.Exists(installDir))
+                        {
+                            try
+                            {
+                                var dirInfo = new DirectoryInfo(installDir);
+                                foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                                {
+                                    totalBytes += file.Length;
+                                }
+                            }
+                            catch { }
+                        }
+
+                        int estimatedSizeKb = (int)(totalBytes / 1024);
+                        if (estimatedSizeKb > 0)
+                        {
+                            key.SetValue("EstimatedSize", estimatedSizeKb, RegistryValueKind.DWord);
+                        }
+
+                        Program.Log(string.Format("[INFO] Uninstall registry updated: DisplayVersion={0}, InstallLocation={1}, EstimatedSize={2}KB",
+                            versionToWrite, installDir, estimatedSizeKb));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Program.Log("[ERROR] Failed to update uninstall registry: " + ex.Message);
+                if (!_isSilent)
+                {
+                    try
+                    {
+                        if (this.IsHandleCreated)
+                        {
+                            this.Invoke(new Action(() =>
+                            {
+                                MessageBox.Show(this,
+                                    "Installed version could not be updated in Windows Settings. Reinstall once to fix it.",
+                                    "KnowToMigrate Update",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Warning);
+                            }));
+                        }
+                        else
+                        {
+                            MessageBox.Show(
+                                "Installed version could not be updated in Windows Settings. Reinstall once to fix it.",
+                                "KnowToMigrate Update",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning);
+                        }
+                    }
+                    catch { }
                 }
             }
         }

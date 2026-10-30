@@ -134,6 +134,8 @@ const manifest = merge(readJsonOr('apps/website/public/update-manifest.json', {}
 delete manifest.updateTimeText
 delete manifest.mandatory
 outputs.set('apps/website/public/update-manifest.json', JSON.stringify(manifest, null, 4) + '\n')
+const devManifest = { ...manifest, channel: 'dev' }
+outputs.set('apps/website/public/update-manifest-dev.json', JSON.stringify(devManifest, null, 4) + '\n')
 
 // 2. Android self-updater manifest (read first by the app).
 const stable = merge(readJsonOr('apps/website/public/updates/android/stable.json', {}), {

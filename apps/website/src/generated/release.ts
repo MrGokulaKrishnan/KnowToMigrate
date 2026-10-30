@@ -2,8 +2,8 @@
 export const RELEASE = {
   "version": "1.0.6",
   "versionCode": 10006,
-  "publishedAt": "2026-10-26T08:05:00Z",
-  "releaseDate": "2026-10-26",
+  "publishedAt": "2026-10-27T06:06:15Z",
+  "releaseDate": "2026-10-27",
   "releaseNotes": [
     "Transit Auto Smart Transfer Engine with dynamic latency profiling and automated transport selection",
     "Adaptive Transfer streaming with dynamic buffer scaling (64 KB to 1 MB) and resilient retry",
@@ -20,9 +20,9 @@ export const RELEASE = {
       "filename": "KnowToMigrate-Setup.exe",
       "path": "/download/KnowToMigrate-Setup.exe",
       "version": "1.0.6",
-      "size": "64.4 MB",
-      "sizeBytes": 67577856,
-      "sha256": "62561cae27289a1f3ea03b67fc18cd21b9dd785128a6c3c64efbb250de2ffbfe"
+      "size": "194.5 MB",
+      "sizeBytes": 203994056,
+      "sha256": "5baa17f79b8d3c42fdfa938eedefc7ceef0b2444765a899d3e4dff45ae4a61bb"
     },
     {
       "id": "win-msi",
@@ -30,9 +30,9 @@ export const RELEASE = {
       "filename": "KnowToMigrate-1.0.6-x64.msi",
       "path": "/download/KnowToMigrate-1.0.6-x64.msi",
       "version": "1.0.6",
-      "size": "64.1 MB",
-      "sizeBytes": 67256320,
-      "sha256": "20c09053b6e822226d900487f998ed4305fbdda8c2ba339f0319c42daae7777a"
+      "size": "125.8 MB",
+      "sizeBytes": 131858432,
+      "sha256": "c74a5f7226d5347a5c2dce89b8e2056e5b6d0699352e967d6903f77242aa5b14"
     },
     {
       "id": "win-portable",
@@ -40,9 +40,9 @@ export const RELEASE = {
       "filename": "KnowToMigrate-1.0.6-x64.exe",
       "path": "/download/KnowToMigrate-1.0.6-x64.exe",
       "version": "1.0.6",
-      "size": "69.5 MB",
-      "sizeBytes": 72864768,
-      "sha256": "388f62c0e588c19694d4bea9a8cfc95596699aba30fc2827d67b82ead4d10216"
+      "size": "69.2 MB",
+      "sizeBytes": 72519226,
+      "sha256": "842a94216d660f2ead428abd8c8e0ae60e5bf5397ca746b5156ca17c8f757843"
     }
   ],
   "android": [
@@ -52,9 +52,9 @@ export const RELEASE = {
       "filename": "KnowToMigrate-1.0.6.apk",
       "path": "/download/KnowToMigrate-1.0.6.apk",
       "version": "1.0.6",
-      "size": "16.7 MB",
-      "sizeBytes": 17529444,
-      "sha256": "4a4045fab65202d26e3a78d8f3579cc108d881a8c16357650923ae277eee5e1a"
+      "size": "17.1 MB",
+      "sizeBytes": 17980870,
+      "sha256": "b36b2c9a37bac73209465cc5c3189b88501a7a07eb905ce2b2aa53ddb892e92b"
     }
   ]
 } as const

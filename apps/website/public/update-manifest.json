@@ -3,27 +3,27 @@
     "channel": "stable",
     "version": "1.0.6",
     "minimumSupportedVersion": "1.0.0",
-    "publishedAt": "2026-10-26T08:05:00Z",
+    "publishedAt": "2026-10-27T06:06:15Z",
     "windows": {
         "architecture": "x64",
         "installerType": "exe",
         "version": "1.0.6",
         "filename": "KnowToMigrate-Setup.exe",
         "url": "https://knowtomigrate.web.app/download/KnowToMigrate-Setup.exe",
-        "size": 67577856,
-        "sha256": "62561cae27289a1f3ea03b67fc18cd21b9dd785128a6c3c64efbb250de2ffbfe",
+        "size": 203994056,
+        "sha256": "5baa17f79b8d3c42fdfa938eedefc7ceef0b2444765a899d3e4dff45ae4a61bb",
         "signature": "",
         "msi": {
             "filename": "KnowToMigrate-1.0.6-x64.msi",
             "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.6-x64.msi",
-            "size": 67256320,
-            "sha256": "20c09053b6e822226d900487f998ed4305fbdda8c2ba339f0319c42daae7777a"
+            "size": 131858432,
+            "sha256": "c74a5f7226d5347a5c2dce89b8e2056e5b6d0699352e967d6903f77242aa5b14"
         },
         "standalone": {
             "filename": "KnowToMigrate-1.0.6-x64.exe",
             "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.6-x64.exe",
-            "size": 72864768,
-            "sha256": "388f62c0e588c19694d4bea9a8cfc95596699aba30fc2827d67b82ead4d10216"
+            "size": 72519226,
+            "sha256": "842a94216d660f2ead428abd8c8e0ae60e5bf5397ca746b5156ca17c8f757843"
         }
     },
     "android": {
@@ -31,8 +31,8 @@
         "versionName": "1.0.6",
         "filename": "KnowToMigrate-1.0.6.apk",
         "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.6.apk",
-        "size": 17529444,
-        "sha256": "4a4045fab65202d26e3a78d8f3579cc108d881a8c16357650923ae277eee5e1a"
+        "size": 17980870,
+        "sha256": "b36b2c9a37bac73209465cc5c3189b88501a7a07eb905ce2b2aa53ddb892e92b"
     },
     "releaseNotes": [
         "Transit Auto Smart Transfer Engine with dynamic latency profiling and automated transport selection",

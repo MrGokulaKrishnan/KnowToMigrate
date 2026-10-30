@@ -17,7 +17,8 @@
     <ApplicationIcon>..\windows-wpf\Assets\KnowToMigrate.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>KnowToMigrate.Updater</AssemblyName>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyTitle>KnowToMigrate Updater</AssemblyTitle>
+    <AssemblyDescription>KnowToMigrate Standalone Native Updater</AssemblyDescription>
   </PropertyGroup>
 
   <ItemGroup>

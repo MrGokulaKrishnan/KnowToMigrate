@@ -10,13 +10,6 @@ using System.Threading;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-[assembly: AssemblyTitle("KnowToMigrate Setup & Management")]
-[assembly: AssemblyProduct("KnowToMigrate")]
-[assembly: AssemblyCompany("KnowTheTech")]
-[assembly: AssemblyDescription("KnowToMigrate Windows Setup & Uninstall Manager")]
-[assembly: AssemblyVersion("1.0.6.0")]
-[assembly: AssemblyFileVersion("1.0.6.0")]
-
 namespace KnowToMigrate.Setup
 {
     static class Program
@@ -349,8 +342,7 @@ namespace KnowToMigrate.Setup
                 {
                     if (uninstKey != null)
                     {
-                        Version v = typeof(Program).Assembly.GetName().Version;
-                        string verStr = (v != null) ? string.Format("{0}.{1}.{2}", v.Major, v.Minor, v.Build) : "1.0.6";
+                        string verStr = KtmVersion.DisplayVersion;
                         uninstKey.SetValue("DisplayName", "KnowToMigrate");
                         uninstKey.SetValue("DisplayVersion", verStr);
                         uninstKey.SetValue("Publisher", "KnowTheTech");
@@ -1579,8 +1571,8 @@ namespace KnowToMigrate.Setup
                 g.DrawString("KnowToMigrate Setup", _fTitleBar, bWhite, titleX, titleY);
             }
 
-            // Version Badge Pill ("v1.0.6")
-            string pillText = "v1.0.6";
+            // Version Badge Pill ("v" + KtmVersion.DisplayVersion)
+            string pillText = "v" + KtmVersion.DisplayVersion;
             Size pillTextSize = TextRenderer.MeasureText(pillText, _fPill, Size.Empty, TextFormatFlags.NoPadding);
             int pillW = pillTextSize.Width + S(20);
             int pillH = S(20);
@@ -2273,7 +2265,7 @@ namespace KnowToMigrate.Setup
                     int titleX = s(48);
                     Size tSize = TextRenderer.MeasureText("KnowToMigrate Setup", form._fTitleBar, Size.Empty, TextFormatFlags.NoPadding);
                     int pillX = titleX + tSize.Width + s(12);
-                    Size pillTSize = TextRenderer.MeasureText("v1.0.6", form._fPill, Size.Empty, TextFormatFlags.NoPadding);
+                    Size pillTSize = TextRenderer.MeasureText("v" + KtmVersion.DisplayVersion, form._fPill, Size.Empty, TextFormatFlags.NoPadding);
                     int pillW = pillTSize.Width + s(20);
                     int minBtnX = form.ClientSize.Width - s(90);
 

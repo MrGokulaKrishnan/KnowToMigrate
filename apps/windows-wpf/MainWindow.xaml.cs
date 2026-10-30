@@ -508,7 +508,7 @@ namespace KnowToMigrate
 
 
 
-                TxtSidebarFooterVersion.Text = $"KnowToMigrate Â· v{currentVer}";
+                TxtSidebarFooterVersion.Text = $"KnowToMigrate · v{currentVer}";
 
 
 
@@ -517,6 +517,13 @@ namespace KnowToMigrate
 
 
                 TxtAboutVersion.Text = $"v{currentVer} (Production Release)";
+
+                if (KtmUpdateService.IsTestManifestActive)
+                {
+                    TxtNotificationTitle.Text = "Debug Update Source Active";
+                    TxtNotificationBody.Text = $"Test update source: {KtmUpdateService.ActiveTestManifestSource}";
+                    PanelNotificationBanner.Visibility = Visibility.Visible;
+                }
 
 
 
@@ -1267,7 +1274,7 @@ namespace KnowToMigrate
 
 
 
-                            body: $"{info.CurrentFileName} ({KtmFormatting.FormatBytes(info.TotalBytes)}) Â· Verified",
+                            body: $"{info.CurrentFileName} ({KtmFormatting.FormatBytes(info.TotalBytes)}) · Verified",
 
 
 
@@ -4803,7 +4810,7 @@ private void CancelTransfer_Click(object sender, RoutedEventArgs e)
 
 
 
-                        TxtAvailableVersionSize.Text = $"Download Size: {KtmFormatting.FormatBytes(manifest?.Windows?.Size ?? 0)} Â· Windows x64";
+                        TxtAvailableVersionSize.Text = $"Download Size: {KtmFormatting.FormatBytes(manifest?.Windows?.Size ?? 0)} · Windows x64";
 
 
 
@@ -4983,7 +4990,7 @@ private void CancelTransfer_Click(object sender, RoutedEventArgs e)
 
 
 
-                        TxtDownloadSpeedEta.Text = $"{progress?.SpeedFormatted} Â· ETA {progress?.EtaFormatted}";
+                        TxtDownloadSpeedEta.Text = $"{progress?.SpeedFormatted} · ETA {progress?.EtaFormatted}";
 
 
 

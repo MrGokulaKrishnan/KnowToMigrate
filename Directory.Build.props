@@ -1,0 +1,12 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)Version.g.props" Condition="Exists('$(MSBuildThisFileDirectory)Version.g.props')" />
+  <PropertyGroup>
+    <Company>KnowTheTech</Company>
+    <Product>KnowToMigrate</Product>
+    <Authors>KnowTheTech</Authors>
+    <Copyright>Copyright © 2026 KnowTheTech</Copyright>
+  </PropertyGroup>
+  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)KtmVersion.g.cs')">
+    <Compile Include="$(MSBuildThisFileDirectory)KtmVersion.g.cs" Link="KtmVersion.g.cs" />
+  </ItemGroup>
+</Project>

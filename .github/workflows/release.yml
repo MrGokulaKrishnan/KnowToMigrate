@@ -17,8 +17,18 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  verify:
+    name: Verify version sync and release validity
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify versions and ensure bumped
+        shell: pwsh
+        run: pwsh scripts/check-versions.ps1 -CheckPublished
+
   android:
     name: Android signed APK
+    needs: [verify]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -68,6 +78,7 @@ jobs:
 
   windows:
     name: Windows EXE and MSI
+    needs: [verify]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4

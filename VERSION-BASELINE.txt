@@ -1,0 +1,57 @@
+================================================================================
+KNOWTOMIGRATE VERSION BASELINE (PHASE 0)
+Git Commit: 6a0e9f5f2deb396012a3d02a7ce9a7029005b27e
+Branch: main
+Working Tree: Clean
+Timestamp: 2026-10-27T11:03:45+05:30
+================================================================================
+
+1. version.json:
+   - version: "1.0.6"
+   - versionCode: 10006
+
+2. apps/windows-wpf/KnowToMigrate.csproj:
+   - AssemblyVersion: 1.0.6.0
+   - FileVersion: 1.0.6.0
+   - InformationalVersion: 1.0.6
+
+3. apps/windows-setup/KnowToMigrate-Setup.csproj:
+   - AssemblyVersion: 1.0.5.0
+   - FileVersion: 1.0.5.0
+   - InformationalVersion: 1.0.5
+
+4. apps/windows-updater/KnowToMigrate.Updater.csproj & UpdaterMain.cs:
+   - KnowToMigrate.Updater.csproj: [No version specified; GenerateAssemblyInfo=false]
+   - UpdaterMain.cs: AssemblyVersion = 1.0.6.0, FileVersion = 1.0.6.0
+
+5. apps/android/app/build.gradle.kts:
+   - versionCode: 10006
+   - versionName: "1.0.6"
+
+6. Package.wxs:
+   - Package/@Version: "1.0.6.0"
+
+7. apps/windows-setup/MainWindow.xaml.cs:420:
+   - DisplayVersion literal: "1.0.5"
+
+8. apps/windows-setup/MainWindow.xaml:91:
+   - Text literal: "Production Release · v1.0.5 (x64)"
+
+9. apps/windows-setup/SetupBootstrapper.cs:
+   - AssemblyVersion: "1.0.6.0"
+   - FileVersion: "1.0.6.0"
+   - DisplayVersion fallback (line 353): "1.0.6"
+   - TitleBar pill literal (line 1583): "v1.0.6"
+
+10. KtmUpdateService.cs:
+    - MinimumSupportedVersion default (line 56): "1.0.0"
+    - CurrentVersion fallback (line 150): "1.0.0"
+
+11. Discovery Payloads:
+    - apps/windows-wpf/Services/KtmDiscoveryService.cs:33: Version = "1.0.0"
+    - apps/android/app/src/main/java/com/knowtomigrate/app/network/KtmDiscoveryService.kt:106: version = "1.0.0"
+
+12. Compiled DLL (KnowToMigrate.dll):
+    - FileVersion: 1.0.6.0
+    - ProductVersion (InformationalVersion): 1.0.6+6a0e9f5f2deb396012a3d02a7ce9a7029005b27e
+================================================================================

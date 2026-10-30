@@ -52,6 +52,7 @@ namespace KnowToMigrate.Services
         [JsonPropertyName("version")]
         public string Version { get; set; } = "";
 
+        // Minimum supported protocol/client version floor required to interact with this release, NOT the installed application version.
         [JsonPropertyName("minimumSupportedVersion")]
         public string MinimumSupportedVersion { get; set; } = "1.0.0";
 
@@ -147,11 +148,24 @@ namespace KnowToMigrate.Services
                     if (ver != null) return $"{ver.Major}.{ver.Minor}.{ver.Build}";
                 }
                 catch { }
-                return "1.0.0";
+                return "unknown";
             }
         }
 
         public const string DefaultManifestUrl = "https://knowtomigrate.web.app/update-manifest.json";
+
+#if DEBUG
+        public static bool IsTestManifestActive =>
+            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KTM_UPDATE_MANIFEST_URL")) ||
+            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KTM_UPDATE_MANIFEST_FILE"));
+
+        public static string? ActiveTestManifestSource =>
+            Environment.GetEnvironmentVariable("KTM_UPDATE_MANIFEST_FILE") ??
+            Environment.GetEnvironmentVariable("KTM_UPDATE_MANIFEST_URL");
+#else
+        public static bool IsTestManifestActive => false;
+        public static string? ActiveTestManifestSource => null;
+#endif
 
         private readonly HttpClient _httpClient;
         private CancellationTokenSource? _downloadCts;
@@ -183,6 +197,15 @@ namespace KnowToMigrate.Services
         {
             if (CheckStatus == UpdateCheckStatus.Checking) return CheckStatus;
 
+            if (string.Equals(CurrentVersion, "unknown", StringComparison.OrdinalIgnoreCase))
+            {
+                Log("[ERROR] Refusing update check: Current application version is unknown.");
+                CheckStatus = UpdateCheckStatus.Failed;
+                LastError = "Cannot determine installed application version.";
+                OnCheckStatusChanged?.Invoke(CheckStatus, null);
+                return CheckStatus;
+            }
+
             CheckStatus = UpdateCheckStatus.Checking;
             OnCheckStatusChanged?.Invoke(CheckStatus, null);
             Log("[INFO] Update check initiated (Manual=" + isManual + ")");
@@ -203,37 +226,60 @@ namespace KnowToMigrate.Services
                     }
                 }
 
-                // Check network connectivity
-                if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+                string json;
+#if DEBUG
+                string? testFile = Environment.GetEnvironmentVariable("KTM_UPDATE_MANIFEST_FILE");
+                string? testUrl = Environment.GetEnvironmentVariable("KTM_UPDATE_MANIFEST_URL");
+
+                if (!string.IsNullOrWhiteSpace(testFile) && File.Exists(testFile))
                 {
-                    Log("[INFO] Network is unavailable; offline mode.");
-                    CheckStatus = UpdateCheckStatus.Offline;
-                    OnCheckStatusChanged?.Invoke(CheckStatus, null);
-                    return CheckStatus;
+                    Log($"[INFO] Reading test update manifest from local file: {testFile}");
+                    json = await File.ReadAllTextAsync(testFile);
+                }
+                else
+#endif
+                {
+                    // Check network connectivity
+                    if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+                    {
+                        Log("[INFO] Network is unavailable; offline mode.");
+                        CheckStatus = UpdateCheckStatus.Offline;
+                        OnCheckStatusChanged?.Invoke(CheckStatus, null);
+                        return CheckStatus;
+                    }
+
+                    HttpResponseMessage response;
+                    try
+                    {
+                        string targetUrl = DefaultManifestUrl;
+#if DEBUG
+                        if (!string.IsNullOrWhiteSpace(testUrl))
+                        {
+                            targetUrl = testUrl;
+                            Log($"[INFO] Using test update manifest URL override: {targetUrl}");
+                        }
+#endif
+                        string manifestUrlWithCacheBust = $"{targetUrl}?_cb={DateTime.UtcNow.Ticks}";
+                        var request = new HttpRequestMessage(HttpMethod.Get, manifestUrlWithCacheBust);
+                        request.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true };
+                        response = await _httpClient.SendAsync(request);
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        Log($"[WARN] Could not contact update server: {ex.Message}");
+                        CheckStatus = UpdateCheckStatus.Offline;
+                        OnCheckStatusChanged?.Invoke(CheckStatus, null);
+                        return CheckStatus;
+                    }
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new InvalidOperationException($"Update manifest returned HTTP {response.StatusCode}");
+                    }
+
+                    json = await response.Content.ReadAsStringAsync();
                 }
 
-                HttpResponseMessage response;
-                try
-                {
-                    string manifestUrlWithCacheBust = $"{DefaultManifestUrl}?_cb={DateTime.UtcNow.Ticks}";
-                    var request = new HttpRequestMessage(HttpMethod.Get, manifestUrlWithCacheBust);
-                    request.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true };
-                    response = await _httpClient.SendAsync(request);
-                }
-                catch (HttpRequestException ex)
-                {
-                    Log($"[WARN] Could not contact update server: {ex.Message}");
-                    CheckStatus = UpdateCheckStatus.Offline;
-                    OnCheckStatusChanged?.Invoke(CheckStatus, null);
-                    return CheckStatus;
-                }
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new InvalidOperationException($"Update manifest returned HTTP {response.StatusCode}");
-                }
-
-                string json = await response.Content.ReadAsStringAsync();
                 var manifest = JsonSerializer.Deserialize<UpdateManifest>(json);
                 if (manifest == null || manifest.Windows == null)
                 {

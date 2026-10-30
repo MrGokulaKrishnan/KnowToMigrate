@@ -88,7 +88,7 @@
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock x:Name="TxtHeaderTitle" Text="KnowToMigrate" Foreground="#FFFFFF" FontWeight="ExtraBold" FontSize="20" />
                         <TextBlock x:Name="TxtHeaderSubtitle" Text="Move Anything. Anywhere. Seamlessly." Foreground="#4ADE80" FontWeight="SemiBold" FontSize="12" Margin="0,2,0,0" />
-                        <TextBlock Text="Production Release · v1.0.5 (x64)" Foreground="#777777" FontSize="11" Margin="0,3,0,0" />
+                        <TextBlock Text="Production Release · v1.0.6 (x64)" Foreground="#777777" FontSize="11" Margin="0,3,0,0" />
                     </StackPanel>
                 </Grid>
 

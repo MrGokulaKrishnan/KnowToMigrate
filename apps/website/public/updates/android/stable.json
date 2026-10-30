@@ -6,9 +6,9 @@
     "versionName": "1.0.6",
     "minimumSupportedVersionCode": 10000,
     "apkUrl": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.6.apk",
-    "sizeBytes": 17529444,
-    "sha256": "4a4045fab65202d26e3a78d8f3579cc108d881a8c16357650923ae277eee5e1a",
-    "releaseDate": "2026-10-26",
+    "sizeBytes": 17980870,
+    "sha256": "b36b2c9a37bac73209465cc5c3189b88501a7a07eb905ce2b2aa53ddb892e92b",
+    "releaseDate": "2026-10-27",
     "mandatory": false,
     "title": "KnowToMigrate 1.0.6",
     "releaseNotes": [

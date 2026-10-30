@@ -22,9 +22,6 @@
     <AssemblyProduct>KnowToMigrate</AssemblyProduct>
     <AssemblyCompany>KnowTheTech</AssemblyCompany>
     <AssemblyDescription>KnowToMigrate</AssemblyDescription>
-    <AssemblyVersion>1.0.6.0</AssemblyVersion>
-    <FileVersion>1.0.6.0</FileVersion>
-    <InformationalVersion>1.0.6</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

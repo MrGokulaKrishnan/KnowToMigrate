@@ -47,3 +47,32 @@ jobs:
           cd packages/protocol-types && npx tsc -p .
           cd ../transit-engine && npx tsc -p .
           node --test dist/tests/*.test.js
+
+  deploy-dev:
+    name: Deploy to Firebase preview channel (dev)
+    needs: [check, test-engine]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/website/package-lock.json
+      - name: Install dependencies
+        working-directory: apps/website
+        run: npm ci
+      - name: Build website
+        working-directory: apps/website
+        run: npm run build
+      - name: Deploy to Firebase preview channel 'dev'
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: knowtomigrate
+          channelId: dev
+          expires: 7d
+          entryPoint: .

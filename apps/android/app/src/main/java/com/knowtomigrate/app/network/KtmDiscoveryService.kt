@@ -1,5 +1,6 @@
 package com.knowtomigrate.app.network
 
+import com.knowtomigrate.app.BuildConfig
 import android.content.Context
 import android.net.wifi.WifiManager
 import kotlinx.coroutines.*
@@ -103,7 +104,7 @@ class KtmDiscoveryService(
                         deviceName = localDeviceName,
                         platform = "Android",
                         transferPort = KtmConstants.TRANSFER_PORT,
-                        version = "1.0.0",
+                        version = BuildConfig.VERSION_NAME,
                         supportedTransports = transportMgr.localSupportedTransports,
                         wifiDirectName = "DIRECT-KM-" + localDeviceName.replace(Regex("[^a-zA-Z0-9-]"), "-").take(15)
                     )

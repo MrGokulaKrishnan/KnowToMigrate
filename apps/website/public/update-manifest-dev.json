@@ -1,0 +1,47 @@
+{
+    "product": "KnowToMigrate",
+    "channel": "dev",
+    "version": "1.0.6",
+    "minimumSupportedVersion": "1.0.0",
+    "publishedAt": "2026-10-27T06:06:15Z",
+    "windows": {
+        "architecture": "x64",
+        "installerType": "exe",
+        "version": "1.0.6",
+        "filename": "KnowToMigrate-Setup.exe",
+        "url": "https://knowtomigrate.web.app/download/KnowToMigrate-Setup.exe",
+        "size": 203994056,
+        "sha256": "5baa17f79b8d3c42fdfa938eedefc7ceef0b2444765a899d3e4dff45ae4a61bb",
+        "signature": "",
+        "msi": {
+            "filename": "KnowToMigrate-1.0.6-x64.msi",
+            "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.6-x64.msi",
+            "size": 131858432,
+            "sha256": "c74a5f7226d5347a5c2dce89b8e2056e5b6d0699352e967d6903f77242aa5b14"
+        },
+        "standalone": {
+            "filename": "KnowToMigrate-1.0.6-x64.exe",
+            "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.6-x64.exe",
+            "size": 72519226,
+            "sha256": "842a94216d660f2ead428abd8c8e0ae60e5bf5397ca746b5156ca17c8f757843"
+        }
+    },
+    "android": {
+        "versionCode": 10006,
+        "versionName": "1.0.6",
+        "filename": "KnowToMigrate-1.0.6.apk",
+        "url": "https://knowtomigrate.web.app/download/KnowToMigrate-1.0.6.apk",
+        "size": 17980870,
+        "sha256": "b36b2c9a37bac73209465cc5c3189b88501a7a07eb905ce2b2aa53ddb892e92b"
+    },
+    "releaseNotes": [
+        "Transit Auto Smart Transfer Engine with dynamic latency profiling and automated transport selection",
+        "Adaptive Transfer streaming with dynamic buffer scaling (64 KB to 1 MB) and resilient retry",
+        "Native Pause, Resume, and Interruption Recovery without re-transmitting verified chunks",
+        "Real-Time Transfer Intelligence with hardware-accelerated data particle stream and SHA-256 integrity badging",
+        "Dynamic Transfer Queue supporting individual item status badges, progress, and byte counts",
+        "Unified memory-safe Rust native core (ktm-ffi) with hardened constant-time bearer authentication",
+        "Strict 0 Errors and 0 Warnings across Windows WPF, Android Jetpack Compose, and Rust core"
+    ],
+    "versionCode": 10006
+}

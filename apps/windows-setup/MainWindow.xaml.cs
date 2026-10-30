@@ -417,7 +417,7 @@ namespace KnowToMigrate.Setup
                 using (var uninstKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\KnowToMigrate"))
                 {
                     uninstKey.SetValue("DisplayName", "KnowToMigrate");
-                    uninstKey.SetValue("DisplayVersion", "1.0.5");
+                    uninstKey.SetValue("DisplayVersion", KtmVersion.DisplayVersion);
                     uninstKey.SetValue("Publisher", "KnowTheTech");
                     uninstKey.SetValue("DisplayIcon", AppIconPath + ",0");
                     uninstKey.SetValue("InstallLocation", InstallDir);

@@ -405,5 +405,212 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- ComboBox Toggle Button Template (Dark Glass Pill with Subtle Chevron) -->
+        <ControlTemplate x:Key="KmComboBoxToggleButtonTemplate" TargetType="ToggleButton">
+            <Border x:Name="BtnBorder"
+                    Background="#121212"
+                    BorderBrush="#262626"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    SnapsToDevicePixels="True">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="38" />
+                    </Grid.ColumnDefinitions>
+                    <!-- Glossy sheen on upper half -->
+                    <Border Grid.ColumnSpan="2"
+                            CornerRadius="11,11,0,0"
+                            VerticalAlignment="Top"
+                            Height="18"
+                            Background="{StaticResource GlossySheenBrush}"
+                            Opacity="0.3"
+                            IsHitTestVisible="False" />
+                    <!-- Chevron Arrow -->
+                    <Path x:Name="Arrow"
+                          Grid.Column="1"
+                          Data="M 0,0 L 4.5,4.5 L 9,0"
+                          Stroke="#8C8C8C"
+                          StrokeThickness="1.5"
+                          StrokeStartLineCap="Round"
+                          StrokeEndLineCap="Round"
+                          StrokeLineJoin="Round"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Path.RenderTransform>
+                            <RotateTransform Angle="0" />
+                        </Path.RenderTransform>
+                    </Path>
+                </Grid>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="BtnBorder" Property="Background" Value="#181818" />
+                    <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#40FFFFFF" />
+                    <Setter TargetName="Arrow" Property="Stroke" Value="#F5F5F5" />
+                </Trigger>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#FF5A00" />
+                    <Setter TargetName="Arrow" Property="Stroke" Value="#FF5A00" />
+                    <Setter TargetName="Arrow" Property="RenderTransform">
+                        <Setter.Value>
+                            <RotateTransform Angle="180" />
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter TargetName="BtnBorder" Property="Opacity" Value="0.4" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- ComboBox Item Style (Website Dark Card Item with Selection Highlight) -->
+        <Style x:Key="KmComboBoxItem" TargetType="ComboBoxItem">
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}"
+                                Margin="4,2"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#1AFFFFFF" />
+                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#26FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#22FF5A00" />
+                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#55FF5A00" />
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True" />
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#33FF5A00" />
+                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#FF5A00" />
+                            </MultiTrigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Dark Liquid Glass ComboBox Style matching Website Theme -->
+        <Style x:Key="KmComboBox" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#F5F5F5" />
+            <Setter Property="Background" Value="#121212" />
+            <Setter Property="BorderBrush" Value="#262626" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="MinHeight" Value="48" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="ItemContainerStyle" Value="{StaticResource KmComboBoxItem}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid SnapsToDevicePixels="True">
+                            <ToggleButton x:Name="ToggleButton"
+                                          Template="{StaticResource KmComboBoxToggleButtonTemplate}"
+                                          Focusable="False"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press"
+                                          HorizontalAlignment="Stretch"
+                                          VerticalAlignment="Stretch" />
+
+                            <ContentPresenter x:Name="ContentSite"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              Margin="12,0,38,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Stretch" />
+
+                            <TextBlock x:Name="Placeholder"
+                                       Text="Select target device..."
+                                       Foreground="#8C8C8C"
+                                       FontSize="13"
+                                       FontWeight="Normal"
+                                       IsHitTestVisible="False"
+                                       Margin="14,0,38,0"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left"
+                                       Visibility="Collapsed" />
+
+                            <Popup x:Name="PART_Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide"
+                                   VerticalOffset="4">
+                                <Grid x:Name="DropDown"
+                                      MinWidth="{TemplateBinding ActualWidth}"
+                                      MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                      SnapsToDevicePixels="True">
+                                    <Border x:Name="DropDownBorder"
+                                            Background="#111111"
+                                            BorderBrush="#2C2C2C"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="4">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#000000" BlurRadius="20" ShadowDepth="6" Opacity="0.75" />
+                                        </Border.Effect>
+                                        <Grid>
+                                            <ScrollViewer Margin="0" SnapsToDevicePixels="True">
+                                                <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                            </ScrollViewer>
+                                            <TextBlock x:Name="NoDevicesHint"
+                                                       Text="Looking for nearby devices..."
+                                                       Foreground="#8C8C8C"
+                                                       FontSize="12"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Margin="12"
+                                                       Visibility="Collapsed" />
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="HasItems" Value="False">
+                                <Setter TargetName="NoDevicesHint" Property="Visibility" Value="Visible" />
+                                <Setter TargetName="DropDownBorder" Property="MinHeight" Value="56" />
+                            </Trigger>
+                            <Trigger Property="SelectedIndex" Value="-1">
+                                <Setter TargetName="Placeholder" Property="Visibility" Value="Visible" />
+                                <Setter TargetName="ContentSite" Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                            <Trigger Property="SelectedItem" Value="{x:Null}">
+                                <Setter TargetName="Placeholder" Property="Visibility" Value="Visible" />
+                                <Setter TargetName="ContentSite" Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Application.Resources>
 </Application>

@@ -30,7 +30,7 @@ namespace KnowToMigrate.Services
                 DeviceName = deviceName,
                 Platform = "Windows",
                 TransferPort = KtmConstants.TransferPort,
-                Version = "1.0.0",
+                Version = KtmVersion.Value,
                 SupportedTransports = KtmTransportManager.Instance.LocalSupportedTransports,
                 WifiDirectName = "DIRECT-KM-" + deviceName.Replace(" ", "-"),
                 WifiDirectPort = KtmConstants.TransferPort,
